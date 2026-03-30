@@ -101,7 +101,6 @@ function App() {
           />
         ) : showTypeCategoriesView ? (
           <TypeCategories
-            type={selectedType}
             typeLabel={typeConfig[selectedType].label}
             typeColor={typeConfig[selectedType].color}
             categories={categories}

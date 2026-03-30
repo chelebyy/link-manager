@@ -1,10 +1,9 @@
 import { Folder, ArrowLeft, Layers } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
-import type { Category, ResourceType } from '../../types';
+import type { Category } from '../../types';
 
 interface TypeCategoriesProps {
-  type: ResourceType;
   typeLabel: string;
   typeColor: string;
   categories: Category[];
@@ -13,7 +12,6 @@ interface TypeCategoriesProps {
 }
 
 export function TypeCategories({ 
-  type, 
   typeLabel, 
   typeColor, 
   categories, 
@@ -73,9 +71,7 @@ export function TypeCategories({
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{category.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {category.description || 'Kategori'}
-                </p>
+                <p className="text-sm text-muted-foreground">Kategori</p>
               </div>
             </CardContent>
           </Card>
