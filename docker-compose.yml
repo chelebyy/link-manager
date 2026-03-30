@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: link-manager-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: linkmanager
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dokploy-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: link-manager-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/linkmanager
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      NODE_ENV: production
+      PORT: 3000
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dokploy-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: link-manager-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: /api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.link-manager.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.link-manager.entrypoints=websecure"
+      - "traefik.http.routers.link-manager.tls.certresolver=letsencrypt"
+      - "traefik.http.services.link-manager.loadbalancer.server.port=80"
+    depends_on:
+      - backend
+    networks:
+      - dokploy-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true

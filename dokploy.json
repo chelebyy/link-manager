@@ -1,0 +1,86 @@
+{
+  "name": "link-manager",
+  "version": "1.0.0",
+  "description": "Public resource sharing platform for GitHub repos, skills, websites, and notes",
+  "type": "docker-compose",
+  "services": [
+    {
+      "name": "postgres",
+      "type": "database",
+      "image": "postgres:16-alpine",
+      "environment": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "linkmanager"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "postgres"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "value": "${POSTGRES_PASSWORD}"
+        }
+      ],
+      "volumes": [
+        {
+          "name": "postgres_data",
+          "path": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthcheck": {
+        "test": ["CMD-SHELL", "pg_isready -U postgres"],
+        "interval": "5s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    {
+      "name": "backend",
+      "type": "app",
+      "dockerfile": "./backend/Dockerfile",
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/linkmanager"
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "value": "${GITHUB_TOKEN}"
+        },
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "PORT",
+          "value": "3000"
+        }
+      ],
+      "dependsOn": ["postgres"],
+      "healthcheck": {
+        "path": "/api/health",
+        "port": 3000
+      }
+    },
+    {
+      "name": "frontend",
+      "type": "app",
+      "dockerfile": "./frontend/Dockerfile",
+      "environment": [
+        {
+          "name": "VITE_API_URL",
+          "value": "/api"
+        }
+      ],
+      "dependsOn": ["backend"],
+      "domains": [
+        {
+          "host": "${DOMAIN}",
+          "port": 80,
+          "https": true
+        }
+      ]
+    }
+  ]
+}
