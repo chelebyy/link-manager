@@ -9,10 +9,18 @@ import {
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import type { Category } from '../../types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import type { Category, ResourceType } from '../../types';
 
 interface CategoryManagerProps {
   open: boolean;
+  selectedType: ResourceType | null;
   onClose: () => void;
 }
 
@@ -21,21 +29,39 @@ const presetColors = [
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#64748b'
 ];
 
-export function CategoryManager({ open, onClose }: CategoryManagerProps) {
+const typeLabels: Record<ResourceType, string> = {
+  github: 'GitHub Repos',
+  skill: 'Skills',
+  website: 'Websites',
+  note: 'Notes',
+};
+
+export function CategoryManager({ open, selectedType, onClose }: CategoryManagerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedColor, setSelectedColor] = useState(presetColors[0]);
+  const [managedType, setManagedType] = useState<ResourceType>(selectedType ?? 'website');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (selectedType) {
+      setManagedType(selectedType);
+    }
+  }, [open, selectedType]);
 
   useEffect(() => {
     if (open) {
       fetchCategories();
     }
-  }, [open]);
+  }, [open, managedType]);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch(`/api/categories?type=${managedType}`);
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -55,6 +81,7 @@ export function CategoryManager({ open, onClose }: CategoryManagerProps) {
           name: newCategoryName,
           color: selectedColor,
           icon: 'Folder',
+          type: managedType,
         }),
       });
       setNewCategoryName('');
@@ -86,6 +113,22 @@ export function CategoryManager({ open, onClose }: CategoryManagerProps) {
 
         <div className="space-y-4">
           <div className="space-y-2">
+            <Label>Kart</Label>
+            <Select value={managedType} onValueChange={(value) => setManagedType(value as ResourceType)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(typeLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label>Yeni Kategori</Label>
             <div className="flex gap-2">
               <Input
@@ -103,6 +146,7 @@ export function CategoryManager({ open, onClose }: CategoryManagerProps) {
               {presetColors.map((color) => (
                 <button
                   key={color}
+                  type="button"
                   className={`w-6 h-6 rounded-full border-2 ${
                     selectedColor === color ? 'border-foreground' : 'border-transparent'
                   }`}
@@ -114,7 +158,7 @@ export function CategoryManager({ open, onClose }: CategoryManagerProps) {
           </div>
 
           <div className="border-t pt-4">
-            <Label>Mevcut Kategoriler</Label>
+            <Label>{typeLabels[managedType]} kategorileri</Label>
             <div className="space-y-2 mt-2">
               {categories.map((category) => (
                 <div

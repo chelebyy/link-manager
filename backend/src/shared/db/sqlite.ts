@@ -3,21 +3,80 @@ import { dbConfig } from './config.js';
 
 let db: Database.Database | null = null;
 
-export const initSqliteDb = () => {
-  if (db) return db;
-  
-  db = new Database('link-manager.db');
-  
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS categories (
+const RESOURCE_TYPES = ['github', 'skill', 'website', 'note'] as const;
+const DEFAULT_CATEGORY_TYPE = 'website';
+
+const createCategoriesTableSql = `
+  CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}' CHECK(type IN ('${RESOURCE_TYPES.join("', '")}')),
+    color TEXT NOT NULL DEFAULT '#6366f1',
+    icon TEXT NOT NULL DEFAULT 'Folder',
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+`;
+
+const hasLegacyUniqueNameConstraint = (database: Database.Database) => {
+  const indexes = database.prepare(`PRAGMA index_list('categories')`).all() as Array<{ name: string; unique: number }>;
+
+  return indexes.some((index) => {
+    if (index.unique !== 1) {
+      return false;
+    }
+
+    const columns = database.prepare(`PRAGMA index_info('${index.name}')`).all() as Array<{ name: string }>;
+    return columns.length === 1 && columns[0]?.name === 'name';
+  });
+};
+
+const migrateCategoriesForTypeScoping = (database: Database.Database) => {
+  const tableInfo = database.prepare(`PRAGMA table_info('categories')`).all() as Array<{ name: string }>;
+  const hasTypeColumn = tableInfo.some((column) => column.name === 'type');
+  const hasLegacyUnique = hasLegacyUniqueNameConstraint(database);
+
+  if (hasTypeColumn && !hasLegacyUnique) {
+    database.exec('CREATE UNIQUE INDEX IF NOT EXISTS categories_name_type_unique_idx ON categories(name, type);');
+    return;
+  }
+
+  database.exec(`
+    PRAGMA foreign_keys = OFF;
+    BEGIN;
+
+    CREATE TABLE categories_migrated (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}' CHECK(type IN ('${RESOURCE_TYPES.join("', '")}')),
       color TEXT NOT NULL DEFAULT '#6366f1',
       icon TEXT NOT NULL DEFAULT 'Folder',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
 
+    INSERT INTO categories_migrated (id, name, type, color, icon, created_at, updated_at)
+    SELECT id, name, ${hasTypeColumn ? 'type' : `'${DEFAULT_CATEGORY_TYPE}'`}, color, icon, created_at, updated_at
+    FROM categories;
+
+    DROP TABLE categories;
+    ALTER TABLE categories_migrated RENAME TO categories;
+
+    CREATE UNIQUE INDEX IF NOT EXISTS categories_name_type_unique_idx ON categories(name, type);
+
+    COMMIT;
+    PRAGMA foreign_keys = ON;
+  `);
+};
+
+export const initSqliteDb = () => {
+  if (db) return db;
+  
+  db = new Database('link-manager.db');
+  
+  db.exec(createCategoriesTableSql);
+
+  db.exec(`
     CREATE TABLE IF NOT EXISTS resources (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
@@ -66,6 +125,8 @@ export const initSqliteDb = () => {
       acknowledged_at TEXT
     );
   `);
+
+  migrateCategoriesForTypeScoping(db);
   
   console.log('SQLite database initialized');
   return db;

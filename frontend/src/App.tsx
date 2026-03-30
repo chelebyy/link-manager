@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
 import { ResourceList } from './components/ResourceList/ResourceList';
-import { FilterBar } from './components/FilterBar/FilterBar';
 import { CategoryManager } from './components/CategoryManager/CategoryManager';
 import { AddResourceDialog } from './components/AddResourceDialog/AddResourceDialog';
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
@@ -15,7 +14,6 @@ function App() {
   const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<ResourceType | null>(null);
-  const [showTypeCategoriesView, setShowTypeCategoriesView] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showAddResource, setShowAddResource] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -45,13 +43,12 @@ function App() {
 
   const handleCategorySelect = (categoryId: number | null) => {
     setSelectedCategory(categoryId);
-    setShowTypeCategoriesView(false);
   };
 
   const handleTypeSelect = (type: ResourceType | null) => {
     setSelectedType(type);
-    setShowTypeCategoriesView(true);
     setSelectedCategory(null);
+    setSearchQuery('');
   };
 
   const handleResourceAdded = () => {
@@ -61,9 +58,13 @@ function App() {
 
   const handleResourceSuccess = (type: ResourceType) => {
     setSelectedType(type);
-    setShowTypeCategoriesView(true);
     setSelectedCategory(null);
+    setSearchQuery('');
   };
+
+  const selectedTypeCategories = selectedType
+    ? categories.filter((category) => category.type === selectedType)
+    : [];
 
   return (
     <div className={`min-h-screen bg-background transition-colors duration-300 ${theme}`}>
@@ -99,40 +100,35 @@ function App() {
           <CategoryGrid 
             onSelectType={handleTypeSelect}
           />
-        ) : showTypeCategoriesView ? (
+        ) : (
           <TypeCategories
             typeLabel={typeConfig[selectedType].label}
             typeColor={typeConfig[selectedType].color}
-            categories={categories}
+            categories={selectedTypeCategories}
+            selectedCategory={selectedCategory}
+            searchQuery={searchQuery}
             onSelectCategory={handleCategorySelect}
+            onSearchChange={setSearchQuery}
             onBack={() => {
               setSelectedType(null);
-              setShowTypeCategoriesView(false);
+              setSelectedCategory(null);
+              setSearchQuery('');
             }}
-          />
-        ) : (
-          <>
-            <FilterBar
-              selectedCategory={selectedCategory}
-              selectedType={selectedType}
-              onCategoryChange={handleCategorySelect}
-              onTypeChange={handleTypeSelect}
-              onSearchChange={setSearchQuery}
-              categories={categories}
-            />
+          >
             <ResourceList
               key={refreshKey}
               categoryId={selectedCategory}
               type={selectedType}
               searchQuery={searchQuery}
             />
-          </>
+          </TypeCategories>
         )}
       </main>
 
       {showCategoryManager && (
         <CategoryManager
           open={showCategoryManager}
+          selectedType={selectedType}
           onClose={() => {
             setShowCategoryManager(false);
             fetchCategories();
@@ -146,6 +142,7 @@ function App() {
           onClose={handleResourceAdded}
           onSuccess={handleResourceSuccess}
           categories={categories}
+          selectedType={selectedType}
         />
       )}
     </div>

@@ -1,23 +1,36 @@
-import { Folder, ArrowLeft, Layers } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
+import type { ReactNode } from 'react';
+import { Folder, ArrowLeft, Layers, Search } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import type { Category } from '../../types';
 
 interface TypeCategoriesProps {
   typeLabel: string;
   typeColor: string;
   categories: Category[];
+  selectedCategory: number | null;
+  searchQuery: string;
   onSelectCategory: (categoryId: number | null) => void;
+  onSearchChange: (query: string) => void;
   onBack: () => void;
+  children: ReactNode;
 }
 
 export function TypeCategories({ 
   typeLabel, 
   typeColor, 
   categories, 
+  selectedCategory,
+  searchQuery,
   onSelectCategory,
-  onBack 
+  onSearchChange,
+  onBack,
+  children,
 }: TypeCategoriesProps) {
+  const selectedCategoryName = selectedCategory
+    ? categories.find((category) => category.id === selectedCategory)?.name
+    : null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -30,52 +43,85 @@ export function TypeCategories({
             {typeLabel}
           </h2>
           <p className="text-muted-foreground">
-            Kategori secin veya tumunu goruntuleyin
+            Kategoriler solda, kaynaklar sagda listelenir
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-dashed border-muted"
-          onClick={() => onSelectCategory(null)}
-        >
-          <CardContent className="flex items-center gap-4 p-6">
-            <div
-              className="w-14 h-14 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: `${typeColor}20` }}
+      <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-2xl border bg-card p-4 shadow-sm lg:sticky lg:top-20">
+          <div className="mb-4">
+            <p className="text-sm font-medium text-muted-foreground">Kategoriler</p>
+          </div>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null)}
+              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
+                selectedCategory === null ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-muted'
+              }`}
             >
-              <Layers className="w-7 h-7" style={{ color: typeColor }} />
-            </div>
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-lg"
+                style={{ backgroundColor: `${typeColor}20` }}
+              >
+                <Layers className="h-5 w-5" style={{ color: typeColor }} />
+              </div>
+              <div className="min-w-0">
+                <div className="font-medium">Tümü</div>
+                <div className="text-sm text-muted-foreground">Bu karttaki tüm kaynaklar</div>
+              </div>
+            </button>
+
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => onSelectCategory(category.id)}
+                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
+                  selectedCategory === category.id ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-muted'
+                }`}
+              >
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: `${category.color}20` }}
+                >
+                  <Folder className="h-5 w-5" style={{ color: category.color }} />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{category.name}</div>
+                  <div className="text-sm text-muted-foreground">Kategori</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <section className="space-y-4">
+          <div className="flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="font-semibold text-lg">Tumu</h3>
+              <h3 className="text-xl font-semibold">
+                {selectedCategoryName ?? typeLabel}
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Bu tipteki tum kaynaklar
+                {selectedCategoryName ? 'Seçili kategori kaynakları' : 'Bu karttaki tüm kaynaklar'}
               </p>
             </div>
-          </CardContent>
-        </Card>
 
-        {categories.map((category) => (
-          <Card
-            key={category.id}
-            className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            onClick={() => onSelectCategory(category.id)}
-          >
-            <CardContent className="flex items-center gap-4 p-6">
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: `${category.color}20` }}
-              >
-                <Folder className="w-7 h-7" style={{ color: category.color }} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">{category.name}</h3>
-                <p className="text-sm text-muted-foreground">Kategori</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            <div className="relative w-full md:max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Ara..."
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {children}
+        </section>
       </div>
     </div>
   );

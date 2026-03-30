@@ -6,6 +6,35 @@ const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
 const boolTrue = () => isPostgres ? 'true' : '1';
 const now = () => isPostgres ? 'NOW()' : "datetime('now')";
 
+type ResourceCreateBody = {
+  category_id?: number | null;
+  type?: string;
+  title?: string;
+  url?: string | null;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+};
+
+type ResourceUpdateBody = {
+  category_id?: number | null;
+  title?: string;
+  url?: string | null;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+};
+
+type ResourceParams = {
+  id: string;
+};
+
+const normalizeOptionalText = (value: string | null | undefined) => {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  return value.trim() === '' ? null : value;
+};
+
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
   app.get('/', async (request, reply) => {
     const { category, type, favorite, search, sort = 'created_at', order = 'desc' } = request.query as any;
@@ -48,11 +77,16 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
   });
 
   app.post('/', async (request, reply) => {
-    const { category_id, type, title, url, description, metadata = {} } = request.body as any;
+    const { category_id, type, title, url, description, metadata = {} } = request.body as ResourceCreateBody;
+
+    if (!type || !title) {
+      reply.status(400);
+      return { error: 'type and title are required' };
+    }
     
     const result = await query(
       `INSERT INTO resources (category_id, type, title, url, description, metadata) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}) RETURNING *`,
-      [category_id, type, title, url, description, JSON.stringify(metadata)]
+      [category_id ?? null, type, title, normalizeOptionalText(url), normalizeOptionalText(description), JSON.stringify(metadata)]
     );
     
     reply.status(201);
@@ -60,8 +94,8 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
   });
 
   app.patch('/:id', async (request, reply) => {
-    const { id } = request.params as any;
-    const { category_id, title, url, description, metadata } = request.body as any;
+    const { id } = request.params as ResourceParams;
+    const { category_id, title, url, description, metadata } = request.body as ResourceUpdateBody;
     
     const fields: string[] = [];
     const values: any[] = [];
@@ -77,11 +111,11 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     }
     if (url !== undefined) {
       fields.push(`url = ${param(paramIndex++)}`);
-      values.push(url);
+      values.push(normalizeOptionalText(url));
     }
     if (description !== undefined) {
       fields.push(`description = ${param(paramIndex++)}`);
-      values.push(description);
+      values.push(normalizeOptionalText(description));
     }
     if (metadata !== undefined) {
       fields.push(`metadata = ${param(paramIndex++)}`);
@@ -113,13 +147,13 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
   });
 
   app.delete('/:id', async (request, reply) => {
-    const { id } = request.params as any;
+    const { id } = request.params as ResourceParams;
     await query(`DELETE FROM resources WHERE id = ${param(0)}`, [id]);
     reply.status(204);
   });
 
   app.patch('/:id/favorite', async (request, reply) => {
-    const { id } = request.params as any;
+    const { id } = request.params as ResourceParams;
     const { is_favorite } = request.body as any;
     
     const favValue = isPostgres ? is_favorite : (is_favorite ? 1 : 0);

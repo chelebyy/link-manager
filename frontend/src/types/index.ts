@@ -3,6 +3,7 @@ export interface Category {
   name: string;
   color: string;
   icon: string;
+  type: ResourceType;
   created_at: string;
   updated_at: string;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Github, Globe, Wrench, FileText } from 'lucide-react';
 import {
   Dialog,
@@ -24,6 +24,7 @@ interface AddResourceDialogProps {
   onClose: () => void;
   onSuccess?: (type: ResourceType) => void;
   categories: Category[];
+  selectedType: ResourceType | null;
 }
 
 const typeOptions: { value: ResourceType; label: string; icon: React.ElementType }[] = [
@@ -33,13 +34,29 @@ const typeOptions: { value: ResourceType; label: string; icon: React.ElementType
   { value: 'note', label: 'Note', icon: FileText },
 ];
 
-export function AddResourceDialog({ open, onClose, onSuccess, categories }: AddResourceDialogProps) {
-  const [type, setType] = useState<ResourceType>('website');
+export function AddResourceDialog({ open, onClose, onSuccess, categories, selectedType }: AddResourceDialogProps) {
+  const [type, setType] = useState<ResourceType>(selectedType ?? 'website');
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [loading, setLoading] = useState(false);
+
+  const filteredCategories = categories.filter((category) => category.type === type);
+
+  const handleTypeChange = (nextType: ResourceType) => {
+    setType(nextType);
+    setCategoryId('');
+  };
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setType(selectedType ?? 'website');
+    setCategoryId('');
+  }, [open, selectedType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +99,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories }: AddR
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Tip</Label>
-            <Select value={type} onValueChange={(v) => setType(v as ResourceType)}>
+            <Select value={type} onValueChange={(value) => handleTypeChange(value as ResourceType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -110,12 +127,11 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories }: AddR
           </div>
 
           <div className="space-y-2">
-            <Label>URL {type !== 'note' && '*'}</Label>
+            <Label>URL</Label>
             <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder={type === 'github' ? 'https://github.com/owner/repo' : 'https://example.com'}
-              required={type !== 'note'}
               type="url"
             />
           </div>
@@ -127,7 +143,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories }: AddR
                 <SelectValue placeholder="Kategori seç..." />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
+                {filteredCategories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id.toString()}>
                     {cat.name}
                   </SelectItem>

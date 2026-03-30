@@ -44,11 +44,48 @@ export const db = {
           CREATE TABLE IF NOT EXISTS categories (
             id BIGSERIAL PRIMARY KEY,
             name VARCHAR(80) NOT NULL,
+            type VARCHAR(20) NOT NULL DEFAULT 'website',
             color VARCHAR(16) NOT NULL DEFAULT '#6366f1',
             icon VARCHAR(64) NOT NULL DEFAULT 'Folder',
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
+        `);
+
+        await client.query(`
+          ALTER TABLE categories
+          ADD COLUMN IF NOT EXISTS type VARCHAR(20);
+        `);
+
+        await client.query(`
+          UPDATE categories SET type = 'website' WHERE type IS NULL;
+        `);
+
+        await client.query(`
+          ALTER TABLE categories
+          ALTER COLUMN type SET DEFAULT 'website',
+          ALTER COLUMN type SET NOT NULL;
+        `);
+
+        await client.query(`
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1
+              FROM pg_constraint
+              WHERE conname = 'categories_type_check'
+            ) THEN
+              ALTER TABLE categories
+              ADD CONSTRAINT categories_type_check
+              CHECK (type IN ('github', 'skill', 'website', 'note'));
+            END IF;
+          END
+          $$;
+        `);
+
+        await client.query(`
+          CREATE UNIQUE INDEX IF NOT EXISTS categories_name_type_unique_idx
+          ON categories(name, type);
         `);
 
         await client.query(`
