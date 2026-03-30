@@ -21,7 +21,6 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [lastAddedType, setLastAddedType] = useState<ResourceType | null>(null);
 
   const typeConfig: Record<ResourceType, { label: string; color: string }> = {
     github: { label: 'GitHub Repos', color: '#333' },
@@ -55,13 +54,15 @@ function App() {
     setSelectedCategory(null);
   };
 
-  const handleResourceAdded = (type?: ResourceType) => {
+  const handleResourceAdded = () => {
     setRefreshKey(prev => prev + 1);
     setShowAddResource(false);
-    if (type) {
-      setSelectedType(type);
-      setSelectedCategory(null);
-    }
+  };
+
+  const handleResourceSuccess = (type: ResourceType) => {
+    setSelectedType(type);
+    setShowTypeCategoriesView(true);
+    setSelectedCategory(null);
   };
 
   return (
@@ -144,6 +145,7 @@ function App() {
         <AddResourceDialog
           open={showAddResource}
           onClose={handleResourceAdded}
+          onSuccess={handleResourceSuccess}
           categories={categories}
         />
       )}

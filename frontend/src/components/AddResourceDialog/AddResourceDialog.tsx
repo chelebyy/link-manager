@@ -21,7 +21,8 @@ import type { Category, ResourceType } from '../../types';
 
 interface AddResourceDialogProps {
   open: boolean;
-  onClose: (type?: ResourceType) => void;
+  onClose: () => void;
+  onSuccess?: (type: ResourceType) => void;
   categories: Category[];
 }
 
@@ -32,7 +33,7 @@ const typeOptions: { value: ResourceType; label: string; icon: React.ElementType
   { value: 'note', label: 'Note', icon: FileText },
 ];
 
-export function AddResourceDialog({ open, onClose, categories }: AddResourceDialogProps) {
+export function AddResourceDialog({ open, onClose, onSuccess, categories }: AddResourceDialogProps) {
   const [type, setType] = useState<ResourceType>('website');
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -62,7 +63,8 @@ export function AddResourceDialog({ open, onClose, categories }: AddResourceDial
       setUrl('');
       setDescription('');
       setCategoryId('');
-      onClose(type);
+      onSuccess?.(type);
+      onClose();
     } catch (error) {
       console.error('Failed to add resource:', error);
     } finally {
@@ -71,7 +73,7 @@ export function AddResourceDialog({ open, onClose, categories }: AddResourceDial
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Yeni Kaynak Ekle</DialogTitle>
