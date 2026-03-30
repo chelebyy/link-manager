@@ -19,6 +19,7 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lastAddedType, setLastAddedType] = useState<ResourceType | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -42,9 +43,13 @@ function App() {
     setSelectedType(type);
   };
 
-  const handleResourceAdded = () => {
+  const handleResourceAdded = (type?: ResourceType) => {
     setRefreshKey(prev => prev + 1);
     setShowAddResource(false);
+    if (type) {
+      setSelectedType(type);
+      setSelectedCategory(null);
+    }
   };
 
   return (

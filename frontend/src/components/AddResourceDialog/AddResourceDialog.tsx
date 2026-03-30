@@ -21,7 +21,7 @@ import type { Category, ResourceType } from '../../types';
 
 interface AddResourceDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (type?: ResourceType) => void;
   categories: Category[];
 }
 
@@ -62,7 +62,7 @@ export function AddResourceDialog({ open, onClose, categories }: AddResourceDial
       setUrl('');
       setDescription('');
       setCategoryId('');
-      onClose();
+      onClose(type);
     } catch (error) {
       console.error('Failed to add resource:', error);
     } finally {
@@ -145,7 +145,7 @@ export function AddResourceDialog({ open, onClose, categories }: AddResourceDial
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => onClose()}>
               İptal
             </Button>
             <Button type="submit" disabled={loading}>
