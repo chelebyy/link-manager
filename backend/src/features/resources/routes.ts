@@ -106,7 +106,10 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'Resource not found' };
     }
     
-    return result.rows[0] || { id, ...request.body };
+    if (result.rows.length > 0) {
+      return result.rows[0];
+    }
+    return { id };
   });
 
   app.delete('/:id', async (request, reply) => {
