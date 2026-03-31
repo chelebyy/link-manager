@@ -58,6 +58,11 @@ export const db = {
         `);
 
         await client.query(`
+          ALTER TABLE categories
+          ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
+        `);
+
+        await client.query(`
           UPDATE categories SET type = 'website' WHERE type IS NULL;
         `);
 
@@ -94,6 +99,10 @@ export const db = {
         `);
 
         await client.query(`
+          UPDATE categories SET sort_order = id WHERE sort_order = 0;
+        `);
+
+        await client.query(`
           CREATE TABLE IF NOT EXISTS resource_types (
             id VARCHAR(80) PRIMARY KEY,
             name VARCHAR(120) NOT NULL,
@@ -124,6 +133,11 @@ export const db = {
         `).catch(() => {});
 
         await client.query(`
+          ALTER TABLE IF EXISTS resources
+          ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
+        `);
+
+        await client.query(`
           CREATE TABLE IF NOT EXISTS resources (
             id BIGSERIAL PRIMARY KEY,
             category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
@@ -133,9 +147,14 @@ export const db = {
             description TEXT,
             metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
             is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
+            sort_order INTEGER NOT NULL DEFAULT 0,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
+        `);
+
+        await client.query(`
+          UPDATE resources SET sort_order = id WHERE sort_order = 0;
         `);
 
         await client.query(`

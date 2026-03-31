@@ -32,6 +32,10 @@ type ResourceTypeUpdateBody = {
   sort_order?: number;
 };
 
+type ReorderBody = {
+  ids?: string[];
+};
+
 type ResourceTypeParams = {
   id: string;
 };
@@ -54,10 +58,34 @@ const isValidColor = (color: string): boolean => {
 export async function resourceTypesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
   app.get('/', async (request, reply) => {
     const result = await query(
-      `SELECT * FROM resource_types ORDER BY sort_order ASC, name ASC`,
+      `SELECT rt.*, COUNT(r.id) as resource_count
+       FROM resource_types rt
+       LEFT JOIN resources r ON r.type = rt.id
+       GROUP BY rt.id
+       ORDER BY rt.sort_order ASC, rt.name ASC`,
       []
     );
     return result.rows;
+  });
+
+  app.patch('/reorder', async (request, reply) => {
+    const { ids } = request.body as ReorderBody;
+
+    if (!ids || ids.length === 0) {
+      reply.status(400);
+      return { error: 'ids are required' };
+    }
+
+    await Promise.all(
+      ids.map((id, index) =>
+        query(
+          `UPDATE resource_types SET sort_order = ${param(0)}, updated_at = ${isPostgres ? 'NOW()' : "datetime('now')"} WHERE id = ${param(1)}`,
+          [index + 1, id]
+        )
+      )
+    );
+
+    return { success: true };
   });
 
   app.get('/icons', async (request, reply) => {

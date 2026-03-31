@@ -27,6 +27,10 @@ type ResourceParams = {
   id: string;
 };
 
+type ResourceReorderBody = {
+  ids?: number[];
+};
+
 const normalizeOptionalText = (value: string | null | undefined) => {
   if (value === undefined || value === null) {
     return null;
@@ -37,7 +41,7 @@ const normalizeOptionalText = (value: string | null | undefined) => {
 
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
   app.get('/', async (request, reply) => {
-    const { category, type, favorite, search, sort = 'created_at', order = 'desc' } = request.query as any;
+      const { category, type, favorite, search, sort = 'sort_order', order = 'asc' } = request.query as any;
     
     let sql = `
       SELECT r.*, c.name as category_name, c.color as category_color, c.icon as category_icon,
@@ -64,11 +68,11 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       sql += ` AND r.is_favorite = ${boolTrue()}`;
     }
 
-    if (search) {
-      const searchParam = param(paramIndex++);
-      sql += ` AND (LOWER(r.title) LIKE LOWER(${searchParam}) OR LOWER(r.description) LIKE LOWER(${searchParam}))`;
-      params.push(`%${search}%`);
-    }
+      if (search) {
+        const searchParam = param(paramIndex++);
+       sql += ` AND (LOWER(r.title) LIKE LOWER(${searchParam}) OR LOWER(r.description) LIKE LOWER(${searchParam}) OR LOWER(COALESCE(c.name, '')) LIKE LOWER(${searchParam}) OR LOWER(r.type) LIKE LOWER(${searchParam}))`;
+       params.push(`%${search}%`);
+      }
 
     sql += ` ORDER BY r.${sort} ${order.toUpperCase()}`;
 
@@ -83,10 +87,16 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       reply.status(400);
       return { error: 'type and title are required' };
     }
+
+    const sortResult = await query(
+      `SELECT MAX(sort_order) as max_order FROM resources WHERE type = ${param(0)}`,
+      [type]
+    );
+    const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
     
     const result = await query(
-      `INSERT INTO resources (category_id, type, title, url, description, metadata) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}) RETURNING *`,
-      [category_id ?? null, type, title, normalizeOptionalText(url), normalizeOptionalText(description), JSON.stringify(metadata)]
+      `INSERT INTO resources (category_id, type, title, url, description, metadata, sort_order) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}, ${param(6)}) RETURNING *`,
+      [category_id ?? null, type, title, normalizeOptionalText(url), normalizeOptionalText(description), JSON.stringify(metadata), nextOrder]
     );
     
     reply.status(201);
@@ -170,5 +180,25 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     }
     
     return result.rows[0] || { id, is_favorite: favValue };
+  });
+
+  app.patch('/reorder', async (request, reply) => {
+    const { ids } = request.body as ResourceReorderBody;
+
+    if (!ids || ids.length === 0) {
+      reply.status(400);
+      return { error: 'ids are required' };
+    }
+
+    await Promise.all(
+      ids.map((id, index) =>
+        query(
+          `UPDATE resources SET sort_order = ${param(0)}, updated_at = ${now()} WHERE id = ${param(1)}`,
+          [index + 1, id]
+        )
+      )
+    );
+
+    return { success: true };
   });
 }

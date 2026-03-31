@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Folder } from 'lucide-react';
+import { Plus, Trash2, Folder, GripVertical } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -27,16 +27,19 @@ const presetColors = [
 interface CategoryManagerProps {
   open: boolean;
   selectedType: string | null;
+  onNotify?: (kind: 'success' | 'error', title: string, description?: string) => void;
   onClose: () => void;
 }
 
-export function CategoryManager({ open, selectedType, onClose }: CategoryManagerProps) {
+export function CategoryManager({ open, selectedType, onNotify, onClose }: CategoryManagerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [resourceTypes, setResourceTypes] = useState<ResourceTypeDefinition[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(presetColors[0]);
   const [managedType, setManagedType] = useState<string>(selectedType ?? 'website');
   const [loading, setLoading] = useState(false);
+  const [colorInput, setColorInput] = useState(presetColors[0]);
+  const [error, setError] = useState('');
+  const [draggedId, setDraggedId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -91,24 +94,44 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
   };
 
   const createCategory = async () => {
-    if (!newCategoryName.trim()) return;
+    if (!newCategoryName.trim()) {
+      setError('Kategori adı zorunludur.');
+      return;
+    }
+
+    if (!/^#[0-9A-Fa-f]{6}$/.test(colorInput)) {
+      setError('Geçerli bir hex renk girin.');
+      return;
+    }
 
     setLoading(true);
     try {
-      await fetch('/api/categories', {
+      const response = await fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newCategoryName,
-          color: selectedColor,
+          color: colorInput,
           icon: 'Folder',
           type: managedType,
         }),
       });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const message = payload?.error ?? 'Kategori eklenemedi.';
+        setError(message);
+        onNotify?.('error', 'Kategori eklenemedi', message);
+        return;
+      }
+
       setNewCategoryName('');
+      setError('');
       fetchCategories();
+      onNotify?.('success', 'Kategori eklendi');
     } catch (error) {
       console.error('Failed to create category:', error);
+      onNotify?.('error', 'Kategori eklenemedi');
     } finally {
       setLoading(false);
     }
@@ -120,9 +143,35 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
     try {
       await fetch(`/api/categories/${id}`, { method: 'DELETE' });
       fetchCategories();
+      onNotify?.('success', 'Kategori silindi');
     } catch (error) {
       console.error('Failed to delete category:', error);
+      onNotify?.('error', 'Kategori silinemedi');
     }
+  };
+
+  const reorderCategories = async (nextCategories: Category[]) => {
+    setCategories(nextCategories);
+    await fetch('/api/categories/reorder', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: nextCategories.map((item) => item.id) }),
+    });
+  };
+
+  const handleDrop = async (targetId: number) => {
+    if (draggedId === null || draggedId === targetId) return;
+
+    const next = [...categories];
+    const fromIndex = next.findIndex((item) => item.id === draggedId);
+    const toIndex = next.findIndex((item) => item.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    setDraggedId(null);
+    await reorderCategories(next);
+    onNotify?.('success', 'Kategori sırası güncellendi');
   };
 
   const getTypeName = (typeId: string) => {
@@ -176,13 +225,17 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
                   key={color}
                   type="button"
                   className={`w-6 h-6 rounded-full border-2 ${
-                    selectedColor === color ? 'border-foreground' : 'border-transparent'
+                    colorInput === color ? 'border-foreground' : 'border-transparent'
                   }`}
                   style={{ backgroundColor: color }}
-                  onClick={() => setSelectedColor(color)}
+                  onClick={() => {
+                    setColorInput(color);
+                  }}
                 />
               ))}
             </div>
+            <Input value={colorInput} onChange={(e) => setColorInput(e.target.value)} placeholder="#6366f1" />
+            {error ? <p className="text-xs text-destructive">{error}</p> : null}
           </div>
 
           <div className="border-t pt-4">
@@ -191,9 +244,14 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-2 rounded-lg border"
+                  draggable
+                  onDragStart={() => setDraggedId(category.id)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => void handleDrop(category.id)}
+                  className="flex items-center justify-between rounded-lg border p-2"
                 >
                   <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
                     <div
                       className="w-8 h-8 rounded flex items-center justify-center"
                       style={{ backgroundColor: `${category.color}20` }}

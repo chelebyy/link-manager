@@ -4,6 +4,7 @@ export interface Category {
   color: string;
   icon: string;
   type: string;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +19,7 @@ export interface ResourceTypeDefinition {
   description: string | null;
   is_builtin: boolean;
   sort_order: number;
+  resource_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +33,7 @@ export interface Resource {
   description: string | null;
   metadata: Record<string, any>;
   is_favorite: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -67,4 +70,11 @@ export interface DashboardStats {
   github_count: number;
   favorites_count: number;
   categories_with_count: (Category & { resource_count: number })[];
+}
+
+export interface ExportPayload {
+  exported_at: string;
+  resourceTypes: ResourceTypeDefinition[];
+  categories: Category[];
+  resources: Resource[];
 }
