@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, ExternalLink, Heart, Folder } from 'lucide-react';
 import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -24,6 +25,7 @@ interface ResourceListProps {
 }
 
 export function ResourceList({ categoryId, type, searchQuery }: ResourceListProps) {
+  const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const [resources, setResources] = useState<ResourceWithSync[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -106,7 +108,7 @@ export function ResourceList({ categoryId, type, searchQuery }: ResourceListProp
   }
 
   const getIcon = (iconName: string) => {
-    return (Icons as Record<string, React.ComponentType<{ className?: string }>>)[iconName] || Folder;
+    return iconMap[iconName] ?? Folder;
   };
 
   return (

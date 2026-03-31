@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle } from '../ui/card';
 import type { ResourceTypeDefinition } from '../../types';
 import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface CategoryGridProps {
   resourceTypes: ResourceTypeDefinition[];
@@ -8,6 +9,8 @@ interface CategoryGridProps {
 }
 
 export function CategoryGrid({ resourceTypes, onSelectType }: CategoryGridProps) {
+  const iconMap = Icons as unknown as Record<string, LucideIcon>;
+
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
@@ -19,7 +22,7 @@ export function CategoryGrid({ resourceTypes, onSelectType }: CategoryGridProps)
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {resourceTypes.map((type) => {
-          const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[type.icon] || Icons.Folder;
+          const IconComponent = iconMap[type.icon] ?? Icons.Folder;
 
           return (
             <Card

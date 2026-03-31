@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ interface AddResourceDialogProps {
 }
 
 export function AddResourceDialog({ open, onClose, onSuccess, categories, selectedType, resourceTypes }: AddResourceDialogProps) {
+  const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -104,7 +106,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
               </SelectTrigger>
               <SelectContent>
                 {resourceTypes.map((rt) => {
-                  const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[rt.icon] || Icons.Folder;
+                  const IconComponent = iconMap[rt.icon] ?? Icons.Folder;
                   return (
                     <SelectItem key={rt.id} value={rt.id}>
                       <div className="flex items-center gap-2">
