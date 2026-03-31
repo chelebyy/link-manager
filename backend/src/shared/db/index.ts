@@ -84,8 +84,37 @@ export const db = {
         `);
 
         await client.query(`
+          ALTER TABLE categories
+          DROP CONSTRAINT IF EXISTS categories_type_check;
+        `);
+
+        await client.query(`
           CREATE UNIQUE INDEX IF NOT EXISTS categories_name_type_unique_idx
           ON categories(name, type);
+        `);
+
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS resource_types (
+            id VARCHAR(80) PRIMARY KEY,
+            name VARCHAR(120) NOT NULL,
+            icon VARCHAR(64) NOT NULL DEFAULT 'Folder',
+            color VARCHAR(16) NOT NULL DEFAULT '#6366f1',
+            description TEXT,
+            is_builtin BOOLEAN NOT NULL DEFAULT FALSE,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          );
+        `);
+
+        await client.query(`
+          INSERT INTO resource_types (id, name, icon, color, is_builtin, sort_order)
+          VALUES
+            ('github', 'GitHub Repos', 'Github', '#333', TRUE, 1),
+            ('skill', 'Skills', 'Wrench', '#6366f1', TRUE, 2),
+            ('website', 'Websites', 'Globe', '#10b981', TRUE, 3),
+            ('note', 'Notes', 'FileText', '#f59e0b', TRUE, 4)
+          ON CONFLICT (id) DO NOTHING;
         `);
 
         await client.query(`
