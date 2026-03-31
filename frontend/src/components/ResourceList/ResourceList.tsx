@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Trash2, ExternalLink, Heart, Folder, GripVertical } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -17,6 +18,8 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog';
 import type { ResourceWithSync } from '../../types';
+import { api, ApiError } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
 
 interface ResourceListProps {
   categoryId: number | null;
@@ -27,42 +30,53 @@ interface ResourceListProps {
 
 export function ResourceList({ categoryId, type, searchQuery, onNotify }: ResourceListProps) {
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
-  const [resources, setResources] = useState<ResourceWithSync[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
 
+  const resourcesQuery = useQuery({
+    queryKey: queryKeys.resources({ categoryId, type, search: searchQuery }),
+    queryFn: () => api.getResources({ categoryId, type, search: searchQuery }),
+    placeholderData: keepPreviousData,
+  });
+
+  const resources = resourcesQuery.data ?? [];
+  const loading = resourcesQuery.isLoading;
+
   useEffect(() => {
-    void fetchResources();
-  }, [categoryId, type, searchQuery]);
-
-  const fetchResources = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (categoryId) params.append('category', categoryId.toString());
-      if (type) params.append('type', type);
-      if (searchQuery) params.append('search', searchQuery);
-
-      const response = await fetch(`/api/resources?${params}`);
-      const data = await response.json();
-      setResources(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch resources:', error);
-      setResources([]);
-    } finally {
-      setLoading(false);
+    if (resourcesQuery.error instanceof ApiError) {
+      onNotify?.('error', 'Kaynaklar yüklenemedi', resourcesQuery.error.message);
     }
-  };
+  }, [onNotify, resourcesQuery.error]);
+
+  const favoriteMutation = useMutation({
+    mutationFn: ({ id, next }: { id: number; next: boolean }) => api.toggleFavorite(id, next),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['resources'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.deleteResource(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['resources'] });
+      onNotify?.('success', 'Kaynak silindi');
+    },
+    onError: () => onNotify?.('error', 'Kaynak silinemedi'),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: (ids: number[]) => api.reorderResources(ids),
+    onSuccess: () => onNotify?.('success', 'Kaynak sırası güncellendi'),
+    onError: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['resources'] });
+      onNotify?.('error', 'Kaynak sırası güncellenemedi');
+    },
+  });
 
   const toggleFavorite = async (id: number, current: boolean) => {
     try {
-      await fetch(`/api/resources/${id}/favorite`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_favorite: !current }),
-      });
-      await fetchResources();
+      await favoriteMutation.mutateAsync({ id, next: !current });
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
     }
@@ -72,32 +86,17 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
     if (!deleteId) return;
 
     try {
-      await fetch(`/api/resources/${deleteId}`, { method: 'DELETE' });
-      await fetchResources();
-      onNotify?.('success', 'Kaynak silindi');
+      await deleteMutation.mutateAsync(deleteId);
     } catch (error) {
       console.error('Failed to delete resource:', error);
-      onNotify?.('error', 'Kaynak silinemedi');
     } finally {
       setDeleteId(null);
     }
   };
 
   const reorderResources = async (nextResources: ResourceWithSync[]) => {
-    setResources(nextResources);
-    const response = await fetch('/api/resources/reorder', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: nextResources.map((item) => item.id) }),
-    });
-
-    if (!response.ok) {
-      await fetchResources();
-      onNotify?.('error', 'Kaynak sırası güncellenemedi');
-      return;
-    }
-
-    onNotify?.('success', 'Kaynak sırası güncellendi');
+    queryClient.setQueryData(queryKeys.resources({ categoryId, type, search: searchQuery }), nextResources);
+    await reorderMutation.mutateAsync(nextResources.map((item) => item.id));
   };
 
   const handleDrop = async (targetId: number) => {

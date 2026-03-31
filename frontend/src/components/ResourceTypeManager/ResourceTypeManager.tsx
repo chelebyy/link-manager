@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Trash2, Edit2, Palette, GripVertical } from 'lucide-react';
@@ -13,6 +14,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import type { ResourceTypeDefinition } from '../../types';
+import { api, ApiError } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
 
 const PRESET_COLORS = [
   '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -39,7 +42,7 @@ interface ResourceTypeManagerProps {
 
 export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeManagerProps) {
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
-  const [resourceTypes, setResourceTypes] = useState<ResourceTypeDefinition[]>([]);
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editingType, setEditingType] = useState<ResourceTypeDefinition | null>(null);
   const [formData, setFormData] = useState({
@@ -53,26 +56,67 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
   const [colorInput, setColorInput] = useState('#6366f1');
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      void fetchResourceTypes();
-    }
-  }, [open]);
+  const resourceTypesQuery = useQuery({
+    queryKey: queryKeys.resourceTypes(),
+    queryFn: api.getResourceTypes,
+    enabled: open,
+  });
 
-  const fetchResourceTypes = async () => {
-    try {
-      const response = await fetch('/api/resource-types');
-      if (!response.ok) {
-        setResourceTypes([]);
-        return;
-      }
-      const data = await response.json();
-      setResourceTypes(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch resource types:', error);
-      setResourceTypes([]);
+  const resourceTypes = resourceTypesQuery.data ?? [];
+
+  useEffect(() => {
+    if (resourceTypesQuery.error instanceof ApiError) {
+      onNotify?.('error', 'Kartlar yüklenemedi', resourceTypesQuery.error.message);
     }
-  };
+  }, [onNotify, resourceTypesQuery.error]);
+
+  const createMutation = useMutation({
+    mutationFn: (payload: { name: string; icon: string; color: string; description: string }) => api.createResourceType(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() });
+      onNotify?.('success', 'Kart eklendi');
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kart kaydedilemedi.';
+      setError(message);
+      onNotify?.('error', 'Kart kaydedilemedi', message);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: { name: string; icon: string; color: string; description: string } }) => api.updateResourceType(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() });
+      onNotify?.('success', 'Kart güncellendi');
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kart kaydedilemedi.';
+      setError(message);
+      onNotify?.('error', 'Kart kaydedilemedi', message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.deleteResourceType(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() });
+      await queryClient.invalidateQueries({ queryKey: ['resources'] });
+      onNotify?.('success', 'Kart silindi');
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kart silinemedi.';
+      onNotify?.('error', 'Kart silinemedi', message);
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: (ids: string[]) => api.reorderResourceTypes(ids),
+    onSuccess: () => onNotify?.('success', 'Kart sırası güncellendi'),
+    onError: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() });
+      onNotify?.('error', 'Kart sırası güncellenemedi');
+    },
+  });
 
   const resetForm = () => {
     setFormData({ name: '', icon: 'Folder', color: '#6366f1', description: '' });
@@ -96,32 +140,15 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
     setLoading(true);
     try {
       const payload = { ...formData, color: colorInput };
-      const response = isEditing && editingType
-        ? await fetch(`/api/resource-types/${editingType.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          })
-        : await fetch('/api/resource-types', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-      if (!response.ok) {
-        const payloadError = await response.json().catch(() => null);
-        const message = payloadError?.error ?? 'Kart kaydedilemedi.';
-        setError(message);
-        onNotify?.('error', 'Kart kaydedilemedi', message);
-        return;
+      if (isEditing && editingType) {
+        await updateMutation.mutateAsync({ id: editingType.id, payload });
+      } else {
+        await createMutation.mutateAsync(payload);
       }
 
       resetForm();
-      await fetchResourceTypes();
-      onNotify?.('success', isEditing ? 'Kart güncellendi' : 'Kart eklendi');
     } catch (error) {
       console.error('Failed to save resource type:', error);
-      onNotify?.('error', 'Kart kaydedilemedi');
     } finally {
       setLoading(false);
     }
@@ -144,39 +171,15 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
     if (!confirm(`"${type.name}" tipini silmek istediğinize emin misiniz?`)) return;
 
     try {
-      const response = await fetch(`/api/resource-types/${type.id}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => null);
-        onNotify?.('error', 'Kart silinemedi', error?.error || 'Silme işlemi başarısız oldu');
-        return;
-      }
-
-      await fetchResourceTypes();
-      onNotify?.('success', 'Kart silindi');
+      await deleteMutation.mutateAsync(type.id);
     } catch (error) {
       console.error('Failed to delete resource type:', error);
-      onNotify?.('error', 'Kart silinemedi');
     }
   };
 
   const reorderTypes = async (nextTypes: ResourceTypeDefinition[]) => {
-    setResourceTypes(nextTypes);
-    const response = await fetch('/api/resource-types/reorder', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: nextTypes.map((item) => item.id) })
-    });
-
-    if (!response.ok) {
-      await fetchResourceTypes();
-      onNotify?.('error', 'Kart sırası güncellenemedi');
-      return;
-    }
-
-    onNotify?.('success', 'Kart sırası güncellendi');
+    queryClient.setQueryData(queryKeys.resourceTypes(), nextTypes);
+    await reorderMutation.mutateAsync(nextTypes.map((item) => item.id));
   };
 
   const handleDrop = async (targetId: string) => {

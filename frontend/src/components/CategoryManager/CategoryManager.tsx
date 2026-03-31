@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, Folder, GripVertical } from 'lucide-react';
 import {
   Dialog,
@@ -17,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import type { Category, ResourceTypeDefinition } from '../../types';
+import type { Category } from '../../types';
+import { api, ApiError } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
 
 const presetColors = [
   '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -32,8 +35,7 @@ interface CategoryManagerProps {
 }
 
 export function CategoryManager({ open, selectedType, onNotify, onClose }: CategoryManagerProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [resourceTypes, setResourceTypes] = useState<ResourceTypeDefinition[]>([]);
+  const queryClient = useQueryClient();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [managedType, setManagedType] = useState<string>(selectedType ?? 'website');
   const [loading, setLoading] = useState(false);
@@ -46,52 +48,71 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
       return;
     }
 
-    fetchResourceTypes();
-
     if (selectedType) {
       setManagedType(selectedType);
     }
   }, [open, selectedType]);
 
+  const resourceTypesQuery = useQuery({
+    queryKey: queryKeys.resourceTypes(),
+    queryFn: api.getResourceTypes,
+    enabled: open,
+  });
+
+  const categoriesQuery = useQuery({
+    queryKey: queryKeys.categories(managedType),
+    queryFn: () => api.getCategories(managedType),
+    enabled: open && !!managedType,
+  });
+
+  const resourceTypes = resourceTypesQuery.data ?? [];
+  const categories = categoriesQuery.data ?? [];
+
   useEffect(() => {
-    if (open && resourceTypes.length > 0) {
-      fetchCategories();
+    if (!selectedType && resourceTypes.length > 0) {
+      setManagedType(resourceTypes[0].id);
     }
-  }, [open, managedType, resourceTypes]);
+  }, [selectedType, resourceTypes]);
 
-  const fetchResourceTypes = async () => {
-    try {
-      const response = await fetch('/api/resource-types');
-      if (!response.ok) {
-        setResourceTypes([]);
-        return;
-      }
-      const data = await response.json();
-      const nextTypes = Array.isArray(data) ? data : [];
-      setResourceTypes(nextTypes);
-      if (!selectedType && nextTypes.length > 0) {
-        setManagedType(nextTypes[0].id);
-      }
-    } catch (error) {
-      console.error('Failed to fetch resource types:', error);
-      setResourceTypes([]);
+  useEffect(() => {
+    const error = resourceTypesQuery.error || categoriesQuery.error;
+    if (error instanceof ApiError) {
+      onNotify?.('error', 'Veri yüklenemedi', error.message);
     }
-  };
+  }, [categoriesQuery.error, onNotify, resourceTypesQuery.error]);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`/api/categories?type=${managedType}`);
-      if (!response.ok) {
-        setCategories([]);
-        return;
-      }
-      const data = await response.json();
-      setCategories(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      setCategories([]);
-    }
-  };
+  const createMutation = useMutation({
+    mutationFn: (payload: { name: string; type: string; color: string; icon: string }) => api.createCategory(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+      onNotify?.('success', 'Kategori eklendi');
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kategori eklenemedi.';
+      setError(message);
+      onNotify?.('error', 'Kategori eklenemedi', message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.deleteCategory(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      await queryClient.invalidateQueries({ queryKey: ['resources'] });
+      onNotify?.('success', 'Kategori silindi');
+    },
+    onError: () => onNotify?.('error', 'Kategori silinemedi'),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: (ids: number[]) => api.reorderCategories(ids),
+    onSuccess: () => onNotify?.('success', 'Kategori sırası güncellendi'),
+    onError: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      onNotify?.('error', 'Kategori sırası güncellenemedi');
+    },
+  });
 
   const createCategory = async () => {
     if (!newCategoryName.trim()) {
@@ -106,32 +127,17 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
 
     setLoading(true);
     try {
-      const response = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newCategoryName,
-          color: colorInput,
-          icon: 'Folder',
-          type: managedType,
-        }),
+      await createMutation.mutateAsync({
+        name: newCategoryName,
+        color: colorInput,
+        icon: 'Folder',
+        type: managedType,
       });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        const message = payload?.error ?? 'Kategori eklenemedi.';
-        setError(message);
-        onNotify?.('error', 'Kategori eklenemedi', message);
-        return;
-      }
 
       setNewCategoryName('');
       setError('');
-      fetchCategories();
-      onNotify?.('success', 'Kategori eklendi');
     } catch (error) {
       console.error('Failed to create category:', error);
-      onNotify?.('error', 'Kategori eklenemedi');
     } finally {
       setLoading(false);
     }
@@ -141,22 +147,15 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     if (!confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) return;
 
     try {
-      await fetch(`/api/categories/${id}`, { method: 'DELETE' });
-      fetchCategories();
-      onNotify?.('success', 'Kategori silindi');
+      await deleteMutation.mutateAsync(id);
     } catch (error) {
       console.error('Failed to delete category:', error);
-      onNotify?.('error', 'Kategori silinemedi');
     }
   };
 
   const reorderCategories = async (nextCategories: Category[]) => {
-    setCategories(nextCategories);
-    await fetch('/api/categories/reorder', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: nextCategories.map((item) => item.id) }),
-    });
+    queryClient.setQueryData(queryKeys.categories(managedType), nextCategories);
+    await reorderMutation.mutateAsync(nextCategories.map((item) => item.id));
   };
 
   const handleDrop = async (targetId: number) => {
@@ -171,7 +170,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     next.splice(toIndex, 0, moved);
     setDraggedId(null);
     await reorderCategories(next);
-    onNotify?.('success', 'Kategori sırası güncellendi');
   };
 
   const getTypeName = (typeId: string) => {

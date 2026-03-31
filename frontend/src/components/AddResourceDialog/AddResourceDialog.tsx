@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -20,6 +21,8 @@ import {
   SelectValue,
 } from '../ui/select';
 import type { Category, ResourceTypeDefinition } from '../../types';
+import { api, ApiError } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
 
 interface AddResourceDialogProps {
   open: boolean;
@@ -33,6 +36,7 @@ interface AddResourceDialogProps {
 
 export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes }: AddResourceDialogProps) {
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
+  const queryClient = useQueryClient();
   const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -42,6 +46,24 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const [error, setError] = useState<string>('');
 
   const filteredCategories = categories.filter((category) => category.type === type);
+
+  const createMutation = useMutation({
+    mutationFn: (payload: { type: string; title: string; url: string | null; description: string | null; category_id: number | null }) => api.createResource(payload),
+    onSuccess: async (_, payload) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['resources'] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
+      ]);
+      onNotify?.('success', 'Kaynak eklendi');
+      onSuccess?.(payload.type);
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kaynak eklenemedi.';
+      setError(message);
+      onNotify?.('error', 'Kaynak eklenemedi', message);
+    },
+  });
 
   const handleTypeChange = (nextType: string) => {
     setType(nextType);
@@ -75,38 +97,22 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
 
     setLoading(true);
     try {
-      const response = await fetch('/api/resources', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type,
-          title,
-          url: url || null,
-          description: description || null,
-          category_id: categoryId ? parseInt(categoryId) : null,
-        }),
+      await createMutation.mutateAsync({
+        type,
+        title,
+        url: url || null,
+        description: description || null,
+        category_id: categoryId ? parseInt(categoryId) : null,
       });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        const message = payload?.error ?? 'Kaynak eklenemedi.';
-        setError(message);
-        onNotify?.('error', 'Kaynak eklenemedi', message);
-        return;
-      }
 
       setTitle('');
       setUrl('');
       setDescription('');
       setCategoryId('');
       setError('');
-      onNotify?.('success', 'Kaynak eklendi');
-      onSuccess?.(type);
       onClose();
     } catch (error) {
       console.error('Failed to add resource:', error);
-      setError('Beklenmeyen bir hata oluştu.');
-      onNotify?.('error', 'Kaynak eklenemedi', 'Beklenmeyen bir hata oluştu.');
     } finally {
       setLoading(false);
     }
