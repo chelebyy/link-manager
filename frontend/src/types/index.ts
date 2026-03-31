@@ -3,17 +3,29 @@ export interface Category {
   name: string;
   color: string;
   icon: string;
-  type: ResourceType;
+  type: string;
   created_at: string;
   updated_at: string;
 }
 
-export type ResourceType = 'github' | 'skill' | 'website' | 'note';
+export type ResourceType = string;
+
+export interface ResourceTypeDefinition {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string | null;
+  is_builtin: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Resource {
   id: number;
   category_id: number | null;
-  type: ResourceType;
+  type: string;
   title: string;
   url: string | null;
   description: string | null;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Trash2, ExternalLink, Heart, Github, Globe, Wrench, FileText } from 'lucide-react';
+import { Trash2, ExternalLink, Heart, Folder } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -14,20 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import type { ResourceWithSync, ResourceType } from '../../types';
+import type { ResourceWithSync } from '../../types';
 
 interface ResourceListProps {
   categoryId: number | null;
-  type: ResourceType | null;
+  type: string | null;
   searchQuery: string;
 }
-
-const typeIcons: Record<ResourceType, React.ElementType> = {
-  github: Github,
-  skill: Wrench,
-  website: Globe,
-  note: FileText,
-};
 
 export function ResourceList({ categoryId, type, searchQuery }: ResourceListProps) {
   const [resources, setResources] = useState<ResourceWithSync[]>([]);
@@ -111,12 +105,16 @@ export function ResourceList({ categoryId, type, searchQuery }: ResourceListProp
     );
   }
 
+  const getIcon = (iconName: string) => {
+    return (Icons as Record<string, React.ComponentType<{ className?: string }>>)[iconName] || Folder;
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {resources.map((resource) => {
-          const Icon = typeIcons[resource.type];
-          
+          const Icon = getIcon(resource.type);
+
           return (
             <Card key={resource.id} className="group hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">

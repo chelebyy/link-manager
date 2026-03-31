@@ -3,14 +3,27 @@ import { dbConfig } from './config.js';
 
 let db: Database.Database | null = null;
 
-const RESOURCE_TYPES = ['github', 'skill', 'website', 'note'] as const;
 const DEFAULT_CATEGORY_TYPE = 'website';
+
+const createResourceTypesTableSql = `
+  CREATE TABLE IF NOT EXISTS resource_types (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL DEFAULT 'Folder',
+    color TEXT NOT NULL DEFAULT '#6366f1',
+    description TEXT,
+    is_builtin INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+`;
 
 const createCategoriesTableSql = `
   CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}' CHECK(type IN ('${RESOURCE_TYPES.join("', '")}')),
+    type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}',
     color TEXT NOT NULL DEFAULT '#6366f1',
     icon TEXT NOT NULL DEFAULT 'Folder',
     created_at TEXT DEFAULT (datetime('now')),
@@ -48,7 +61,7 @@ const migrateCategoriesForTypeScoping = (database: Database.Database) => {
     CREATE TABLE categories_migrated (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}' CHECK(type IN ('${RESOURCE_TYPES.join("', '")}')),
+      type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}',
       color TEXT NOT NULL DEFAULT '#6366f1',
       icon TEXT NOT NULL DEFAULT 'Folder',
       created_at TEXT DEFAULT (datetime('now')),
@@ -69,18 +82,37 @@ const migrateCategoriesForTypeScoping = (database: Database.Database) => {
   `);
 };
 
+const seedDefaultResourceTypes = (database: Database.Database) => {
+  const defaultTypes = [
+    { id: 'github', name: 'GitHub Repos', icon: 'Github', color: '#333', is_builtin: 1, sort_order: 1 },
+    { id: 'skill', name: 'Skills', icon: 'Wrench', color: '#6366f1', is_builtin: 1, sort_order: 2 },
+    { id: 'website', name: 'Websites', icon: 'Globe', color: '#10b981', is_builtin: 1, sort_order: 3 },
+    { id: 'note', name: 'Notes', icon: 'FileText', color: '#f59e0b', is_builtin: 1, sort_order: 4 },
+  ];
+
+  const insertStmt = database.prepare(`
+    INSERT OR IGNORE INTO resource_types (id, name, icon, color, is_builtin, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const type of defaultTypes) {
+    insertStmt.run(type.id, type.name, type.icon, type.color, type.is_builtin, type.sort_order);
+  }
+};
+
 export const initSqliteDb = () => {
   if (db) return db;
-  
+
   db = new Database('link-manager.db');
-  
+
+  db.exec(createResourceTypesTableSql);
   db.exec(createCategoriesTableSql);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS resources (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
-      type TEXT NOT NULL CHECK(type IN ('github', 'skill', 'website', 'note')),
+      type TEXT NOT NULL,
       title TEXT NOT NULL,
       url TEXT,
       description TEXT,
@@ -127,7 +159,8 @@ export const initSqliteDb = () => {
   `);
 
   migrateCategoriesForTypeScoping(db);
-  
+  seedDefaultResourceTypes(db);
+
   console.log('SQLite database initialized');
   return db;
 };
