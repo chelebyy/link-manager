@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
 import { ResourceList } from './components/ResourceList/ResourceList';
 import { CategoryManager } from './components/CategoryManager/CategoryManager';
@@ -11,60 +12,42 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { useTheme } from './contexts/ThemeContext';
 import { GlobalSearchPanel } from './components/GlobalSearchPanel';
 import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
-import type { Category, ExportPayload, ResourceTypeDefinition, ResourceWithSync } from './types';
+import type { ExportPayload } from './types';
+import { api, ApiError } from './lib/api';
+import { queryKeys } from './lib/query-keys';
 
 function App() {
   const { theme } = useTheme();
+  const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showResourceTypeManager, setShowResourceTypeManager] = useState(false);
   const [showAddResource, setShowAddResource] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [resourceTypes, setResourceTypes] = useState<ResourceTypeDefinition[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
-  const [globalResults, setGlobalResults] = useState<ResourceWithSync[]>([]);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [refreshKey, setRefreshKey] = useState(0);
   const importRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    fetchCategories();
-    fetchResourceTypes();
-  }, []);
+  const categoriesQuery = useQuery({
+    queryKey: queryKeys.categories(),
+    queryFn: () => api.getCategories(),
+  });
 
-  useEffect(() => {
-    if (!globalSearchQuery.trim()) {
-      setGlobalResults([]);
-      return;
-    }
+  const resourceTypesQuery = useQuery({
+    queryKey: queryKeys.resourceTypes(),
+    queryFn: api.getResourceTypes,
+  });
 
-    const controller = new AbortController();
+  const globalResultsQuery = useQuery({
+    queryKey: queryKeys.globalResources(globalSearchQuery.trim()),
+    queryFn: () => api.getResources({ search: globalSearchQuery.trim() }),
+    enabled: globalSearchQuery.trim().length > 0,
+  });
 
-    const run = async () => {
-      try {
-        const params = new URLSearchParams({ search: globalSearchQuery.trim() });
-        const response = await fetch(`/api/resources?${params.toString()}`, { signal: controller.signal });
-        if (!response.ok) {
-          setGlobalResults([]);
-          return;
-        }
-        const data = await response.json();
-        setGlobalResults(Array.isArray(data) ? data : []);
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          setGlobalResults([]);
-        }
-      }
-    };
-
-    const timeout = window.setTimeout(run, 250);
-    return () => {
-      controller.abort();
-      window.clearTimeout(timeout);
-    };
-  }, [globalSearchQuery]);
+  const categories = categoriesQuery.data ?? [];
+  const resourceTypes = resourceTypesQuery.data ?? [];
+  const globalResults = globalResultsQuery.data ?? [];
 
   const showToast = (kind: ToastItem['kind'], title: string, description?: string) => {
     const id = Date.now() + Math.random();
@@ -78,36 +61,6 @@ function App() {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   };
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories');
-      if (!response.ok) {
-        setCategories([]);
-        return;
-      }
-      const data = await response.json();
-      setCategories(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      setCategories([]);
-    }
-  };
-
-  const fetchResourceTypes = async () => {
-    try {
-      const response = await fetch('/api/resource-types');
-      if (!response.ok) {
-        setResourceTypes([]);
-        return;
-      }
-      const data = await response.json();
-      setResourceTypes(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch resource types:', error);
-      setResourceTypes([]);
-    }
-  };
-
   const handleCategorySelect = (categoryId: number | null) => {
     setSelectedCategory(categoryId);
   };
@@ -116,6 +69,7 @@ function App() {
     setSelectedType(type);
     setSelectedCategory(null);
     setSearchQuery('');
+    setGlobalSearchQuery('');
   };
 
   const handleCategoryOpenFromSearch = (type: string, categoryId: number) => {
@@ -126,10 +80,7 @@ function App() {
   };
 
   const handleResourceAdded = () => {
-    setRefreshKey(prev => prev + 1);
     setShowAddResource(false);
-    fetchCategories();
-    fetchResourceTypes();
   };
 
   const handleResourceSuccess = (type: string) => {
@@ -140,13 +91,7 @@ function App() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/data/export');
-      if (!response.ok) {
-        showToast('error', 'Export başarısız', 'Veriler indirilemedi.');
-        return;
-      }
-
-      const data = await response.json() as ExportPayload;
+      const data = await api.exportData();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -160,33 +105,42 @@ function App() {
     }
   };
 
+  const importMutation = useMutation({
+    mutationFn: (payload: ExportPayload) => api.importData(payload),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
+        queryClient.invalidateQueries({ queryKey: ['resources'] }),
+      ]);
+      showToast('success', 'Import tamamlandı');
+    },
+    onError: () => {
+      showToast('error', 'Import başarısız', 'Dosya içeriği işlenemedi.');
+    },
+  });
+
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     try {
       const text = await file.text();
-      const payload = JSON.parse(text);
-      const response = await fetch('/api/data/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        showToast('error', 'Import başarısız', 'Dosya içeriği işlenemedi.');
-        return;
-      }
-
-      await Promise.all([fetchCategories(), fetchResourceTypes()]);
-      setRefreshKey((prev) => prev + 1);
-      showToast('success', 'Import tamamlandı');
+      const payload = JSON.parse(text) as ExportPayload;
+      await importMutation.mutateAsync(payload);
     } catch {
       showToast('error', 'Import başarısız', 'Geçerli bir JSON dosyası seçin.');
     } finally {
       event.target.value = '';
     }
   };
+
+  useEffect(() => {
+    const error = categoriesQuery.error || resourceTypesQuery.error || globalResultsQuery.error;
+    if (error instanceof ApiError) {
+      showToast('error', 'Veri yüklenemedi', error.message);
+    }
+  }, [categoriesQuery.error, resourceTypesQuery.error, globalResultsQuery.error]);
 
   const selectedTypeConfig = selectedType
     ? resourceTypes.find(t => t.id === selectedType)
@@ -293,7 +247,6 @@ function App() {
             }}
           >
             <ResourceList
-              key={refreshKey}
               categoryId={selectedCategory}
               type={selectedType}
               searchQuery={searchQuery}
@@ -310,7 +263,6 @@ function App() {
           onNotify={showToast}
           onClose={() => {
             setShowCategoryManager(false);
-            fetchCategories();
           }}
         />
       )}
@@ -321,7 +273,6 @@ function App() {
           onNotify={showToast}
           onClose={() => {
             setShowResourceTypeManager(false);
-            fetchResourceTypes();
           }}
         />
       )}
