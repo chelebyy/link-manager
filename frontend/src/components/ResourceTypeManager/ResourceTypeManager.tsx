@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Palette, GripVertical } from 'lucide-react';
+import { Trash2, Edit2, Palette, GripVertical } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
