@@ -3,6 +3,7 @@ import { Plus, Trash2, Folder } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
@@ -71,10 +72,15 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
   const fetchCategories = async () => {
     try {
       const response = await fetch(`/api/categories?type=${managedType}`);
+      if (!response.ok) {
+        setCategories([]);
+        return;
+      }
       const data = await response.json();
-      setCategories(data);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
+      setCategories([]);
     }
   };
 
@@ -122,6 +128,9 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Kategorileri Yönet</DialogTitle>
+          <DialogDescription>
+            Kartlar için kategoriler ekleyin veya silin.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

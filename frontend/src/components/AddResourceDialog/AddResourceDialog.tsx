@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
@@ -89,6 +90,9 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Yeni Kaynak Ekle</DialogTitle>
+          <DialogDescription>
+            Yeni bir kaynak eklemek için aşağıdaki formu doldurun.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Palette, GripVertical } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
@@ -132,6 +133,9 @@ export function ResourceTypeManager({ open, onClose }: ResourceTypeManagerProps)
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Kart Tiplerini Yönet</DialogTitle>
+          <DialogDescription>
+            Yeni kart tipleri ekleyin, düzenleyin veya silin.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
