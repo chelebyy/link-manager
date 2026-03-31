@@ -83,7 +83,16 @@ function App() {
         <div className="container mx-auto px-4 flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
             <Github className="h-6 w-6" />
-            <h1 className="text-xl font-bold">Link Manager</h1>
+            <h1
+              className="text-xl font-bold cursor-pointer hover:text-primary transition-colors"
+              onClick={() => {
+                setSelectedType(null);
+                setSelectedCategory(null);
+                setSearchQuery('');
+              }}
+            >
+              Link Manager
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
