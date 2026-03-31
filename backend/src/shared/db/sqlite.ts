@@ -100,6 +100,56 @@ const seedDefaultResourceTypes = (database: Database.Database) => {
   }
 };
 
+const migrateResourcesTable = (database: Database.Database) => {
+  const tableInfo = database.prepare(`PRAGMA table_info('resources')`).all() as Array<{ name: string; dflt_value: string | null }>;
+  
+  if (tableInfo.length === 0) {
+    return;
+  }
+
+  const tableSql = database.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='resources'`).get() as { sql: string } | undefined;
+  
+  if (!tableSql || !tableSql.sql.includes('CHECK')) {
+    return;
+  }
+
+  console.log('Migrating resources table to remove CHECK constraint...');
+
+  database.exec(`
+    PRAGMA foreign_keys = OFF;
+    BEGIN;
+
+    CREATE TABLE resources_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      url TEXT,
+      description TEXT,
+      metadata TEXT NOT NULL DEFAULT '{}',
+      is_favorite INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    INSERT INTO resources_new (id, category_id, type, title, url, description, metadata, is_favorite, created_at, updated_at)
+    SELECT id, category_id, type, title, url, description, metadata, is_favorite, created_at, updated_at
+    FROM resources;
+
+    DROP TABLE resources;
+    ALTER TABLE resources_new RENAME TO resources;
+
+    CREATE INDEX IF NOT EXISTS resources_category_idx ON resources(category_id);
+    CREATE INDEX IF NOT EXISTS resources_type_idx ON resources(type);
+    CREATE INDEX IF NOT EXISTS resources_favorite_idx ON resources(is_favorite);
+
+    COMMIT;
+    PRAGMA foreign_keys = ON;
+  `);
+
+  console.log('Resources table migration completed');
+};
+
 export const initSqliteDb = () => {
   if (db) return db;
 
@@ -159,6 +209,7 @@ export const initSqliteDb = () => {
   `);
 
   migrateCategoriesForTypeScoping(db);
+  migrateResourcesTable(db);
   seedDefaultResourceTypes(db);
 
   console.log('SQLite database initialized');
