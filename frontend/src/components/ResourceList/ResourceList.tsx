@@ -111,7 +111,7 @@ export function ResourceList({ categoryId, type, searchQuery }: ResourceListProp
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
         {resources.map((resource) => {
           const Icon = getIcon(resource.type);
 
