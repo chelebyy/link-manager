@@ -223,6 +223,6 @@ export async function resourceTypesRoutes(app: FastifyInstance, options: Fastify
 
     await query(`DELETE FROM resource_types WHERE id = ${param(0)}`, [id]);
 
-    reply.status(204);
+    return reply.status(204).send();
   });
 }
