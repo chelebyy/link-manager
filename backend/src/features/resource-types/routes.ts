@@ -3,6 +3,7 @@ import { query } from '../../shared/db/index.js';
 
 const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
 const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
+const falseValue = () => isPostgres ? 'FALSE' : '0';
 
 const AVAILABLE_ICONS = [
   'Github', 'Globe', 'Wrench', 'FileText', 'Folder',
@@ -94,12 +95,12 @@ export async function resourceTypesRoutes(app: FastifyInstance, options: Fastify
       `SELECT MAX(sort_order) as max_order FROM resource_types`,
       []
     );
-    const nextOrder = (maxOrderResult.rows[0]?.max_order || 0) + 1;
+    const nextOrder = Number(maxOrderResult.rows[0]?.max_order || 0) + 1;
 
     try {
       const result = await query(
         `INSERT INTO resource_types (id, name, icon, color, description, is_builtin, sort_order)
-         VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, 0, ${param(5)})
+         VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${falseValue()}, ${param(5)})
          RETURNING *`,
         [typeId, name, icon, color, description, nextOrder]
       );
