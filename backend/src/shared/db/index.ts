@@ -89,10 +89,16 @@ export const db = {
         `);
 
         await client.query(`
+          ALTER TABLE IF EXISTS resources
+          ALTER COLUMN type TYPE TEXT,
+          ALTER COLUMN type SET NOT NULL;
+        `).catch(() => {});
+
+        await client.query(`
           CREATE TABLE IF NOT EXISTS resources (
             id BIGSERIAL PRIMARY KEY,
             category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
-            type resource_type NOT NULL,
+            type TEXT NOT NULL,
             title VARCHAR(200) NOT NULL,
             url TEXT,
             description TEXT,
