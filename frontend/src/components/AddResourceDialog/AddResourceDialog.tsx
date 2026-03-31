@@ -25,12 +25,13 @@ interface AddResourceDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: (type: string) => void;
+  onNotify?: (kind: 'success' | 'error', title: string, description?: string) => void;
   categories: Category[];
   selectedType: string | null;
   resourceTypes: ResourceTypeDefinition[];
 }
 
-export function AddResourceDialog({ open, onClose, onSuccess, categories, selectedType, resourceTypes }: AddResourceDialogProps) {
+export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes }: AddResourceDialogProps) {
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
   const [title, setTitle] = useState('');
@@ -38,6 +39,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const filteredCategories = categories.filter((category) => category.type === type);
 
@@ -58,11 +60,22 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+
+    if (!title.trim()) {
+      setError('Başlık zorunludur.');
+      return;
+    }
+
+    if (url && !/^https?:\/\//i.test(url)) {
+      setError('URL http:// veya https:// ile başlamalıdır.');
+      return;
+    }
+
+    setError('');
 
     setLoading(true);
     try {
-      await fetch('/api/resources', {
+      const response = await fetch('/api/resources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -74,14 +87,26 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
         }),
       });
 
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const message = payload?.error ?? 'Kaynak eklenemedi.';
+        setError(message);
+        onNotify?.('error', 'Kaynak eklenemedi', message);
+        return;
+      }
+
       setTitle('');
       setUrl('');
       setDescription('');
       setCategoryId('');
+      setError('');
+      onNotify?.('success', 'Kaynak eklendi');
       onSuccess?.(type);
       onClose();
     } catch (error) {
       console.error('Failed to add resource:', error);
+      setError('Beklenmeyen bir hata oluştu.');
+      onNotify?.('error', 'Kaynak eklenemedi', 'Beklenmeyen bir hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -128,6 +153,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
               placeholder="Örn: React Documentation"
               required
             />
+            {error ? <p className="text-xs text-destructive">{error}</p> : null}
           </div>
 
           <div className="space-y-2">

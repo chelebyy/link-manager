@@ -7,6 +7,7 @@ import { resourcesRoutes } from './features/resources/routes.js';
 import { syncRoutes } from './features/sync/routes.js';
 import { dashboardRoutes } from './features/dashboard/routes.js';
 import { resourceTypesRoutes } from './features/resource-types/routes.js';
+import { dataRoutes } from './features/data/routes.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ await app.register(resourcesRoutes, { prefix: '/api/resources' });
 await app.register(syncRoutes, { prefix: '/api' });
 await app.register(dashboardRoutes, { prefix: '/api/dashboard' });
 await app.register(resourceTypesRoutes, { prefix: '/api/resource-types' });
+await app.register(dataRoutes, { prefix: '/api/data' });
 
 app.setErrorHandler((error: any, request, reply) => {
   app.log.error(error);

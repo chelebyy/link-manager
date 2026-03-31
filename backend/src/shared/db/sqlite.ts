@@ -26,6 +26,7 @@ const createCategoriesTableSql = `
     type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}',
     color TEXT NOT NULL DEFAULT '#6366f1',
     icon TEXT NOT NULL DEFAULT 'Folder',
+    sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   );
@@ -64,12 +65,13 @@ const migrateCategoriesForTypeScoping = (database: Database.Database) => {
       type TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_TYPE}',
       color TEXT NOT NULL DEFAULT '#6366f1',
       icon TEXT NOT NULL DEFAULT 'Folder',
+      sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
 
-    INSERT INTO categories_migrated (id, name, type, color, icon, created_at, updated_at)
-    SELECT id, name, ${hasTypeColumn ? 'type' : `'${DEFAULT_CATEGORY_TYPE}'`}, color, icon, created_at, updated_at
+    INSERT INTO categories_migrated (id, name, type, color, icon, sort_order, created_at, updated_at)
+    SELECT id, name, ${hasTypeColumn ? 'type' : `'${DEFAULT_CATEGORY_TYPE}'`}, color, icon, id, created_at, updated_at
     FROM categories;
 
     DROP TABLE categories;
@@ -128,12 +130,13 @@ const migrateResourcesTable = (database: Database.Database) => {
       description TEXT,
       metadata TEXT NOT NULL DEFAULT '{}',
       is_favorite INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
 
-    INSERT INTO resources_new (id, category_id, type, title, url, description, metadata, is_favorite, created_at, updated_at)
-    SELECT id, category_id, type, title, url, description, metadata, is_favorite, created_at, updated_at
+    INSERT INTO resources_new (id, category_id, type, title, url, description, metadata, is_favorite, sort_order, created_at, updated_at)
+    SELECT id, category_id, type, title, url, description, metadata, is_favorite, id, created_at, updated_at
     FROM resources;
 
     DROP TABLE resources;
@@ -168,6 +171,7 @@ export const initSqliteDb = () => {
       description TEXT,
       metadata TEXT NOT NULL DEFAULT '{}',
       is_favorite INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -207,6 +211,25 @@ export const initSqliteDb = () => {
       acknowledged_at TEXT
     );
   `);
+
+  try {
+    db.exec(`ALTER TABLE categories ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;`);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes('duplicate column name')) {
+      throw error;
+    }
+  }
+
+  try {
+    db.exec(`ALTER TABLE resources ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;`);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes('duplicate column name')) {
+      throw error;
+    }
+  }
+
+  db.exec(`UPDATE categories SET sort_order = id WHERE sort_order = 0 OR sort_order IS NULL;`);
+  db.exec(`UPDATE resources SET sort_order = id WHERE sort_order = 0 OR sort_order IS NULL;`);
 
   migrateCategoriesForTypeScoping(db);
   migrateResourcesTable(db);

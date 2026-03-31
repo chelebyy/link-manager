@@ -21,6 +21,10 @@ type CategoryUpdateBody = {
   icon?: string;
 };
 
+type CategoryReorderBody = {
+  ids?: number[];
+};
+
 type CategoryParams = {
   id: string;
 };
@@ -31,7 +35,7 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
 
     const hasTypeFilter = type !== undefined;
     const result = await query(
-      `SELECT * FROM categories ${hasTypeFilter ? `WHERE type = ${param(0)}` : ''} ORDER BY name ASC`,
+      `SELECT * FROM categories ${hasTypeFilter ? `WHERE type = ${param(0)}` : ''} ORDER BY sort_order ASC, name ASC`,
       hasTypeFilter ? [type] : []
     );
     return result.rows;
@@ -44,11 +48,17 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
       reply.status(400);
       return { error: 'name and type are required' };
     }
+
+    const sortResult = await query(
+      `SELECT MAX(sort_order) as max_order FROM categories WHERE type = ${param(0)}`,
+      [type]
+    );
+    const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
     
     try {
       const result = await query(
-        `INSERT INTO categories (name, type, color, icon) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}) RETURNING *`,
-        [name, type, color, icon]
+        `INSERT INTO categories (name, type, color, icon, sort_order) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}) RETURNING *`,
+        [name, type, color, icon, nextOrder]
       );
       
       reply.status(201);
@@ -104,5 +114,25 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
     await query(`DELETE FROM categories WHERE id = ${param(0)}`, [id]);
     
     reply.status(204);
+  });
+
+  app.patch('/reorder', async (request, reply) => {
+    const { ids } = request.body as CategoryReorderBody;
+
+    if (!ids || ids.length === 0) {
+      reply.status(400);
+      return { error: 'ids are required' };
+    }
+
+    await Promise.all(
+      ids.map((id, index) =>
+        query(
+          `UPDATE categories SET sort_order = ${param(0)}, updated_at = ${isPostgres ? 'NOW()' : "datetime('now')"} WHERE id = ${param(1)}`,
+          [index + 1, id]
+        )
+      )
+    );
+
+    return { success: true };
   });
 }

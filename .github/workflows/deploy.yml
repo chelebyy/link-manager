@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Trigger Dokploy deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Ensure deploy webhook is configured
+        env:
+          DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DOKPLOY_WEBHOOK_URL" ]; then
+            echo "DOKPLOY_WEBHOOK_URL secret is missing"
+            exit 1
+          fi
+
+      - name: Trigger deploy webhook
+        env:
+          DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+        run: |
+          curl --fail --show-error --silent \
+            --retry 3 \
+            --retry-delay 5 \
+            --max-time 30 \
+            -X POST \
+            "$DOKPLOY_WEBHOOK_URL"
+
+      - name: Optional health check
+        if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
+        env:
+          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --show-error --silent "$APP_HEALTHCHECK_URL"; then
+              exit 0
+            fi
+            echo "Health check not ready yet (attempt $attempt)"
+            sleep 15
+          done
+          echo "Health check failed"
+          exit 1
