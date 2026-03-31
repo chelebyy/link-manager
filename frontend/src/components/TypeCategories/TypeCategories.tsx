@@ -48,30 +48,22 @@ export function TypeCategories({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-2xl border bg-card p-4 shadow-sm lg:sticky lg:top-20">
-          <div className="mb-4">
-            <p className="text-sm font-medium text-muted-foreground">Kategoriler</p>
+      <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-lg border bg-card shadow-sm lg:sticky lg:top-20">
+          <div className="border-b px-3 py-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kategoriler</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="py-1">
             <button
               type="button"
               onClick={() => onSelectCategory(null)}
-              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
-                selectedCategory === null ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-muted'
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                selectedCategory === null ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'
               }`}
             >
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${typeColor}20` }}
-              >
-                <Layers className="h-5 w-5" style={{ color: typeColor }} />
-              </div>
-              <div className="min-w-0">
-                <div className="font-medium">Tümü</div>
-                <div className="text-sm text-muted-foreground">Bu karttaki tüm kaynaklar</div>
-              </div>
+              <Layers className="h-4 w-4 shrink-0" style={{ color: selectedCategory === null ? typeColor : undefined }} />
+              <span className="truncate">Tümü</span>
             </button>
 
             {categories.map((category) => (
@@ -79,43 +71,35 @@ export function TypeCategories({
                 key={category.id}
                 type="button"
                 onClick={() => onSelectCategory(category.id)}
-                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
-                  selectedCategory === category.id ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-muted'
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                  selectedCategory === category.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'
                 }`}
               >
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: `${category.color}20` }}
-                >
-                  <Folder className="h-5 w-5" style={{ color: category.color }} />
-                </div>
-                <div className="min-w-0">
-                  <div className="truncate font-medium">{category.name}</div>
-                  <div className="text-sm text-muted-foreground">Kategori</div>
-                </div>
+                <Folder className="h-4 w-4 shrink-0" style={{ color: category.color }} />
+                <span className="truncate">{category.name}</span>
               </button>
             ))}
           </div>
         </aside>
 
         <section className="space-y-4">
-          <div className="flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-lg font-semibold">
                 {selectedCategoryName ?? typeLabel}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {selectedCategoryName ? 'Seçili kategori kaynakları' : 'Bu karttaki tüm kaynaklar'}
+                {selectedCategoryName ? 'Seçili kategori kaynakları' : 'Tüm kaynaklar'}
               </p>
             </div>
 
-            <div className="relative w-full md:max-w-sm">
+            <div className="relative w-full md:max-w-xs">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder="Ara..."
-                className="pl-10"
+                className="pl-9 h-9"
               />
             </div>
           </div>
