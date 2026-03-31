@@ -59,13 +59,19 @@ export function CategoryManager({ open, selectedType, onClose }: CategoryManager
   const fetchResourceTypes = async () => {
     try {
       const response = await fetch('/api/resource-types');
+      if (!response.ok) {
+        setResourceTypes([]);
+        return;
+      }
       const data = await response.json();
-      setResourceTypes(data);
-      if (!selectedType && data.length > 0) {
-        setManagedType(data[0].id);
+      const nextTypes = Array.isArray(data) ? data : [];
+      setResourceTypes(nextTypes);
+      if (!selectedType && nextTypes.length > 0) {
+        setManagedType(nextTypes[0].id);
       }
     } catch (error) {
       console.error('Failed to fetch resource types:', error);
+      setResourceTypes([]);
     }
   };
 

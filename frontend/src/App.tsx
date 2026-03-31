@@ -31,20 +31,30 @@ function App() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
+      if (!response.ok) {
+        setCategories([]);
+        return;
+      }
       const data = await response.json();
-      setCategories(data);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
+      setCategories([]);
     }
   };
 
   const fetchResourceTypes = async () => {
     try {
       const response = await fetch('/api/resource-types');
+      if (!response.ok) {
+        setResourceTypes([]);
+        return;
+      }
       const data = await response.json();
-      setResourceTypes(data);
+      setResourceTypes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch resource types:', error);
+      setResourceTypes([]);
     }
   };
 
