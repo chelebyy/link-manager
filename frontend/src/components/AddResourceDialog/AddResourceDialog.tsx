@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Github, Globe, Wrench, FileText } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
@@ -17,25 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import type { Category, ResourceType } from '../../types';
+import type { Category, ResourceTypeDefinition } from '../../types';
 
 interface AddResourceDialogProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: (type: ResourceType) => void;
+  onSuccess?: (type: string) => void;
   categories: Category[];
-  selectedType: ResourceType | null;
+  selectedType: string | null;
+  resourceTypes: ResourceTypeDefinition[];
 }
 
-const typeOptions: { value: ResourceType; label: string; icon: React.ElementType }[] = [
-  { value: 'github', label: 'GitHub Repo', icon: Github },
-  { value: 'website', label: 'Website', icon: Globe },
-  { value: 'skill', label: 'Skill', icon: Wrench },
-  { value: 'note', label: 'Note', icon: FileText },
-];
-
-export function AddResourceDialog({ open, onClose, onSuccess, categories, selectedType }: AddResourceDialogProps) {
-  const [type, setType] = useState<ResourceType>(selectedType ?? 'website');
+export function AddResourceDialog({ open, onClose, onSuccess, categories, selectedType, resourceTypes }: AddResourceDialogProps) {
+  const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -44,7 +39,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
 
   const filteredCategories = categories.filter((category) => category.type === type);
 
-  const handleTypeChange = (nextType: ResourceType) => {
+  const handleTypeChange = (nextType: string) => {
     setType(nextType);
     setCategoryId('');
   };
@@ -54,9 +49,10 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
       return;
     }
 
-    setType(selectedType ?? 'website');
+    const defaultType = selectedType ?? resourceTypes[0]?.id ?? 'website';
+    setType(defaultType);
     setCategoryId('');
-  }, [open, selectedType]);
+  }, [open, selectedType, resourceTypes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +71,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
           category_id: categoryId ? parseInt(categoryId) : null,
         }),
       });
-      
+
       setTitle('');
       setUrl('');
       setDescription('');
@@ -94,24 +90,30 @@ export function AddResourceDialog({ open, onClose, onSuccess, categories, select
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Yeni Kaynak Ekle</DialogTitle>
+          <DialogDescription>
+            Yeni bir kaynak eklemek için aşağıdaki formu doldurun.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Tip</Label>
-            <Select value={type} onValueChange={(value) => handleTypeChange(value as ResourceType)}>
+            <Select value={type} onValueChange={handleTypeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {typeOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    <div className="flex items-center gap-2">
-                      <opt.icon className="h-4 w-4" />
-                      {opt.label}
-                    </div>
-                  </SelectItem>
-                ))}
+                {resourceTypes.map((rt) => {
+                  const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[rt.icon] || Icons.Folder;
+                  return (
+                    <SelectItem key={rt.id} value={rt.id}>
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="h-4 w-4" />
+                        {rt.name}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>

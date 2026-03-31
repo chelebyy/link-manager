@@ -3,9 +3,6 @@ import { query } from '../../shared/db/index.js';
 
 const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
 const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
-const CATEGORY_TYPES = ['github', 'skill', 'website', 'note'] as const;
-
-type CategoryType = (typeof CATEGORY_TYPES)[number];
 
 type CategoryListQuery = {
   type?: string;
@@ -28,18 +25,9 @@ type CategoryParams = {
   id: string;
 };
 
-const isCategoryType = (value: string): value is CategoryType => {
-  return CATEGORY_TYPES.includes(value as CategoryType);
-};
-
 export async function categoriesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
   app.get('/', async (request, reply) => {
     const { type } = request.query as CategoryListQuery;
-
-    if (type !== undefined && !isCategoryType(type)) {
-      reply.status(400);
-      return { error: 'Invalid category type' };
-    }
 
     const hasTypeFilter = type !== undefined;
     const result = await query(
@@ -55,11 +43,6 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
     if (!name || !type) {
       reply.status(400);
       return { error: 'name and type are required' };
-    }
-
-    if (!isCategoryType(type)) {
-      reply.status(400);
-      return { error: 'Invalid category type' };
     }
     
     try {

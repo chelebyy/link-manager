@@ -82,8 +82,8 @@ export function TypeCategories({
           </div>
         </aside>
 
-        <section className="space-y-4">
-          <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+        <section className="space-y-4 min-w-0">
+          <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between shrink-0">
             <div>
               <h3 className="text-lg font-semibold">
                 {selectedCategoryName ?? typeLabel}

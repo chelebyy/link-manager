@@ -1,23 +1,16 @@
 import { ArrowLeft, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import type { Category, ResourceType } from '../../types';
+import type { Category } from '../../types';
 
 interface FilterBarProps {
   selectedCategory: number | null;
-  selectedType: ResourceType | null;
+  selectedType: string | null;
   onCategoryChange: (categoryId: number | null) => void;
-  onTypeChange: (type: ResourceType | null) => void;
+  onTypeChange: (type: string | null) => void;
   onSearchChange: (query: string) => void;
   categories: Category[];
 }
-
-const typeLabels: Record<ResourceType, string> = {
-  github: 'GitHub',
-  skill: 'Skills',
-  website: 'Websites',
-  note: 'Notes',
-};
 
 export function FilterBar({
   selectedCategory,
@@ -45,7 +38,7 @@ export function FilterBar({
           Geri
         </Button>
         <h2 className="text-xl font-semibold">
-          {selectedCategoryName || (selectedType ? typeLabels[selectedType] : 'Tüm Kaynaklar')}
+          {selectedCategoryName || selectedType || 'Tüm Kaynaklar'}
         </h2>
       </div>
 

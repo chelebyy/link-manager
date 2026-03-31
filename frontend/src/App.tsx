@@ -2,33 +2,30 @@ import { useState, useEffect } from 'react';
 import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
 import { ResourceList } from './components/ResourceList/ResourceList';
 import { CategoryManager } from './components/CategoryManager/CategoryManager';
+import { ResourceTypeManager } from './components/ResourceTypeManager';
 import { AddResourceDialog } from './components/AddResourceDialog/AddResourceDialog';
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
 import { Button } from './components/ui/button';
-import { Plus, Settings, Github } from 'lucide-react';
+import { Plus, Settings, Github, LayoutGrid } from 'lucide-react';
 import { ThemeToggle } from './components/ThemeToggle';
 import { useTheme } from './contexts/ThemeContext';
-import type { Category, ResourceType } from './types';
+import type { Category, ResourceTypeDefinition } from './types';
 
 function App() {
   const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [selectedType, setSelectedType] = useState<ResourceType | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showResourceTypeManager, setShowResourceTypeManager] = useState(false);
   const [showAddResource, setShowAddResource] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [resourceTypes, setResourceTypes] = useState<ResourceTypeDefinition[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const typeConfig: Record<ResourceType, { label: string; color: string }> = {
-    github: { label: 'GitHub Repos', color: '#333' },
-    skill: { label: 'Skills', color: '#6366f1' },
-    website: { label: 'Websites', color: '#10b981' },
-    note: { label: 'Notes', color: '#f59e0b' },
-  };
-
   useEffect(() => {
     fetchCategories();
+    fetchResourceTypes();
   }, []);
 
   const fetchCategories = async () => {
@@ -41,11 +38,21 @@ function App() {
     }
   };
 
+  const fetchResourceTypes = async () => {
+    try {
+      const response = await fetch('/api/resource-types');
+      const data = await response.json();
+      setResourceTypes(data);
+    } catch (error) {
+      console.error('Failed to fetch resource types:', error);
+    }
+  };
+
   const handleCategorySelect = (categoryId: number | null) => {
     setSelectedCategory(categoryId);
   };
 
-  const handleTypeSelect = (type: ResourceType | null) => {
+  const handleTypeSelect = (type: string | null) => {
     setSelectedType(type);
     setSelectedCategory(null);
     setSearchQuery('');
@@ -56,11 +63,15 @@ function App() {
     setShowAddResource(false);
   };
 
-  const handleResourceSuccess = (type: ResourceType) => {
+  const handleResourceSuccess = (type: string) => {
     setSelectedType(type);
     setSelectedCategory(null);
     setSearchQuery('');
   };
+
+  const selectedTypeConfig = selectedType
+    ? resourceTypes.find(t => t.id === selectedType)
+    : null;
 
   const selectedTypeCategories = selectedType
     ? categories.filter((category) => category.type === selectedType)
@@ -72,9 +83,26 @@ function App() {
         <div className="container mx-auto px-4 flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
             <Github className="h-6 w-6" />
-            <h1 className="text-xl font-bold">Link Manager</h1>
+            <h1
+              className="text-xl font-bold cursor-pointer hover:text-primary transition-colors"
+              onClick={() => {
+                setSelectedType(null);
+                setSelectedCategory(null);
+                setSearchQuery('');
+              }}
+            >
+              Link Manager
+            </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowResourceTypeManager(true)}
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Kartlar
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -97,13 +125,14 @@ function App() {
 
       <main className="container mx-auto px-4 py-6">
         {!selectedType ? (
-          <CategoryGrid 
+          <CategoryGrid
+            resourceTypes={resourceTypes}
             onSelectType={handleTypeSelect}
           />
         ) : (
           <TypeCategories
-            typeLabel={typeConfig[selectedType].label}
-            typeColor={typeConfig[selectedType].color}
+            typeLabel={selectedTypeConfig?.name || selectedType}
+            typeColor={selectedTypeConfig?.color || '#6366f1'}
             categories={selectedTypeCategories}
             selectedCategory={selectedCategory}
             searchQuery={searchQuery}
@@ -136,6 +165,16 @@ function App() {
         />
       )}
 
+      {showResourceTypeManager && (
+        <ResourceTypeManager
+          open={showResourceTypeManager}
+          onClose={() => {
+            setShowResourceTypeManager(false);
+            fetchResourceTypes();
+          }}
+        />
+      )}
+
       {showAddResource && (
         <AddResourceDialog
           open={showAddResource}
@@ -143,6 +182,7 @@ function App() {
           onSuccess={handleResourceSuccess}
           categories={categories}
           selectedType={selectedType}
+          resourceTypes={resourceTypes}
         />
       )}
     </div>
