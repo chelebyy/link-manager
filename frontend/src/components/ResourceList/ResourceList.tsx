@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Heart, Folder, GripVertical } from 'lucide-react';
+import { Trash2, ExternalLink, Heart, Folder, GripVertical, Edit2 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
@@ -20,6 +20,7 @@ import {
 import type { ResourceWithSync } from '../../types';
 import { api, ApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query-keys';
+import { AddResourceDialog } from '../AddResourceDialog/AddResourceDialog';
 
 interface ResourceListProps {
   categoryId: number | null;
@@ -33,6 +34,18 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [editingResource, setEditingResource] = useState<ResourceWithSync | null>(null);
+
+  const categoriesQuery = useQuery({
+    queryKey: queryKeys.categories(type ?? undefined),
+    queryFn: () => api.getCategories(type ?? undefined),
+    enabled: !!type,
+  });
+
+  const resourceTypesQuery = useQuery({
+    queryKey: queryKeys.resourceTypes(),
+    queryFn: api.getResourceTypes,
+  });
 
   const resourcesQuery = useQuery({
     queryKey: queryKeys.resources({ categoryId, type, search: searchQuery }),
@@ -160,6 +173,9 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                     <CardTitle className="truncate text-base">{resource.title}</CardTitle>
                   </div>
                   <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingResource(resource)}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleFavorite(resource.id, resource.is_favorite)}>
                       <Heart className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
                     </Button>
@@ -196,6 +212,24 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AddResourceDialog
+        open={editingResource !== null}
+        onClose={() => setEditingResource(null)}
+        onNotify={onNotify}
+        onSuccess={() => setEditingResource(null)}
+        categories={categoriesQuery.data ?? []}
+        selectedType={type}
+        resourceTypes={resourceTypesQuery.data ?? []}
+        initialResource={editingResource ? {
+          id: editingResource.id,
+          type: editingResource.type,
+          title: editingResource.title,
+          url: editingResource.url,
+          description: editingResource.description,
+          category_id: editingResource.category_id,
+        } : null}
+      />
     </>
   );
 }

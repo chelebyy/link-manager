@@ -97,6 +97,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
+  updateResource: (id: number, payload: { title: string; url: string | null; description: string | null; category_id: number | null; metadata?: Record<string, unknown> }) =>
+    request<ResourceWithSync>(`/api/resources/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
   deleteResource: (id: number) => request<void>(`/api/resources/${id}`, { method: 'DELETE', skipJson: true }),
   toggleFavorite: (id: number, isFavorite: boolean) =>
     request<ResourceWithSync>(`/api/resources/${id}/favorite`, {

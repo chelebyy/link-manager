@@ -144,7 +144,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       values
     );
     
-    const isSuccess = isPostgres ? result.rows.length > 0 : (result.rowCount ?? 0) > 0;
+    const isSuccess = result.rows.length > 0 || (!isPostgres && (result.rowCount ?? 0) > 0);
     if (!isSuccess) {
       reply.status(404);
       return { error: 'Resource not found' };
