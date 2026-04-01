@@ -173,13 +173,13 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                     <CardTitle className="truncate text-base">{resource.title}</CardTitle>
                   </div>
                   <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingResource(resource)}>
+                    <Button aria-label="Kaynağı düzenle" title="Kaynağı düzenle" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingResource(resource)}>
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleFavorite(resource.id, resource.is_favorite)}>
+                    <Button aria-label={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} title={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleFavorite(resource.id, resource.is_favorite)}>
                       <Heart className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(resource.id)}>
+                    <Button aria-label="Kaynağı sil" title="Kaynağı sil" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(resource.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
