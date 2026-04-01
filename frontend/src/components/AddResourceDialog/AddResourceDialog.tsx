@@ -32,9 +32,17 @@ interface AddResourceDialogProps {
   categories: Category[];
   selectedType: string | null;
   resourceTypes: ResourceTypeDefinition[];
+  initialResource?: {
+    id: number;
+    type: string;
+    title: string;
+    url: string | null;
+    description: string | null;
+    category_id: number | null;
+  } | null;
 }
 
-export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes }: AddResourceDialogProps) {
+export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes, initialResource = null }: AddResourceDialogProps) {
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const queryClient = useQueryClient();
   const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
@@ -44,6 +52,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const [categoryId, setCategoryId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const isEditing = initialResource !== null;
 
   const filteredCategories = categories.filter((category) => category.type === type);
 
@@ -65,6 +74,24 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: { title: string; url: string | null; description: string | null; category_id: number | null } }) => api.updateResource(id, payload),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['resources'] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
+      ]);
+      onNotify?.('success', 'Kaynak güncellendi');
+      onSuccess?.(type);
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kaynak güncellenemedi.';
+      setError(message);
+      onNotify?.('error', 'Kaynak güncellenemedi', message);
+    },
+  });
+
   const handleTypeChange = (nextType: string) => {
     setType(nextType);
     setCategoryId('');
@@ -76,9 +103,21 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     }
 
     const defaultType = selectedType ?? resourceTypes[0]?.id ?? 'website';
-    setType(defaultType);
-    setCategoryId('');
-  }, [open, selectedType, resourceTypes]);
+    if (initialResource) {
+      setType(initialResource.type);
+      setTitle(initialResource.title);
+      setUrl(initialResource.url ?? '');
+      setDescription(initialResource.description ?? '');
+      setCategoryId(initialResource.category_id ? String(initialResource.category_id) : '');
+    } else {
+      setType(defaultType);
+      setTitle('');
+      setUrl('');
+      setDescription('');
+      setCategoryId('');
+    }
+    setError('');
+  }, [open, selectedType, resourceTypes, initialResource]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,13 +136,27 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
 
     setLoading(true);
     try {
-      await createMutation.mutateAsync({
-        type,
-        title,
-        url: url || null,
-        description: description || null,
-        category_id: categoryId ? parseInt(categoryId) : null,
-      });
+      if (initialResource) {
+        await updateMutation.mutateAsync({
+          id: initialResource.id,
+          payload: {
+            title,
+            url: url || null,
+            description: description || null,
+            category_id: categoryId ? parseInt(categoryId) : null,
+          },
+        });
+        onClose();
+        return;
+      } else {
+        await createMutation.mutateAsync({
+          type,
+          title,
+          url: url || null,
+          description: description || null,
+          category_id: categoryId ? parseInt(categoryId) : null,
+        });
+      }
 
       setTitle('');
       setUrl('');
@@ -122,16 +175,16 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Yeni Kaynak Ekle</DialogTitle>
+          <DialogTitle>{isEditing ? 'Kaynağı Düzenle' : 'Yeni Kaynak Ekle'}</DialogTitle>
           <DialogDescription>
-            Yeni bir kaynak eklemek için aşağıdaki formu doldurun.
+            {isEditing ? 'Kaynak bilgilerini güncelleyin.' : 'Yeni bir kaynak eklemek için aşağıdaki formu doldurun.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Tip</Label>
-            <Select value={type} onValueChange={handleTypeChange}>
+            <Select value={type} onValueChange={handleTypeChange} disabled={isEditing}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -203,7 +256,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
               İptal
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Ekleniyor...' : 'Ekle'}
+              {loading ? (isEditing ? 'Kaydediliyor...' : 'Ekleniyor...') : (isEditing ? 'Kaydet' : 'Ekle')}
             </Button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Folder, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Folder, GripVertical, Edit2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ interface CategoryManagerProps {
 export function CategoryManager({ open, selectedType, onNotify, onClose }: CategoryManagerProps) {
   const queryClient = useQueryClient();
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [managedType, setManagedType] = useState<string>(selectedType ?? 'website');
   const [loading, setLoading] = useState(false);
   const [colorInput, setColorInput] = useState(presetColors[0]);
@@ -95,6 +96,20 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: { name: string; color: string; icon: string } }) => api.updateCategory(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
+      onNotify?.('success', 'Kategori güncellendi');
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Kategori güncellenemedi.';
+      setError(message);
+      onNotify?.('error', 'Kategori güncellenemedi', message);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.deleteCategory(id),
     onSuccess: async () => {
@@ -127,14 +142,26 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
 
     setLoading(true);
     try {
-      await createMutation.mutateAsync({
-        name: newCategoryName,
-        color: colorInput,
-        icon: 'Folder',
-        type: managedType,
-      });
+      if (editingCategory) {
+        await updateMutation.mutateAsync({
+          id: editingCategory.id,
+          payload: {
+            name: newCategoryName,
+            color: colorInput,
+            icon: 'Folder',
+          },
+        });
+      } else {
+        await createMutation.mutateAsync({
+          name: newCategoryName,
+          color: colorInput,
+          icon: 'Folder',
+          type: managedType,
+        });
+      }
 
       setNewCategoryName('');
+      setEditingCategory(null);
       setError('');
     } catch (error) {
       console.error('Failed to create category:', error);
@@ -151,6 +178,20 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     } catch (error) {
       console.error('Failed to delete category:', error);
     }
+  };
+
+  const startEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setNewCategoryName(category.name);
+    setColorInput(category.color);
+    setError('');
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategory(null);
+    setNewCategoryName('');
+    setColorInput(presetColors[0]);
+    setError('');
   };
 
   const reorderCategories = async (nextCategories: Category[]) => {
@@ -204,7 +245,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
           </div>
 
           <div className="space-y-2">
-            <Label>Yeni Kategori</Label>
+            <Label>{editingCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori'}</Label>
             <div className="flex gap-2">
               <Input
                 placeholder="Kategori adı"
@@ -213,8 +254,9 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                 onKeyDown={(e) => e.key === 'Enter' && createCategory()}
               />
               <Button onClick={createCategory} disabled={loading}>
-                <Plus className="h-4 w-4" />
+                {editingCategory ? 'Kaydet' : <Plus className="h-4 w-4" />}
               </Button>
+              {editingCategory ? <Button variant="outline" onClick={cancelEditCategory}>İptal</Button> : null}
             </div>
 
             <div className="flex gap-2 flex-wrap">
@@ -258,14 +300,24 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                     </div>
                     <span>{category.name}</span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => deleteCategory(category.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => startEditCategory(category)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => deleteCategory(category.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
