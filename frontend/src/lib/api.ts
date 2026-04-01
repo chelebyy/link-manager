@@ -30,6 +30,16 @@ async function request<T>(input: string, init?: RequestOptions): Promise<T> {
     return undefined as T;
   }
 
+  const contentLength = response.headers.get('content-length');
+  if (contentLength === '0') {
+    return undefined as T;
+  }
+
+  const contentType = response.headers.get('content-type');
+  if (!contentType?.includes('application/json')) {
+    return undefined as T;
+  }
+
   return response.json() as Promise<T>;
 }
 
@@ -38,6 +48,12 @@ export const api = {
   createCategory: (payload: { name: string; type: string; color: string; icon: string }) =>
     request<Category>('/api/categories', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  updateCategory: (id: number, payload: { name: string; color: string; icon: string }) =>
+    request<Category>(`/api/categories/${id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),

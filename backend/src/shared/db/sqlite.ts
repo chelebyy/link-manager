@@ -242,11 +242,18 @@ export const initSqliteDb = () => {
 export const sqliteQuery = (sql: string, params?: any[]) => {
   const database = initSqliteDb();
   const stmt = database.prepare(sql);
-  if (sql.trim().toLowerCase().startsWith('select')) {
+  const normalizedSql = sql.trim().toLowerCase();
+
+  if (normalizedSql.startsWith('select')) {
     return params && params.length > 0 ? stmt.all(...params) : stmt.all();
-  } else {
-    return params && params.length > 0 ? stmt.run(...params) : stmt.run();
   }
+
+  if (normalizedSql.includes('returning')) {
+    const row = params && params.length > 0 ? stmt.get(...params) : stmt.get();
+    return row ? [row] : [];
+  }
+
+  return params && params.length > 0 ? stmt.run(...params) : stmt.run();
 };
 
 export { db as sqliteDb };
