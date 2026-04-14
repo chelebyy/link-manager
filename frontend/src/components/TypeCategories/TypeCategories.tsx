@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Folder, ArrowLeft, Layers, Search } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import type { Category } from '../../types';
@@ -16,10 +16,10 @@ interface TypeCategoriesProps {
   children: ReactNode;
 }
 
-export function TypeCategories({ 
-  typeLabel, 
-  typeColor, 
-  categories, 
+export function TypeCategories({
+  typeLabel,
+  typeColor,
+  categories,
   selectedCategory,
   searchQuery,
   onSelectCategory,
@@ -34,22 +34,22 @@ export function TypeCategories({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <Button variant="outline" size="sm" onClick={onBack} aria-label="Go back">
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
           Geri
         </Button>
         <div>
           <h2 className="text-2xl font-bold" style={{ color: typeColor }}>
             {typeLabel}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Kategoriler solda, kaynaklar sagda listelenir
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-lg border bg-card shadow-sm lg:sticky lg:top-20">
+      <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-lg border bg-card lg:sticky lg:top-20">
           <div className="border-b px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kategoriler</p>
           </div>
@@ -58,12 +58,15 @@ export function TypeCategories({
             <button
               type="button"
               onClick={() => onSelectCategory(null)}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
-                selectedCategory === null ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'
-              }`}
+              aria-label="Select category: Tümü"
+              aria-pressed={selectedCategory === null}
+                className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors rounded-sm ${
+                  selectedCategory === null
+                    ? 'font-medium'
+                    : 'hover:bg-background'
+                }`}
             >
-              <Layers className="h-4 w-4 shrink-0" style={{ color: selectedCategory === null ? typeColor : undefined }} />
-              <span className="truncate">Tümü</span>
+              <span className="truncate font-mono text-xs">Tümü</span>
             </button>
 
             {categories.map((category) => (
@@ -71,21 +74,29 @@ export function TypeCategories({
                 key={category.id}
                 type="button"
                 onClick={() => onSelectCategory(category.id)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
-                  selectedCategory === category.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'
+                aria-label={`Select category: ${category.name}`}
+                aria-pressed={selectedCategory === category.id}
+                className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors rounded-sm ${
+                  selectedCategory === category.id
+                    ? 'font-medium'
+                    : 'hover:bg-background'
                 }`}
               >
-                <Folder className="h-4 w-4 shrink-0" style={{ color: category.color }} />
-                <span className="truncate">{category.name}</span>
+                <span 
+                  className="truncate font-mono text-xs" 
+                  style={{ color: selectedCategory === category.id ? undefined : category.color }}
+                >
+                  {category.name}
+                </span>
               </button>
             ))}
           </div>
         </aside>
 
         <section className="space-y-4 min-w-0">
-          <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between shrink-0">
+          <div className="flex flex-col gap-4 rounded-lg border bg-card md:flex-row md:items-center md:justify-between shrink-0 px-4 py-3">
             <div>
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-lg font-semibold font-mono">
                 {selectedCategoryName ?? typeLabel}
               </h3>
               <p className="text-sm text-muted-foreground">
@@ -99,9 +110,42 @@ export function TypeCategories({
                 value={searchQuery}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder="Ara..."
-                className="pl-9 h-9"
+                className="pl-9 h-9 border-border/50 bg-background/50 rounded-sm font-mono text-xs"
               />
             </div>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null)}
+              aria-label="Select category: Tümü"
+              aria-pressed={selectedCategory === null}
+              className={`shrink-0 px-3 py-2 text-xs font-mono rounded-sm transition-colors ${
+                selectedCategory === null
+                  ? 'bg-muted text-foreground border border-border'
+                  : 'bg-card border border-border hover:border-muted-foreground/30 text-muted-foreground'
+              }`}
+            >
+              Tümü
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => onSelectCategory(category.id)}
+                aria-label={`Select category: ${category.name}`}
+                aria-pressed={selectedCategory === category.id}
+                className={`shrink-0 px-3 py-2 text-xs font-mono rounded-sm transition-colors ${
+                  selectedCategory === category.id
+                    ? 'bg-muted text-foreground border border-border'
+                    : 'bg-card border border-border hover:border-muted-foreground/30 text-muted-foreground'
+                }`}
+                style={{ color: selectedCategory === category.id ? undefined : category.color }}
+              >
+                {category.name}
+              </button>
+            ))}
           </div>
 
           {children}

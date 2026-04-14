@@ -183,9 +183,9 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Tip</Label>
+            <Label htmlFor="resource-type">Tip</Label>
             <Select value={type} onValueChange={handleTypeChange} disabled={isEditing}>
-              <SelectTrigger>
+              <SelectTrigger id="resource-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -205,30 +205,39 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
           </div>
 
           <div className="space-y-2">
-            <Label>Başlık *</Label>
+            <Label htmlFor="resource-title">Başlık *</Label>
             <Input
+              id="resource-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Örn: React Documentation"
               required
+              autoComplete="off"
+              aria-describedby={error && !url && !description ? 'resource-title-error' : undefined}
             />
-            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+            {error && !url && !description ? (
+              <p id="resource-title-error" className="text-xs text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
-            <Label>URL</Label>
+            <Label htmlFor="resource-url">URL</Label>
             <Input
+              id="resource-url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder={type === 'github' ? 'https://github.com/owner/repo' : 'https://example.com'}
               type="url"
+              autoComplete="url"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Kategori</Label>
+            <Label htmlFor="resource-category">Kategori</Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
+              <SelectTrigger id="resource-category">
                 <SelectValue placeholder="Kategori seç..." />
               </SelectTrigger>
               <SelectContent>
@@ -242,21 +251,36 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
           </div>
 
           <div className="space-y-2">
-            <Label>Açıklama</Label>
+            <Label htmlFor="resource-description">Açıklama</Label>
             <Textarea
+              id="resource-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Kısa açıklama..."
               rows={3}
+              autoComplete="off"
             />
           </div>
+
+          {error && (
+            <div role="alert" aria-live="polite">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onClose()}>
               İptal
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? (isEditing ? 'Kaydediliyor...' : 'Ekleniyor...') : (isEditing ? 'Kaydet' : 'Ekle')}
+              {loading ? (
+                <>
+                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEditing ? 'Kaydediliyor...' : 'Ekleniyor...'}
+                </>
+              ) : (
+                isEditing ? 'Kaydet' : 'Ekle'
+              )}
             </Button>
           </div>
         </form>

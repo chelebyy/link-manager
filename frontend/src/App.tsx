@@ -8,8 +8,6 @@ import { AddResourceDialog } from './components/AddResourceDialog/AddResourceDia
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
 import { Button } from './components/ui/button';
 import { Plus, Settings, Github, LayoutGrid, Download, Upload } from 'lucide-react';
-import { ThemeToggle } from './components/ThemeToggle';
-import { useTheme } from './contexts/ThemeContext';
 import { GlobalSearchPanel } from './components/GlobalSearchPanel';
 import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
 import type { ExportPayload } from './types';
@@ -17,7 +15,6 @@ import { api, ApiError } from './lib/api';
 import { queryKeys } from './lib/query-keys';
 
 function App() {
-  const { theme } = useTheme();
   const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -48,6 +45,8 @@ function App() {
   const categories = categoriesQuery.data ?? [];
   const resourceTypes = resourceTypesQuery.data ?? [];
   const globalResults = globalResultsQuery.data ?? [];
+
+  const isLoading = categoriesQuery.isLoading || resourceTypesQuery.isLoading;
 
   const showToast = (kind: ToastItem['kind'], title: string, description?: string) => {
     const id = Date.now() + Math.random();
@@ -151,14 +150,14 @@ function App() {
     : [];
 
   return (
-    <div className={`min-h-screen bg-background transition-colors duration-300 ${theme}`}>
+    <div className="min-h-screen bg-background transition-colors duration-300">
       <ToastBanner toasts={toasts} onDismiss={dismissToast} />
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-[#d1d5db] bg-background">
         <div className="container mx-auto px-4 flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
-            <Github className="h-6 w-6" />
+            <Github className="h-5 w-5" aria-hidden="true" />
             <h1
-              className="text-xl font-bold cursor-pointer hover:text-primary transition-colors"
+              className="font-mono text-xl font-semibold cursor-pointer hover:text-primary transition-colors max-w-[12rem] truncate"
               onClick={() => {
                 setSelectedType(null);
                 setSelectedCategory(null);
@@ -172,50 +171,68 @@ function App() {
             <Button
               variant="outline"
               size="sm"
+              className="rounded-sm border-border font-mono text-xs"
               onClick={handleExport}
+              aria-label="Export data"
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="h-3 w-3 mr-1.5" aria-hidden="true" />
               Export
             </Button>
             <Button
               variant="outline"
               size="sm"
+              className="rounded-sm border-border font-mono text-xs"
               onClick={() => importRef.current?.click()}
+              aria-label="Import data"
             >
-              <Upload className="h-4 w-4 mr-2" />
+              <Upload className="h-3 w-3 mr-1.5" aria-hidden="true" />
               Import
             </Button>
             <input ref={importRef} type="file" accept="application/json" className="hidden" onChange={handleImport} />
             <Button
               variant="outline"
               size="sm"
+              className="rounded-sm border-border font-mono text-xs"
               onClick={() => setShowResourceTypeManager(true)}
+              aria-label="Manage resource type cards"
             >
-              <LayoutGrid className="h-4 w-4 mr-2" />
+              <LayoutGrid className="h-3 w-3 mr-1.5" aria-hidden="true" />
               Kartlar
             </Button>
             <Button
               variant="outline"
               size="sm"
+              className="rounded-sm border-border font-mono text-xs"
               onClick={() => setShowCategoryManager(true)}
+              aria-label="Manage categories"
             >
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="h-3 w-3 mr-1.5" aria-hidden="true" />
               Kategoriler
             </Button>
             <Button
               size="sm"
+              className="rounded-sm font-mono text-xs"
               onClick={() => setShowAddResource(true)}
+              aria-label="Add new resource"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-3 w-3 mr-1.5" aria-hidden="true" />
               Ekle
             </Button>
-            <ThemeToggle />
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {!selectedType ? (
+        {isLoading ? (
+          <div className="space-y-8">
+            <div className="h-24 rounded-lg bg-muted animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-32 rounded-lg bg-muted animate-pulse" />
+              ))}
+            </div>
+          </div>
+        ) : !selectedType ? (
           <div className="space-y-8">
             <GlobalSearchPanel
               query={globalSearchQuery}
@@ -227,7 +244,7 @@ function App() {
               onOpenCategory={handleCategoryOpenFromSearch}
             />
             <CategoryGrid
-              resourceTypes={globalSearchQuery.trim() ? resourceTypes.filter((type) => [type.name, type.description ?? '', type.id].some((value) => value.toLowerCase().includes(globalSearchQuery.trim().toLowerCase()))) : resourceTypes}
+              resourceTypes={globalSearchQuery.trim() ? resourceTypes.filter((type) => [type.name, type.description ?? '', type.id].some((value) => value.toString().toLowerCase().includes(globalSearchQuery.trim().toLowerCase()))) : resourceTypes}
               onSelectType={handleTypeSelect}
             />
           </div>

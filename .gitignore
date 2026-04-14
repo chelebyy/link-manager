@@ -40,3 +40,14 @@ link-manager.db
 # Temporary files
 *.tmp
 *.temp
+
+# Local AI/tooling state
+.maestro/
+.sisyphus/
+.ruff_cache/
+
+# Local analysis artifacts
+trace-*.json
+*-plan.md
+*-test-results.png
+dashboard.png
