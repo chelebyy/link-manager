@@ -23,7 +23,7 @@ import { api, ApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query-keys';
 
 const presetColors = [
-  '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#58a6ff', '#10b981', '#f59e0b', '#ef4444', '#9ecbff',
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#64748b'
 ];
 
@@ -217,6 +217,8 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     return resourceTypes.find(t => t.id === typeId)?.name || typeId;
   };
 
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
@@ -229,9 +231,9 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Kart</Label>
+            <Label htmlFor="category-type">Kart</Label>
             <Select value={managedType} onValueChange={setManagedType}>
-              <SelectTrigger>
+              <SelectTrigger id="category-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -245,15 +247,22 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
           </div>
 
           <div className="space-y-2">
-            <Label>{editingCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori'}</Label>
+            <Label htmlFor="category-name">{editingCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori'}</Label>
             <div className="flex gap-2">
               <Input
+                id="category-name"
                 placeholder="Kategori adı"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createCategory()}
+                autoComplete="off"
+                disabled={isSubmitting}
               />
-              <Button onClick={createCategory} disabled={loading}>
+              <Button 
+                onClick={createCategory} 
+                disabled={isSubmitting || loading || !newCategoryName.trim()}
+                aria-label={editingCategory ? 'Kaydet' : 'Yeni kategori ekle'}
+              >
                 {editingCategory ? 'Kaydet' : <Plus className="h-4 w-4" />}
               </Button>
               {editingCategory ? <Button variant="outline" onClick={cancelEditCategory}>İptal</Button> : null}
@@ -271,11 +280,22 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                   onClick={() => {
                     setColorInput(color);
                   }}
+                  aria-label={`Renk seç: ${color}`}
                 />
               ))}
             </div>
-            <Input value={colorInput} onChange={(e) => setColorInput(e.target.value)} placeholder="#6366f1" />
-            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+            <Label htmlFor="category-color" className="sr-only">Renk kodu</Label>
+            <Input 
+              id="category-color" 
+              value={colorInput} 
+              onChange={(e) => setColorInput(e.target.value)} 
+              placeholder="#58a6ff" 
+              autoComplete="off"
+              disabled={isSubmitting}
+            />
+            {error ? (
+              <p id="category-error" className="text-xs text-destructive" aria-live="polite">{error}</p>
+            ) : null}
           </div>
 
           <div className="border-t pt-4">
@@ -306,6 +326,8 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                       size="icon"
                       className="h-8 w-8"
                       onClick={() => startEditCategory(category)}
+                      aria-label={`${category.name} kategorisini düzenle`}
+                      disabled={deleteMutation.isPending}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -314,6 +336,8 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                       size="icon"
                       className="h-8 w-8 text-destructive"
                       onClick={() => deleteCategory(category.id)}
+                      aria-label={`${category.name} kategorisini sil`}
+                      disabled={deleteMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -1,0 +1,295 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": "MCP Market",
+  "style": "Developer Monospace Marketplace",
+  "colors": {
+    "background": {
+      "value": "#ffffff",
+      "role": "background",
+      "usage": "body background, span background, a color, button color, var(--tw-ring-offset-color), var(--tw-prose-invert-headings), var(--tw-prose-invert-links), var(--tw-prose-invert-bold), var(--tw-prose-invert-kbd), var(--tw-prose-invert-code), var(--normal-bg)"
+    },
+    "text": {
+      "value": "#050505",
+      "role": "text",
+      "usage": "body background, span background, a color, button color"
+    },
+    "text-muted": {
+      "value": "#808080",
+      "role": "text",
+      "usage": "p color"
+    },
+    "primary": {
+      "value": "#58a6ff",
+      "role": "primary",
+      "usage": "CSS variable hint"
+    },
+    "secondary": {
+      "value": "#9ecbff",
+      "role": "secondary",
+      "usage": "stylesheet"
+    },
+    "accent": {
+      "value": "#032f62",
+      "role": "accent",
+      "usage": "stylesheet"
+    },
+    "border": {
+      "value": "#d1d5db",
+      "role": "border",
+      "usage": "var(--tw-prose-bullets), var(--tw-prose-th-borders), var(--tw-prose-invert-body), var(--tw-prose-invert-pre-code)"
+    },
+    "text-subtle": {
+      "value": "#ededed",
+      "role": "text",
+      "usage": "body color, h1 color, h2 color, h3 color, h4 color, span color, nav color, var(--gray4)"
+    }
+  },
+  "typography": {
+    "heading-1": {
+      "fontFamily": "GeistPixelSquare, Geist Mono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, GeistMono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, ui-monospace, monospace",
+      "fontSize": "72px",
+      "fontWeight": "500",
+      "lineHeight": "72px",
+      "letterSpacing": "-1.8px",
+      "role": "Page titles"
+    },
+    "heading-2": {
+      "fontFamily": "GeistMono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "fontSize": "24px",
+      "fontWeight": "600",
+      "lineHeight": "32px",
+      "letterSpacing": "-0.6px",
+      "role": "Section headings"
+    },
+    "heading-3": {
+      "fontFamily": "GeistMono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Sub-section headings"
+    },
+    "heading-4": {
+      "fontFamily": "GeistMono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "16px",
+      "letterSpacing": "0.6px",
+      "role": "Card/block headings"
+    },
+    "body": {
+      "fontFamily": "Inter, Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Noto Sans CJK JP, Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Base body text"
+    },
+    "body-text": {
+      "fontFamily": "Inter, Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Noto Sans CJK JP, Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif",
+      "fontSize": "18px",
+      "fontWeight": "400",
+      "lineHeight": "28px",
+      "letterSpacing": "normal",
+      "role": "Paragraph text"
+    },
+    "inline-text": {
+      "fontFamily": "GeistMono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "fontSize": "10px",
+      "fontWeight": "600",
+      "lineHeight": "16px",
+      "letterSpacing": "0.5px",
+      "role": "Inline text elements"
+    },
+    "link": {
+      "fontFamily": "GeistMono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New, monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "16px",
+      "letterSpacing": "normal",
+      "role": "Hyperlinks"
+    },
+    "button": {
+      "fontFamily": "Inter, Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Noto Sans CJK JP, Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Button labels"
+    },
+    "navigation": {
+      "fontFamily": "Inter, Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Noto Sans CJK JP, Hiragino Kaku Gothic ProN, Hiragino Sans, Yu Gothic, Meiryo, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Navigation text"
+    }
+  },
+  "spacing": {
+    "3xs": {
+      "value": "1px",
+      "px": 1
+    },
+    "2xs": {
+      "value": ".5714286em",
+      "px": 9.1
+    },
+    "xs": {
+      "value": "1em",
+      "px": 16
+    },
+    "sm": {
+      "value": "1.3333333em",
+      "px": 21.3
+    },
+    "md": {
+      "value": "1.6666667em",
+      "px": 26.7
+    },
+    "lg": {
+      "value": "2.5rem",
+      "px": 40
+    },
+    "xl": {
+      "value": "3em",
+      "px": 48
+    },
+    "2xl": {
+      "value": "3.5rem",
+      "px": 56
+    },
+    "3xl": {
+      "value": "4rem",
+      "px": 64
+    },
+    "4xl": {
+      "value": "5rem",
+      "px": 80
+    },
+    "5xl": {
+      "value": "6rem",
+      "px": 96
+    },
+    "6xl": {
+      "value": "8rem",
+      "px": 128
+    }
+  },
+  "borderRadius": {
+    "none": {
+      "value": "0",
+      "px": 0
+    },
+    "sm": {
+      "value": "2px",
+      "px": 2
+    },
+    "md": {
+      "value": ".3125rem",
+      "px": 5
+    },
+    "lg": {
+      "value": "10px",
+      "px": 10
+    },
+    "full": {
+      "value": "9999px",
+      "px": 9999
+    }
+  },
+  "fonts": [
+    {
+      "family": "Inter",
+      "source": "custom"
+    },
+    {
+      "family": "Noto Sans CJK JP",
+      "source": "custom"
+    },
+    {
+      "family": "Hiragino Kaku Gothic ProN",
+      "source": "custom"
+    },
+    {
+      "family": "Hiragino Sans",
+      "source": "custom"
+    },
+    {
+      "family": "Yu Gothic",
+      "source": "custom"
+    },
+    {
+      "family": "Meiryo",
+      "source": "custom"
+    },
+    {
+      "family": "Fraunces",
+      "source": "custom"
+    },
+    {
+      "family": "Crimson Text",
+      "source": "custom"
+    },
+    {
+      "family": "Noto Serif",
+      "source": "custom"
+    },
+    {
+      "family": "Noto Serif CJK JP",
+      "source": "custom"
+    },
+    {
+      "family": "Hiragino Mincho ProN",
+      "source": "custom"
+    },
+    {
+      "family": "Yu Mincho",
+      "source": "custom"
+    },
+    {
+      "family": "JetBrains Mono",
+      "source": "custom"
+    },
+    {
+      "family": "JetBrains Mono Fallback",
+      "source": "custom"
+    },
+    {
+      "family": "GeistMono",
+      "source": "custom"
+    },
+    {
+      "family": "Roboto Mono",
+      "source": "custom"
+    },
+    {
+      "family": "DejaVu Sans Mono",
+      "source": "custom"
+    },
+    {
+      "family": "GeistPixelSquare",
+      "source": "custom"
+    },
+    {
+      "family": "Geist Mono",
+      "source": "custom"
+    },
+    {
+      "family": "GeistPixelGrid",
+      "source": "custom"
+    },
+    {
+      "family": "GeistPixelCircle",
+      "source": "custom"
+    },
+    {
+      "family": "GeistPixelTriangle",
+      "source": "custom"
+    },
+    {
+      "family": "GeistPixelLine",
+      "source": "custom"
+    }
+  ]
+}

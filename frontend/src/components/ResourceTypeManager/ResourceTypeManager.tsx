@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Trash2, Edit2, Palette, GripVertical } from 'lucide-react';
+import { Trash2, Edit2, Palette, GripVertical, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,9 +18,9 @@ import { api, ApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query-keys';
 
 const PRESET_COLORS = [
-  '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#58a6ff', '#10b981', '#f59e0b', '#ef4444', '#9ecbff',
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#64748b',
-  '#1e293b', '#7c3aed', '#db2777', '#059669', '#dc2626'
+  '#1e293b', '#032f62', '#db2777', '#059669', '#dc2626'
 ];
 
 const AVAILABLE_ICONS = [
@@ -48,12 +48,12 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
   const [formData, setFormData] = useState({
     name: '',
     icon: 'Folder',
-    color: '#6366f1',
+    color: '#58a6ff',
     description: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [colorInput, setColorInput] = useState('#6366f1');
+  const [colorInput, setColorInput] = useState('#58a6ff');
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
   const resourceTypesQuery = useQuery({
@@ -119,8 +119,8 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
   });
 
   const resetForm = () => {
-    setFormData({ name: '', icon: 'Folder', color: '#6366f1', description: '' });
-    setColorInput('#6366f1');
+    setFormData({ name: '', icon: 'Folder', color: '#58a6ff', description: '' });
+    setColorInput('#58a6ff');
     setError('');
     setIsEditing(false);
     setEditingType(null);
@@ -194,6 +194,10 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
     await reorderTypes(next);
   };
 
+  const isSubmitting = loading || createMutation.isPending || updateMutation.isPending;
+  const isDeleting = deleteMutation.isPending;
+  const isReordering = reorderMutation.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
@@ -205,23 +209,42 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
+          <div className="space-y-4 rounded-lg border bg-background p-4">
             <h3 className="font-medium">{isEditing ? 'Kart Tipini Düzenle' : 'Yeni Kart Tipi Ekle'}</h3>
 
             <div className="space-y-2">
-              <Label>İsim</Label>
-              <Input placeholder="Örn: API Dokümantasyonu" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-              {error ? <p className="text-xs text-destructive">{error}</p> : null}
+              <Label htmlFor="rt-name">İsim</Label>
+              <Input
+                id="rt-name"
+                placeholder="Örn: API Dokümantasyonu"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                disabled={isSubmitting}
+              />
+              {error ? (
+                <p className="text-xs text-destructive" role="alert" aria-live="polite">{error}</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
-              <Label>Açıklama (İsteğe bağlı)</Label>
-              <Input placeholder="Bu kart tipinin açıklaması..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+              <Label htmlFor="rt-description">Açıklama (İsteğe bağlı)</Label>
+              <Input
+                id="rt-description"
+                placeholder="Bu kart tipinin açıklaması..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                disabled={isSubmitting}
+              />
             </div>
 
             <div className="space-y-2">
-              <Label>İkon</Label>
-              <div className="grid max-h-40 grid-cols-8 gap-2 overflow-y-auto rounded-md border bg-background p-2">
+              <Label htmlFor="rt-icon-picker">İkon</Label>
+              <div
+                id="rt-icon-picker"
+                className="grid max-h-40 grid-cols-8 gap-2 overflow-y-auto rounded-md border bg-background p-2"
+                role="group"
+                aria-label="İkon seçin"
+              >
                 {AVAILABLE_ICONS.map((icon) => {
                   const IconComponent = iconMap[icon] ?? Icons.Folder;
                   return (
@@ -229,8 +252,10 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                       key={icon}
                       type="button"
                       onClick={() => setFormData({ ...formData, icon })}
-                      className={`flex aspect-square items-center justify-center rounded border transition-colors ${formData.icon === icon ? 'border-primary bg-primary/10 text-primary' : 'border-transparent hover:bg-muted'}`}
-                      title={icon}
+                      className={`flex aspect-square items-center justify-center rounded border transition-colors ${formData.icon === icon ? 'border-primary bg-primary/10 text-primary' : 'border-transparent hover:bg-muted/50'}`}
+                      aria-label={icon}
+                      aria-pressed={formData.icon === icon}
+                      disabled={isSubmitting}
                     >
                       <IconComponent className="h-4 w-4" />
                     </button>
@@ -241,8 +266,14 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-2"><Palette className="h-4 w-4" /> Renk</Label>
-              <div className="flex flex-wrap gap-2">
+              <Label htmlFor="rt-color-input" className="flex items-center gap-2">
+                <Palette className="h-4 w-4" /> Renk
+              </Label>
+              <div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label="Renk seçin"
+              >
                 {PRESET_COLORS.map((color) => (
                   <button
                     key={color}
@@ -253,21 +284,36 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                       setFormData({ ...formData, color });
                       setColorInput(color);
                     }}
+                    aria-label={`Renk ${color}`}
+                    aria-pressed={colorInput === color}
+                    disabled={isSubmitting}
                   />
                 ))}
               </div>
-              <Input value={colorInput} onChange={(e) => setColorInput(e.target.value)} placeholder="#6366f1" />
+              <Input
+                id="rt-color-input"
+                value={colorInput}
+                onChange={(e) => setColorInput(e.target.value)}
+                placeholder="#58a6ff"
+                disabled={isSubmitting}
+              />
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleSubmit} disabled={loading || !formData.name.trim()}>{isEditing ? 'Güncelle' : 'Ekle'}</Button>
-              {isEditing ? <Button variant="outline" onClick={resetForm}>İptal</Button> : null}
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || !formData.name.trim()}
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditing ? 'Güncelle' : 'Ekle'}
+              </Button>
+              {isEditing ? <Button variant="outline" onClick={resetForm} disabled={isSubmitting}>İptal</Button> : null}
             </div>
           </div>
 
           <div className="space-y-2">
             <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Mevcut Kart Tipleri</h3>
-            <div className="space-y-2">
+            <div className="space-y-2" aria-live="polite" aria-label="Kart tipleri listesi">
               {resourceTypes.map((type) => {
                 const IconComponent = iconMap[type.icon] ?? Icons.Folder;
                 return (
@@ -288,11 +334,31 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                         <div className="font-medium">{type.name}</div>
                         <div className="text-xs text-muted-foreground">{type.description || 'Açıklama yok'} • {type.resource_count ?? 0} kaynak</div>
                       </div>
-                      {type.is_builtin ? <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Varsayılan</span> : null}
+                      {type.is_builtin ? <span className="rounded-full bg-secondary/50 px-2 py-0.5 text-xs text-muted-foreground">Varsayılan</span> : null}
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(type)}><Edit2 className="h-4 w-4" /></Button>
-                      {!type.is_builtin ? <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => void handleDelete(type)}><Trash2 className="h-4 w-4" /></Button> : null}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEdit(type)}
+                        aria-label={`${type.name} kart tipini düzenle`}
+                        disabled={isDeleting || isReordering}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      {!type.is_builtin ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => void handleDelete(type)}
+                          aria-label={`${type.name} kart tipini sil`}
+                          disabled={isDeleting || isReordering}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 );

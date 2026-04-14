@@ -189,7 +189,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
               <CardContent>
                 {resource.description ? <CardDescription className="mb-3 line-clamp-2">{resource.description}</CardDescription> : null}
                 {resource.url ? (
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline">
                     <ExternalLink className="h-3 w-3" />
                     Ziyaret Et
                   </a>

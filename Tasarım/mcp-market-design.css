@@ -1,0 +1,64 @@
+@theme {
+  /* Colors */
+  --color-background: #ffffff;
+  --color-text: #0a0a0a;
+  --color-text-muted: #737373;
+  --color-primary: #58a6ff;
+  --color-secondary: #9ecbff;
+  --color-accent: #032f62;
+  --color-border: #d1d5db;
+  --color-text: #050505;
+  --color-text-muted: #808080;
+  --color-text-subtle: #ededed;
+  --color-primary: #58a6ff;
+  --color-secondary: #9ecbff;
+  --color-accent: #032f62;
+  --color-border: #d1d5db;
+
+  /* Spacing */
+  --spacing-3xs: 1px;
+  --spacing-2xs: .5714286em;
+  --spacing-xs: 1em;
+  --spacing-sm: 1.3333333em;
+  --spacing-md: 1.6666667em;
+  --spacing-lg: 2.5rem;
+  --spacing-xl: 3em;
+  --spacing-2xl: 3.5rem;
+  --spacing-3xl: 4rem;
+  --spacing-4xl: 5rem;
+  --spacing-5xl: 6rem;
+  --spacing-6xl: 8rem;
+
+  /* Border Radius */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: .3125rem;
+  --radius-lg: 10px;
+  --radius-full: 9999px;
+
+  /* Fonts */
+  --font-inter: "Inter", sans-serif;
+  --font-noto-sans-cjk-jp: "Noto Sans CJK JP", sans-serif;
+  --font-hiragino-kaku-gothic-pron: "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-hiragino-sans: "Hiragino Sans", sans-serif;
+  --font-yu-gothic: "Yu Gothic", sans-serif;
+  --font-meiryo: "Meiryo", sans-serif;
+  --font-fraunces: "Fraunces", sans-serif;
+  --font-crimson-text: "Crimson Text", sans-serif;
+  --font-noto-serif: "Noto Serif", sans-serif;
+  --font-noto-serif-cjk-jp: "Noto Serif CJK JP", sans-serif;
+  --font-hiragino-mincho-pron: "Hiragino Mincho ProN", sans-serif;
+  --font-yu-mincho: "Yu Mincho", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", sans-serif;
+  --font-jetbrains-mono-fallback: "JetBrains Mono Fallback", sans-serif;
+  --font-geistmono: "GeistMono", sans-serif;
+  --font-roboto-mono: "Roboto Mono", sans-serif;
+  --font-dejavu-sans-mono: "DejaVu Sans Mono", sans-serif;
+  --font-geistpixelsquare: "GeistPixelSquare", sans-serif;
+  --font-geist-mono: "Geist Mono", sans-serif;
+  --font-geistpixelgrid: "GeistPixelGrid", sans-serif;
+  --font-geistpixelcircle: "GeistPixelCircle", sans-serif;
+  --font-geistpixeltriangle: "GeistPixelTriangle", sans-serif;
+  --font-geistpixelline: "GeistPixelLine", sans-serif;
+
+}

@@ -12,7 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["JetBrains Mono", "Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -48,11 +49,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "mcp-muted": "hsl(0 0% 45%)",
+        "mcp-gray": "hsl(0 0% 50%)",
+        "mcp-gray-light": "hsl(0 0% 93%)",
+        "mcp-gray-dark": "hsl(0 0% 86%)",
+        "mcp-blue": "hsl(212 100% 69%)",
+        "mcp-blue-light": "hsl(210 100% 85%)",
+        "mcp-blue-dark": "hsl(212 86% 24%)",
+        "mcp-white": "hsl(0 0% 100%)",
+        "mcp-black": "hsl(0 0% 2%)",
+        "mcp-near-black": "hsl(0 0% 4%)",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "10px",
+        md: "5px",
+        sm: "2px",
       },
       keyframes: {
         "accordion-down": {
