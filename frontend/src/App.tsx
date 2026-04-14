@@ -8,8 +8,6 @@ import { AddResourceDialog } from './components/AddResourceDialog/AddResourceDia
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
 import { Button } from './components/ui/button';
 import { Plus, Settings, Github, LayoutGrid, Download, Upload } from 'lucide-react';
-import { ThemeToggle } from './components/ThemeToggle';
-import { useTheme } from './contexts/ThemeContext';
 import { GlobalSearchPanel } from './components/GlobalSearchPanel';
 import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
 import type { ExportPayload } from './types';
@@ -17,7 +15,6 @@ import { api, ApiError } from './lib/api';
 import { queryKeys } from './lib/query-keys';
 
 function App() {
-  const { theme } = useTheme();
   const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -153,7 +150,7 @@ function App() {
     : [];
 
   return (
-    <div className={`min-h-screen bg-background transition-colors duration-300 ${theme}`}>
+    <div className="min-h-screen bg-background transition-colors duration-300">
       <ToastBanner toasts={toasts} onDismiss={dismissToast} />
       <header className="sticky top-0 z-50 w-full border-b border-[#d1d5db] bg-background">
         <div className="container mx-auto px-4 flex h-14 items-center justify-between">
@@ -221,7 +218,6 @@ function App() {
               <Plus className="h-3 w-3 mr-1.5" aria-hidden="true" />
               Ekle
             </Button>
-            <ThemeToggle />
           </div>
         </div>
       </header>
