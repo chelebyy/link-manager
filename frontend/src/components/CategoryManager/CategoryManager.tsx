@@ -300,46 +300,40 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
 
           <div className="border-t pt-4">
             <Label>{getTypeName(managedType)} kategorileri</Label>
-            <div className="space-y-2 mt-2">
+            <div className="space-y-1 mt-2 max-h-[300px] overflow-y-auto">
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  draggable
-                  onDragStart={() => setDraggedId(category.id)}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={() => void handleDrop(category.id)}
-                  className="flex items-center justify-between rounded-lg border p-2"
+                  className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 group"
                 >
                   <div className="flex items-center gap-2">
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <div
-                      className="w-8 h-8 rounded flex items-center justify-center"
-                      style={{ backgroundColor: `${category.color}20` }}
+                    <span
+                      className="font-mono text-xs"
+                      style={{ color: category.color }}
                     >
-                      <Folder className="w-4 h-4" style={{ color: category.color }} />
-                    </div>
-                    <span>{category.name}</span>
+                      {category.name}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-6 w-6"
                       onClick={() => startEditCategory(category)}
                       aria-label={`${category.name} kategorisini düzenle`}
                       disabled={deleteMutation.isPending}
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-3 w-3" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive"
+                      className="h-6 w-6 text-destructive"
                       onClick={() => deleteCategory(category.id)}
                       aria-label={`${category.name} kategorisini sil`}
                       disabled={deleteMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
