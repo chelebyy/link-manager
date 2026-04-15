@@ -33,6 +33,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [editingResource, setEditingResource] = useState<ResourceWithSync | null>(null);
 
@@ -163,7 +164,8 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
               onDragStart={() => setDraggedId(resource.id)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}
-              className="group transition-shadow hover:shadow-md"
+              onClick={() => setExpandedId(expandedId === resource.id ? null : resource.id)}
+              className="group transition-shadow hover:shadow-md cursor-pointer"
             >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
@@ -187,7 +189,18 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                 {resource.category ? <Badge style={{ backgroundColor: resource.category.color }} className="mt-1">{resource.category.name}</Badge> : null}
               </CardHeader>
               <CardContent>
-                {resource.description ? <CardDescription className="mb-3 line-clamp-2">{resource.description}</CardDescription> : null}
+                {resource.description ? (
+                  expandedId === resource.id ? (
+                    <CardDescription className="mb-3">{resource.description}</CardDescription>
+                  ) : (
+                    <CardDescription className="mb-3 line-clamp-2 cursor-pointer hover:text-foreground">
+                      {resource.description}
+                      {resource.description.length > 100 && (
+                        <span className="ml-1 text-xs text-muted-foreground/70">(devamı)</span>
+                      )}
+                    </CardDescription>
+                  )
+                ) : null}
                 {resource.url ? (
                   <a href={resource.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline">
                     <ExternalLink className="h-3 w-3" />
