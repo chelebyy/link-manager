@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Folder, GripVertical, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -42,7 +42,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   const [loading, setLoading] = useState(false);
   const [colorInput, setColorInput] = useState(presetColors[0]);
   const [error, setError] = useState('');
-  const [draggedId, setDraggedId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -120,15 +119,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     onError: () => onNotify?.('error', 'Kategori silinemedi'),
   });
 
-  const reorderMutation = useMutation({
-    mutationFn: (ids: number[]) => api.reorderCategories(ids),
-    onSuccess: () => onNotify?.('success', 'Kategori sırası güncellendi'),
-    onError: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
-      onNotify?.('error', 'Kategori sırası güncellenemedi');
-    },
-  });
-
   const createCategory = async () => {
     if (!newCategoryName.trim()) {
       setError('Kategori adı zorunludur.');
@@ -192,25 +182,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     setNewCategoryName('');
     setColorInput(presetColors[0]);
     setError('');
-  };
-
-  const reorderCategories = async (nextCategories: Category[]) => {
-    queryClient.setQueryData(queryKeys.categories(managedType), nextCategories);
-    await reorderMutation.mutateAsync(nextCategories.map((item) => item.id));
-  };
-
-  const handleDrop = async (targetId: number) => {
-    if (draggedId === null || draggedId === targetId) return;
-
-    const next = [...categories];
-    const fromIndex = next.findIndex((item) => item.id === draggedId);
-    const toIndex = next.findIndex((item) => item.id === targetId);
-    if (fromIndex === -1 || toIndex === -1) return;
-
-    const [moved] = next.splice(fromIndex, 1);
-    next.splice(toIndex, 0, moved);
-    setDraggedId(null);
-    await reorderCategories(next);
   };
 
   const getTypeName = (typeId: string) => {
