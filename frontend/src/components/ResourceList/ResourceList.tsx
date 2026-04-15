@@ -33,9 +33,9 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
   const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [editingResource, setEditingResource] = useState<ResourceWithSync | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories(type ?? undefined),
@@ -129,12 +129,13 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2"><Skeleton className="h-5 w-3/4" /></CardHeader>
-            <CardContent><Skeleton className="mb-2 h-4 w-full" /><Skeleton className="h-4 w-2/3" /></CardContent>
-          </Card>
+      <div className="space-y-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-center gap-3 rounded-sm border px-3 py-2">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-4" />
+            <div className="flex-1"><Skeleton className="h-4 w-3/4" /></div>
+          </div>
         ))}
       </div>
     );
@@ -142,9 +143,8 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
 
   if (resources.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <div className="mb-2 text-muted-foreground">Henüz kaynak eklenmemiş.</div>
-        <div className="text-sm text-muted-foreground/60">Yeni bir kaynak eklemek için "Ekle" butonunu kullanın.</div>
+      <div className="py-8 text-center text-sm text-muted-foreground">
+        Henüz kaynak eklenmemiş. Yeni bir kaynak eklemek için "Ekle" butonunu kullanın.
       </div>
     );
   }
@@ -153,62 +153,90 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-1">
         {resources.map((resource) => {
           const Icon = getIcon(resource.type);
 
           return (
-            <Card
+            <div
               key={resource.id}
               draggable
               onDragStart={() => setDraggedId(resource.id)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}
               onClick={() => setExpandedId(expandedId === resource.id ? null : resource.id)}
-              className="group transition-shadow hover:shadow-md cursor-pointer"
+              className="group flex items-center gap-3 rounded-sm border border-transparent hover:border-border hover:bg-muted/30 px-3 py-2 cursor-pointer transition-all"
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
-                    <CardTitle className="truncate text-base">{resource.title}</CardTitle>
-                  </div>
-                  <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button aria-label="Kaynağı düzenle" title="Kaynağı düzenle" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingResource(resource)}>
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button aria-label={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} title={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleFavorite(resource.id, resource.is_favorite)}>
-                      <Heart className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
-                    </Button>
-                    <Button aria-label="Kaynağı sil" title="Kaynağı sil" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(resource.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+              <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 cursor-grab" />
+              
+              <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium">{resource.title}</span>
+                  {resource.category ? (
+                    <span 
+                      className="text-[10px] px-1.5 py-0.5 rounded-sm font-mono shrink-0"
+                      style={{ backgroundColor: `${resource.category.color}20`, color: resource.category.color }}
+                    >
+                      {resource.category.name}
+                    </span>
+                  ) : null}
                 </div>
-                {resource.category ? <Badge style={{ backgroundColor: resource.category.color }} className="mt-1">{resource.category.name}</Badge> : null}
-              </CardHeader>
-              <CardContent>
+                
                 {resource.description ? (
                   expandedId === resource.id ? (
-                    <CardDescription className="mb-3">{resource.description}</CardDescription>
+                    <p className="text-xs text-muted-foreground mt-0.5">{resource.description}</p>
                   ) : (
-                    <CardDescription className="mb-3 line-clamp-2 cursor-pointer hover:text-foreground">
-                      {resource.description}
-                      {resource.description.length > 100 && (
-                        <span className="ml-1 text-xs text-muted-foreground/70">(devamı)</span>
-                      )}
-                    </CardDescription>
+                    <p className="text-xs text-muted-foreground truncate">{resource.description}</p>
                   )
                 ) : null}
+              </div>
+              
+              <div className="flex items-center gap-2 shrink-0">
                 {resource.url ? (
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline">
+                  <a 
+                    href={resource.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <ExternalLink className="h-3 w-3" />
-                    Ziyaret Et
                   </a>
                 ) : null}
-              </CardContent>
-            </Card>
+                
+                <Button 
+                  aria-label={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100" 
+                  onClick={(e) => { e.stopPropagation(); void toggleFavorite(resource.id, resource.is_favorite); }}
+                >
+                  <Heart className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
+                </Button>
+                
+                <Button 
+                  aria-label="Kaynağı düzenle" 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100" 
+                  onClick={(e) => { e.stopPropagation(); setEditingResource(resource); }}
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+                
+                <Button 
+                  aria-label="Kaynağı sil" 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive" 
+                  onClick={(e) => { e.stopPropagation(); setDeleteId(resource.id); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           );
         })}
       </div>
