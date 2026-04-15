@@ -49,7 +49,7 @@ export function TypeCategories({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-lg border bg-card lg:sticky lg:top-20">
+        <aside className="max-h-[calc(100vh-160px)] overflow-y-auto rounded-lg border bg-card lg:sticky lg:top-20">
           <div className="border-b px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kategoriler</p>
           </div>
@@ -115,7 +115,7 @@ export function TypeCategories({
             </div>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="flex gap-2 overflow-x-auto max-h-[120px] overflow-y-auto pb-2 scrollbar-thin">
             <button
               type="button"
               onClick={() => onSelectCategory(null)}

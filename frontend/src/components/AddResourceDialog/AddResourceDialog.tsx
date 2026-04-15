@@ -240,7 +240,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
               <SelectTrigger id="resource-category">
                 <SelectValue placeholder="Kategori seç..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px] overflow-y-auto">
                 {filteredCategories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id.toString()}>
                     {cat.name}

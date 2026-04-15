@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Folder, GripVertical, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -42,7 +42,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   const [loading, setLoading] = useState(false);
   const [colorInput, setColorInput] = useState(presetColors[0]);
   const [error, setError] = useState('');
-  const [draggedId, setDraggedId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -120,15 +119,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     onError: () => onNotify?.('error', 'Kategori silinemedi'),
   });
 
-  const reorderMutation = useMutation({
-    mutationFn: (ids: number[]) => api.reorderCategories(ids),
-    onSuccess: () => onNotify?.('success', 'Kategori sırası güncellendi'),
-    onError: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
-      onNotify?.('error', 'Kategori sırası güncellenemedi');
-    },
-  });
-
   const createCategory = async () => {
     if (!newCategoryName.trim()) {
       setError('Kategori adı zorunludur.');
@@ -192,25 +182,6 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     setNewCategoryName('');
     setColorInput(presetColors[0]);
     setError('');
-  };
-
-  const reorderCategories = async (nextCategories: Category[]) => {
-    queryClient.setQueryData(queryKeys.categories(managedType), nextCategories);
-    await reorderMutation.mutateAsync(nextCategories.map((item) => item.id));
-  };
-
-  const handleDrop = async (targetId: number) => {
-    if (draggedId === null || draggedId === targetId) return;
-
-    const next = [...categories];
-    const fromIndex = next.findIndex((item) => item.id === draggedId);
-    const toIndex = next.findIndex((item) => item.id === targetId);
-    if (fromIndex === -1 || toIndex === -1) return;
-
-    const [moved] = next.splice(fromIndex, 1);
-    next.splice(toIndex, 0, moved);
-    setDraggedId(null);
-    await reorderCategories(next);
   };
 
   const getTypeName = (typeId: string) => {
@@ -300,46 +271,40 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
 
           <div className="border-t pt-4">
             <Label>{getTypeName(managedType)} kategorileri</Label>
-            <div className="space-y-2 mt-2">
+            <div className="space-y-1 mt-2 max-h-[300px] overflow-y-auto">
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  draggable
-                  onDragStart={() => setDraggedId(category.id)}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={() => void handleDrop(category.id)}
-                  className="flex items-center justify-between rounded-lg border p-2"
+                  className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50 group"
                 >
                   <div className="flex items-center gap-2">
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <div
-                      className="w-8 h-8 rounded flex items-center justify-center"
-                      style={{ backgroundColor: `${category.color}20` }}
+                    <span
+                      className="font-mono text-xs"
+                      style={{ color: category.color }}
                     >
-                      <Folder className="w-4 h-4" style={{ color: category.color }} />
-                    </div>
-                    <span>{category.name}</span>
+                      {category.name}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-6 w-6"
                       onClick={() => startEditCategory(category)}
                       aria-label={`${category.name} kategorisini düzenle`}
                       disabled={deleteMutation.isPending}
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-3 w-3" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive"
+                      className="h-6 w-6 text-destructive"
                       onClick={() => deleteCategory(category.id)}
                       aria-label={`${category.name} kategorisini sil`}
                       disabled={deleteMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
