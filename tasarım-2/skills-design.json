@@ -1,0 +1,161 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": "Skills",
+  "style": "Agent Skills Ecosystem",
+  "colors": {
+    "Background Primary": {
+      "value": "#000000",
+      "role": "background",
+      "usage": "Main page background"
+    },
+    "Background Secondary": {
+      "value": "#171717",
+      "role": "background",
+      "usage": "Secondary surfaces and cards"
+    },
+    "Text Primary": {
+      "value": "#ffffff",
+      "role": "text",
+      "usage": "Primary text content"
+    },
+    "Text Secondary": {
+      "value": "#a8a8a8",
+      "role": "text",
+      "usage": "Secondary text and metadata"
+    },
+    "Border": {
+      "value": "#8f8f8f",
+      "role": "border",
+      "usage": "Subtle borders and dividers"
+    },
+    "Blue Accent": {
+      "value": "#51aeff",
+      "role": "accent",
+      "usage": "Links and interactive elements"
+    }
+  },
+  "typography": {
+    "Body": {
+      "fontFamily": "Geist",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Primary body text and content"
+    },
+    "Body Bold": {
+      "fontFamily": "Geist",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Emphasized body text and labels"
+    },
+    "Code": {
+      "fontFamily": "Geist Mono",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "20px",
+      "letterSpacing": "normal",
+      "role": "Code snippets and terminal commands"
+    },
+    "Code Large": {
+      "fontFamily": "Geist Mono",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "role": "Larger code blocks and monospace content"
+    },
+    "Heading Large": {
+      "fontFamily": "Geist",
+      "fontSize": "30px",
+      "fontWeight": "400",
+      "lineHeight": "37.5px",
+      "letterSpacing": "-0.75px",
+      "role": "Main page headings"
+    },
+    "Heading Medium": {
+      "fontFamily": "Geist",
+      "fontSize": "18px",
+      "fontWeight": "500",
+      "lineHeight": "28px",
+      "letterSpacing": "-0.45px",
+      "role": "Section headings and subheadings"
+    },
+    "Small": {
+      "fontFamily": "Geist",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "20px",
+      "letterSpacing": "normal",
+      "role": "Small text and captions"
+    }
+  },
+  "spacing": {
+    "xs": {
+      "value": "2px",
+      "px": 2
+    },
+    "sm": {
+      "value": "4px",
+      "px": 4
+    },
+    "md": {
+      "value": "6px",
+      "px": 6
+    },
+    "base": {
+      "value": "8px",
+      "px": 8
+    },
+    "lg": {
+      "value": "12px",
+      "px": 12
+    },
+    "xl": {
+      "value": "16px",
+      "px": 16
+    },
+    "2xl": {
+      "value": "24px",
+      "px": 24
+    },
+    "3xl": {
+      "value": "32px",
+      "px": 32
+    },
+    "4xl": {
+      "value": "64px",
+      "px": 64
+    }
+  },
+  "borderRadius": {
+    "sm": {
+      "value": "4px",
+      "px": 4
+    },
+    "md": {
+      "value": "6px",
+      "px": 6
+    }
+  },
+  "fonts": [
+    {
+      "family": "Geist",
+      "source": "custom"
+    },
+    {
+      "family": "Geist Mono",
+      "source": "custom"
+    },
+    {
+      "family": "Fira Mono",
+      "source": "custom"
+    },
+    {
+      "family": "ui-monospace",
+      "source": "system"
+    }
+  ]
+}
