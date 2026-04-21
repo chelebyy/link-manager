@@ -153,7 +153,7 @@ function App() {
     <div className="min-h-screen bg-background transition-colors duration-300">
       <ToastBanner toasts={toasts} onDismiss={dismissToast} />
       <header className="sticky top-0 z-50 w-full border-b border-[#d1d5db] bg-background">
-        <div className="container mx-auto px-4 flex h-14 items-center justify-between">
+        <div className="container mx-auto px-4 flex h-14 items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Github className="h-5 w-5" aria-hidden="true" />
             <h1

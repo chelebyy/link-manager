@@ -61,7 +61,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
               aria-label={`Filter by ${type.name}`}
               aria-pressed={isActive}
               className={`
-                px-4 py-2 rounded-md text-sm font-sans whitespace-nowrap transition-colors duration-200
+                px-4 py-2 rounded-md text-sm font-sans whitespace-nowrap transition-colors duration-200 touch-action manipulation
                 border
                 ${isActive 
                   ? 'bg-[#58a6ff] text-white border-[#58a6ff]' 

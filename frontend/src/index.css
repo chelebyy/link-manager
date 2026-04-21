@@ -38,6 +38,14 @@
     font-family: 'Inter', 'JetBrains Mono', system-ui, -apple-system, sans-serif, monospace;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light dark;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  @media (max-width: 640px) {
+    body {
+      font-size: 14px;
+    }
   }
 
   code, pre, kbd, samp {
