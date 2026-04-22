@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Heart, Folder, GripVertical, Edit2, ChevronRight } from 'lucide-react';
+import { Trash2, ExternalLink, Heart, Folder, GripVertical, Edit2, ChevronRight, Copy } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -184,9 +184,27 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                 
                 {resource.description ? (
                   expandedId === resource.id ? (
-                    <p className="text-xs text-muted-foreground mt-0.5">{resource.description}</p>
+                    <div className="flex items-start gap-2 mt-0.5">
+                      <p className="text-xs text-muted-foreground flex-1">{resource.description}</p>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(resource.description ?? ''); }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity"
+                        title="Açıklamayı kopyala"
+                      >
+                        <Copy className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground truncate">{resource.description}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground truncate flex-1">{resource.description}</p>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(resource.description ?? ''); }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity shrink-0"
+                        title="Açıklamayı kopyala"
+                      >
+                        <Copy className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    </div>
                   )
                 ) : null}
               </div>
