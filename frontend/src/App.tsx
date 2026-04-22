@@ -304,6 +304,14 @@ function App() {
           resourceTypes={resourceTypes}
         />
       )}
+      
+      <input
+        ref={importRef}
+        type="file"
+        accept="application/json"
+        onChange={handleImport}
+        className="hidden"
+      />
     </div>
   );
 }
