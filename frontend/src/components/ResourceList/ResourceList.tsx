@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Heart, Folder, GripVertical, Edit2 } from 'lucide-react';
+import { Trash2, ExternalLink, Heart, Folder, GripVertical, Edit2, ChevronRight } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -163,9 +163,9 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}
               onClick={() => setExpandedId(expandedId === resource.id ? null : resource.id)}
-              className="group flex items-center gap-3 rounded-sm border border-transparent hover:border-border hover:bg-muted/30 px-3 py-2 cursor-pointer transition-all"
+              className="group flex items-center gap-3 rounded-sm border border-transparent hover:border-border hover:bg-muted/30 px-3 py-2 cursor-pointer transition-all touch-manipulation"
             >
-              <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 cursor-grab" />
+              <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground cursor-grab" />
               
               <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
               
@@ -191,16 +191,18 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                 ) : null}
               </div>
               
+              <ChevronRight className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${expandedId === resource.id ? 'rotate-90' : ''}`} />
+              
               <div className="flex items-center gap-2 shrink-0">
                 {resource.url ? (
                   <a 
                     href={resource.url} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center justify-center min-h-[44px] min-w-[44px]"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 ) : null}
                 
@@ -208,7 +210,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                   aria-label={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} 
                   variant="ghost" 
                   size="icon" 
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100" 
+                  className="h-9 w-9 opacity-100 sm:opacity-0 sm:group-hover:opacity-100" 
                   onClick={(e) => { e.stopPropagation(); void toggleFavorite(resource.id, resource.is_favorite); }}
                 >
                   <Heart className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
@@ -218,7 +220,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                   aria-label="Kaynağı düzenle" 
                   variant="ghost" 
                   size="icon" 
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100" 
+                  className="h-9 w-9 opacity-100 sm:opacity-0 sm:group-hover:opacity-100" 
                   onClick={(e) => { e.stopPropagation(); setEditingResource(resource); }}
                 >
                   <Edit2 className="h-4 w-4" />
@@ -228,7 +230,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                   aria-label="Kaynağı sil" 
                   variant="ghost" 
                   size="icon" 
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive" 
+                  className="h-9 w-9 text-destructive opacity-100 sm:opacity-0 sm:group-hover:opacity-100" 
                   onClick={(e) => { e.stopPropagation(); setDeleteId(resource.id); }}
                 >
                   <Trash2 className="h-4 w-4" />

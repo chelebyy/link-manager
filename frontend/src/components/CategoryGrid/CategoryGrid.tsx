@@ -30,7 +30,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <Card key={i} className="border-[#d1d5db] rounded-sm bg-background">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 min-h-0">
                 <div className="w-10 h-10 rounded bg-muted animate-pulse mb-3" />
                 <div className="h-5 w-24 bg-muted animate-pulse rounded" />
                 <div className="h-4 w-32 bg-muted animate-pulse rounded mt-2" />
@@ -51,7 +51,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
         </p>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="group" aria-label="Filter categories">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 touch-pan-y scroll-smooth" role="group" aria-label="Filter categories">
         {resourceTypes.map((type) => {
           const isActive = selectedTypeId === type.id;
           return (
@@ -86,7 +86,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
               onClick={() => onSelectType(type.id)}
               role="listitem"
             >
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 min-h-0">
                 <div
                   className="w-10 h-10 rounded flex items-center justify-center mb-3"
                   style={{ backgroundColor: `${type.color}15` }}

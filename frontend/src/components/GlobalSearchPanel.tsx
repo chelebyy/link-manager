@@ -33,7 +33,7 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
 
   if (!query.trim()) {
     return (
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="w-full px-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7280]" aria-hidden="true" />
           <Input
@@ -49,8 +49,8 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4">
-      <div className="relative max-w-2xl">
+      <div className="mx-auto w-full max-w-4xl space-y-4 overflow-x-hidden">
+        <div className="relative w-full px-2">
         <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7280]" aria-hidden="true" />
         <Input
           value={query}
@@ -67,8 +67,8 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
           <span className="ml-3 font-mono text-sm text-[#6b7280]">Searching...</span>
         </div>
       ) : (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-          <Card className="border-[#d1d5db] rounded-sm">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3 min-w-0 overflow-hidden">
+          <Card className="border-[#d1d5db] rounded-sm min-w-0 overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="font-mono text-sm uppercase tracking-wide text-[#6b7280]">Card Results</CardTitle>
             </CardHeader>
@@ -79,12 +79,12 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
                   key={type.id}
                   type="button"
                   aria-label={`Open card type: ${type.name}`}
-                  className="flex w-full min-h-[60px] items-center justify-between rounded-sm border border-[#d1d5db] p-4 text-left transition hover:bg-[#f3f4f6] focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff]"
+                  className="flex w-full min-h-[60px] items-center justify-between rounded-sm border border-[#d1d5db] p-4 text-left transition hover:bg-[#f3f4f6] focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] touch-action manipulation"
                   onClick={() => onOpenType(type.id)}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="max-w-[65ch] truncate font-mono text-sm font-medium">{type.name}</div>
-                    {type.description ? <div className="max-w-[65ch] font-mono text-xs text-[#9ca3af]">{type.description}</div> : null}
+                    <div className="truncate font-mono text-sm font-medium">{type.name}</div>
+                    {type.description ? <div className="truncate font-mono text-xs text-[#9ca3af]">{type.description}</div> : null}
                   </div>
                   <Badge variant="secondary" className="gap-1 font-mono text-xs shrink-0">
                     <Layers className="h-3 w-3" aria-hidden="true" />
@@ -95,7 +95,7 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
             </CardContent>
           </Card>
 
-          <Card className="border-[#d1d5db] rounded-sm">
+          <Card className="border-[#d1d5db] rounded-sm min-w-0 overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="font-mono text-sm uppercase tracking-wide text-[#6b7280]">Category Results</CardTitle>
             </CardHeader>
@@ -106,12 +106,12 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
                   key={category.id}
                   type="button"
                   aria-label={`Open category: ${category.name}`}
-                  className="flex w-full min-h-[60px] items-center justify-between rounded-sm border border-[#d1d5db] p-4 text-left transition hover:bg-[#f3f4f6] focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff]"
+                  className="flex w-full min-h-[60px] items-center justify-between rounded-sm border border-[#d1d5db] p-4 text-left transition hover:bg-[#f3f4f6] focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] touch-action manipulation"
                   onClick={() => onOpenCategory(category.type, category.id)}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="max-w-[65ch] truncate font-mono text-sm font-medium">{category.name}</div>
-                    <div className="max-w-[65ch] font-mono text-xs text-[#9ca3af]">{category.type}</div>
+                    <div className="truncate font-mono text-sm font-medium">{category.name}</div>
+                    <div className="truncate font-mono text-xs text-[#9ca3af]">{category.type}</div>
                   </div>
                   <Badge variant="secondary" className="gap-1 font-mono text-xs shrink-0">
                     <Folder className="h-3 w-3" aria-hidden="true" />
@@ -122,7 +122,7 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
             </CardContent>
           </Card>
 
-          <Card className="border-[#d1d5db] rounded-sm">
+          <Card className="border-[#d1d5db] rounded-sm min-w-0 overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="font-mono text-sm uppercase tracking-wide text-[#6b7280]">Resource Results</CardTitle>
             </CardHeader>
@@ -133,13 +133,13 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
                   key={resource.id}
                   type="button"
                   aria-label={`Open resource: ${resource.title}`}
-                  className="flex w-full min-h-[60px] items-start gap-3 rounded-sm border border-[#d1d5db] p-4 text-left transition hover:bg-[#f3f4f6] focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff]"
+                  className="flex w-full min-h-[60px] items-start gap-3 rounded-sm border border-[#d1d5db] p-4 text-left transition hover:bg-[#f3f4f6] focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] touch-action manipulation"
                   onClick={() => onOpenType(resource.type)}
                 >
                   <Folder className="mt-0.5 h-4 w-4 shrink-0 text-[#9ca3af]" aria-hidden="true" />
                   <div className="min-w-0 flex-1">
-                    <div className="max-w-[65ch] truncate font-mono text-sm font-medium">{resource.title}</div>
-                    <div className="max-w-[65ch] font-mono text-xs text-[#9ca3af]">{resource.category?.name ?? resource.type}</div>
+                    <div className="truncate font-mono text-sm font-medium">{resource.title}</div>
+                    <div className="truncate font-mono text-xs text-[#9ca3af]">{resource.category?.name ?? resource.type}</div>
                   </div>
                 </button>
               ))}
