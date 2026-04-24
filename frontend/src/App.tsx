@@ -152,12 +152,12 @@ function App() {
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
       <ToastBanner toasts={toasts} onDismiss={dismissToast} />
-      <header className="sticky top-0 z-50 w-full border-b border-[#d1d5db] bg-background">
-        <div className="container mx-auto px-4 flex h-14 items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Github className="h-5 w-5" aria-hidden="true" />
+      <header className="sticky top-0 z-50 w-full border-b border-[#d1d5db] bg-background pt-[env(safe-area-inset-top)]">
+        <div className="container mx-auto px-3 sm:px-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 shrink-0">
+            <Github className="h-5 w-5 shrink-0" aria-hidden="true" />
             <h1
-              className="font-mono text-xl font-semibold cursor-pointer hover:text-primary transition-colors max-w-[12rem] truncate"
+              className="font-mono text-lg sm:text-xl font-semibold cursor-pointer hover:text-primary transition-colors truncate"
               onClick={() => {
                 setSelectedType(null);
                 setSelectedCategory(null);
@@ -167,56 +167,55 @@ function App() {
               Link Manager
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide -mr-3 pr-3 min-w-0">
             <Button
               variant="outline"
               size="sm"
-              className="rounded-sm border-border font-mono text-xs"
+              className="rounded-sm border-border font-mono text-xs shrink-0"
               onClick={handleExport}
               aria-label="Export data"
             >
-              <Download className="h-3 w-3 mr-1.5" aria-hidden="true" />
-              Export
+              <Download className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Export</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-sm border-border font-mono text-xs"
+              className="rounded-sm border-border font-mono text-xs shrink-0"
               onClick={() => importRef.current?.click()}
               aria-label="Import data"
             >
-              <Upload className="h-3 w-3 mr-1.5" aria-hidden="true" />
-              Import
+              <Upload className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Import</span>
             </Button>
-            <input ref={importRef} type="file" accept="application/json" className="hidden" onChange={handleImport} />
             <Button
               variant="outline"
               size="sm"
-              className="rounded-sm border-border font-mono text-xs"
+              className="rounded-sm border-border font-mono text-xs shrink-0"
               onClick={() => setShowResourceTypeManager(true)}
               aria-label="Manage resource type cards"
             >
-              <LayoutGrid className="h-3 w-3 mr-1.5" aria-hidden="true" />
-              Kartlar
+              <LayoutGrid className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Kartlar</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-sm border-border font-mono text-xs"
+              className="rounded-sm border-border font-mono text-xs shrink-0"
               onClick={() => setShowCategoryManager(true)}
               aria-label="Manage categories"
             >
-              <Settings className="h-3 w-3 mr-1.5" aria-hidden="true" />
-              Kategoriler
+              <Settings className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Kategoriler</span>
             </Button>
             <Button
               size="sm"
-              className="rounded-sm font-mono text-xs"
+              className="rounded-sm font-mono text-xs shrink-0"
               onClick={() => setShowAddResource(true)}
               aria-label="Add new resource"
             >
-              <Plus className="h-3 w-3 mr-1.5" aria-hidden="true" />
-              Ekle
+              <Plus className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+              <span className="hidden md:inline">Ekle</span>
             </Button>
           </div>
         </div>
@@ -305,6 +304,14 @@ function App() {
           resourceTypes={resourceTypes}
         />
       )}
+      
+      <input
+        ref={importRef}
+        type="file"
+        accept="application/json"
+        onChange={handleImport}
+        className="hidden"
+      />
     </div>
   );
 }
