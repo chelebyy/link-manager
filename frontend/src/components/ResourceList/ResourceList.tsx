@@ -187,8 +187,8 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                     <div className="flex items-start gap-2 mt-0.5">
                       <p className="text-xs text-muted-foreground flex-1">{resource.description}</p>
                       <button
-                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(resource.description ?? ''); }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); void navigator.clipboard?.writeText(resource.description ?? '').catch(console.error); }}
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity"
                         title="Açıklamayı kopyala"
                       >
                         <Copy className="h-3 w-3 text-muted-foreground" />
@@ -198,8 +198,8 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                     <div className="flex items-center gap-2">
                       <p className="text-xs text-muted-foreground truncate flex-1">{resource.description}</p>
                       <button
-                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(resource.description ?? ''); }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity shrink-0"
+                        onClick={(e) => { e.stopPropagation(); void navigator.clipboard?.writeText(resource.description ?? '').catch(console.error); }}
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity shrink-0"
                         title="Açıklamayı kopyala"
                       >
                         <Copy className="h-3 w-3 text-muted-foreground" />
