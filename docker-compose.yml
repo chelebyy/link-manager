@@ -47,7 +47,7 @@ services:
           cpus: '0.5'
           memory: 512M
 
-  frontend:
+frontend:
   build:
     context: ./frontend
     dockerfile: Dockerfile
@@ -70,11 +70,8 @@ services:
     - backend
   networks:
     - dokploy-network
-
-volumes:
-  postgres_data:
-    driver: local
-
-networks:
-  dokploy-network:
-    external: true
+  deploy:
+    resources:
+      limits:
+        cpus: '0.25'
+        memory: 256M
