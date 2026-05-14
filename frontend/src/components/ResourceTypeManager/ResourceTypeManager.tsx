@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Icons from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { Trash2, Edit2, Palette, GripVertical, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -15,23 +13,13 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import type { ResourceTypeDefinition } from '../../types';
 import { api, ApiError } from '../../lib/api';
+import { getIcon, iconNames } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
 
 const PRESET_COLORS = [
   '#58a6ff', '#10b981', '#f59e0b', '#ef4444', '#9ecbff',
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#64748b',
   '#1e293b', '#032f62', '#db2777', '#059669', '#dc2626'
-];
-
-const AVAILABLE_ICONS = [
-  'Github', 'Globe', 'Wrench', 'FileText', 'Folder',
-  'Star', 'Heart', 'Bookmark', 'Tag', 'Zap',
-  'Code', 'Terminal', 'Database', 'Cloud', 'Server',
-  'Layout', 'Image', 'Video', 'Music', 'Mail',
-  'Calendar', 'Clock', 'Map', 'Phone', 'Link',
-  'Book', 'Briefcase', 'Coffee', 'Cpu', 'Layers',
-  'Box', 'Home', 'User', 'Users', 'Settings',
-  'Search', 'Filter', 'Bell', 'Flag', 'Shield'
 ];
 
 interface ResourceTypeManagerProps {
@@ -41,7 +29,6 @@ interface ResourceTypeManagerProps {
 }
 
 export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeManagerProps) {
-  const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editingType, setEditingType] = useState<ResourceTypeDefinition | null>(null);
@@ -245,8 +232,8 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                 role="group"
                 aria-label="İkon seçin"
               >
-                {AVAILABLE_ICONS.map((icon) => {
-                  const IconComponent = iconMap[icon] ?? Icons.Folder;
+                {iconNames.map((icon) => {
+                  const IconComponent = getIcon(icon);
                   return (
                     <button
                       key={icon}
@@ -315,7 +302,7 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
             <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Mevcut Kart Tipleri</h3>
             <div className="space-y-2" aria-live="polite" aria-label="Kart tipleri listesi">
               {resourceTypes.map((type) => {
-                const IconComponent = iconMap[type.icon] ?? Icons.Folder;
+                const IconComponent = getIcon(type.icon);
                 return (
                   <div
                     key={type.id}

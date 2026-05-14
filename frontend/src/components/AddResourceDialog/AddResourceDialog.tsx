@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Icons from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +21,7 @@ import {
 } from '../ui/select';
 import type { Category, ResourceTypeDefinition } from '../../types';
 import { api, ApiError } from '../../lib/api';
+import { getIcon } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
 
 interface AddResourceDialogProps {
@@ -43,7 +43,6 @@ interface AddResourceDialogProps {
 }
 
 export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes, initialResource = null }: AddResourceDialogProps) {
-  const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const queryClient = useQueryClient();
   const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
   const [title, setTitle] = useState('');
@@ -190,7 +189,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
               </SelectTrigger>
               <SelectContent>
                 {resourceTypes.map((rt) => {
-                  const IconComponent = iconMap[rt.icon] ?? Icons.Folder;
+                  const IconComponent = getIcon(rt.icon);
                   return (
                     <SelectItem key={rt.id} value={rt.id}>
                       <div className="flex items-center gap-2">
@@ -275,7 +274,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
             <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
-                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {isEditing ? 'Kaydediliyor...' : 'Ekleniyor...'}
                 </>
               ) : (

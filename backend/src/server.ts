@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import dotenv from 'dotenv';
-import { initDb } from './shared/db/index.js';
+import { closeDb, initDb } from './shared/db/index.js';
 import { categoriesRoutes } from './features/categories/routes.js';
 import { resourcesRoutes } from './features/resources/routes.js';
 import { syncRoutes } from './features/sync/routes.js';
@@ -31,6 +31,10 @@ await app.register(cors, {
 
 app.get('/api/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
+});
+
+app.addHook('onClose', async () => {
+  await closeDb();
 });
 
 await app.register(categoriesRoutes, { prefix: '/api/categories' });

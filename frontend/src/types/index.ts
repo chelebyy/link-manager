@@ -31,7 +31,7 @@ export interface Resource {
   title: string;
   url: string | null;
   description: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   is_favorite: boolean;
   sort_order: number;
   created_at: string;
