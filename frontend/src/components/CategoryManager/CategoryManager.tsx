@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
 import {
@@ -65,7 +65,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     enabled: open && !!managedType,
   });
 
-  const resourceTypes = resourceTypesQuery.data ?? [];
+  const resourceTypes = useMemo(() => resourceTypesQuery.data ?? [], [resourceTypesQuery.data]);
   const categories = categoriesQuery.data ?? [];
 
   useEffect(() => {

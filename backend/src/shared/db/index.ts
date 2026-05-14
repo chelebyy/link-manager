@@ -4,35 +4,42 @@ import { initSqliteDb, sqliteQuery } from './sqlite.js';
 
 dotenv.config();
 
-const isDev = process.env.NODE_ENV !== 'production';
 const usePostgres = process.env.DATABASE_URL?.includes('postgresql');
+let postgresPool: Pool | null = null;
+
+const getPostgresPool = () => {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required for PostgreSQL mode');
+  }
+
+  postgresPool ??= new Pool({ connectionString: process.env.DATABASE_URL });
+  return postgresPool;
+};
+
+const getSqliteRowCount = (result: unknown) => {
+  if (typeof result === 'object' && result !== null && 'changes' in result) {
+    return Number(result.changes);
+  }
+
+  return 0;
+};
 
 export const db = {
   isPostgres: usePostgres,
   
-  async query(text: string, params?: any[]) {
+  async query(text: string, params?: unknown[]) {
     if (usePostgres) {
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const client = await pool.connect();
-      try {
-        const result = await client.query(text, params);
-        return result;
-      } finally {
-        client.release();
-        await pool.end();
-      }
+      return getPostgresPool().query(text, params);
     } else {
       const result = sqliteQuery(text, params);
-      return { rows: Array.isArray(result) ? result : [], rowCount: (result as any).changes };
+      return { rows: Array.isArray(result) ? result : [], rowCount: getSqliteRowCount(result) };
     }
   },
 
   async init() {
     if (usePostgres) {
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const client = await pool.connect();
-      try {
-        await client.query(`
+      const pool = getPostgresPool();
+      await pool.query(`
           DO $$ BEGIN
             CREATE TYPE resource_type AS ENUM ('github', 'skill', 'website', 'note');
           EXCEPTION
@@ -40,7 +47,7 @@ export const db = {
           END $$;
         `);
 
-        await client.query(`
+        await pool.query(`
           CREATE TABLE IF NOT EXISTS categories (
             id BIGSERIAL PRIMARY KEY,
             name VARCHAR(80) NOT NULL,
@@ -52,27 +59,27 @@ export const db = {
           );
         `);
 
-        await client.query(`
+        await pool.query(`
           ALTER TABLE categories
           ADD COLUMN IF NOT EXISTS type VARCHAR(20);
         `);
 
-        await client.query(`
+        await pool.query(`
           ALTER TABLE categories
           ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
         `);
 
-        await client.query(`
+        await pool.query(`
           UPDATE categories SET type = 'website' WHERE type IS NULL;
         `);
 
-        await client.query(`
+        await pool.query(`
           ALTER TABLE categories
           ALTER COLUMN type SET DEFAULT 'website',
           ALTER COLUMN type SET NOT NULL;
         `);
 
-        await client.query(`
+        await pool.query(`
           DO $$
           BEGIN
             IF NOT EXISTS (
@@ -88,21 +95,21 @@ export const db = {
           $$;
         `);
 
-        await client.query(`
+        await pool.query(`
           ALTER TABLE categories
           DROP CONSTRAINT IF EXISTS categories_type_check;
         `);
 
-        await client.query(`
+        await pool.query(`
           CREATE UNIQUE INDEX IF NOT EXISTS categories_name_type_unique_idx
           ON categories(name, type);
         `);
 
-        await client.query(`
+        await pool.query(`
           UPDATE categories SET sort_order = id WHERE sort_order = 0;
         `);
 
-        await client.query(`
+        await pool.query(`
           CREATE TABLE IF NOT EXISTS resource_types (
             id VARCHAR(80) PRIMARY KEY,
             name VARCHAR(120) NOT NULL,
@@ -116,7 +123,7 @@ export const db = {
           );
         `);
 
-        await client.query(`
+        await pool.query(`
           INSERT INTO resource_types (id, name, icon, color, is_builtin, sort_order)
           VALUES
             ('github', 'GitHub Repos', 'Github', '#333', TRUE, 1),
@@ -126,18 +133,18 @@ export const db = {
           ON CONFLICT (id) DO NOTHING;
         `);
 
-        await client.query(`
+        await pool.query(`
           ALTER TABLE IF EXISTS resources
           ALTER COLUMN type TYPE TEXT,
           ALTER COLUMN type SET NOT NULL;
         `).catch(() => {});
 
-        await client.query(`
+        await pool.query(`
           ALTER TABLE IF EXISTS resources
           ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0;
         `);
 
-        await client.query(`
+        await pool.query(`
           CREATE TABLE IF NOT EXISTS resources (
             id BIGSERIAL PRIMARY KEY,
             category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
@@ -153,11 +160,46 @@ export const db = {
           );
         `);
 
-        await client.query(`
+        await pool.query(`
           UPDATE resources SET sort_order = id WHERE sort_order = 0;
         `);
 
-        await client.query(`
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS categories_type_sort_order_idx
+          ON categories(type, sort_order);
+        `);
+
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS resource_types_sort_order_idx
+          ON resource_types(sort_order);
+        `);
+
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS resources_category_idx
+          ON resources(category_id);
+        `);
+
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS resources_type_idx
+          ON resources(type);
+        `);
+
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS resources_favorite_idx
+          ON resources(is_favorite);
+        `);
+
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS resources_type_sort_order_idx
+          ON resources(type, sort_order);
+        `);
+
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS resources_category_sort_order_idx
+          ON resources(category_id, sort_order);
+        `);
+
+        await pool.query(`
           CREATE TABLE IF NOT EXISTS resource_sync_state (
             resource_id BIGINT PRIMARY KEY REFERENCES resources(id) ON DELETE CASCADE,
             github_id BIGINT UNIQUE,
@@ -180,16 +222,20 @@ export const db = {
           );
         `);
 
-        console.log('PostgreSQL database initialized');
-      } finally {
-        client.release();
-        await pool.end();
-      }
+      console.log('PostgreSQL database initialized');
     } else {
       initSqliteDb();
+    }
+  },
+
+  async close() {
+    if (postgresPool) {
+      await postgresPool.end();
+      postgresPool = null;
     }
   }
 };
 
 export const query = db.query.bind(db);
 export const initDb = db.init.bind(db);
+export const closeDb = db.close.bind(db);

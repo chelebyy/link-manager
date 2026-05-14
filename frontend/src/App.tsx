@@ -1,10 +1,6 @@
-import { useRef, useState, useEffect } from 'react';
+import { lazy, Suspense, useRef, useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
-import { ResourceList } from './components/ResourceList/ResourceList';
-import { CategoryManager } from './components/CategoryManager/CategoryManager';
-import { ResourceTypeManager } from './components/ResourceTypeManager';
-import { AddResourceDialog } from './components/AddResourceDialog/AddResourceDialog';
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
 import { Button } from './components/ui/button';
 import { Plus, Settings, Github, LayoutGrid, Download, Upload } from 'lucide-react';
@@ -13,6 +9,36 @@ import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
 import type { ExportPayload } from './types';
 import { api, ApiError } from './lib/api';
 import { queryKeys } from './lib/query-keys';
+
+const AddResourceDialog = lazy(() =>
+  import('./components/AddResourceDialog/AddResourceDialog').then((module) => ({ default: module.AddResourceDialog }))
+);
+const CategoryManager = lazy(() =>
+  import('./components/CategoryManager/CategoryManager').then((module) => ({ default: module.CategoryManager }))
+);
+const ResourceList = lazy(() =>
+  import('./components/ResourceList/ResourceList').then((module) => ({ default: module.ResourceList }))
+);
+const ResourceTypeManager = lazy(() =>
+  import('./components/ResourceTypeManager').then((module) => ({ default: module.ResourceTypeManager }))
+);
+
+const LazyPanelFallback = () => (
+  <div className="rounded-sm border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+    Yükleniyor...
+  </div>
+);
+
+function useDebouncedValue(value: string, delayMs: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setDebouncedValue(value), delayMs);
+    return () => window.clearTimeout(timeoutId);
+  }, [delayMs, value]);
+
+  return debouncedValue;
+}
 
 function App() {
   const queryClient = useQueryClient();
@@ -25,6 +51,7 @@ function App() {
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const importRef = useRef<HTMLInputElement | null>(null);
+  const debouncedGlobalSearchQuery = useDebouncedValue(globalSearchQuery.trim(), 250);
 
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories(),
@@ -37,9 +64,9 @@ function App() {
   });
 
   const globalResultsQuery = useQuery({
-    queryKey: queryKeys.globalResources(globalSearchQuery.trim()),
-    queryFn: () => api.getResources({ search: globalSearchQuery.trim() }),
-    enabled: globalSearchQuery.trim().length > 0,
+    queryKey: queryKeys.globalResources(debouncedGlobalSearchQuery),
+    queryFn: () => api.getResources({ search: debouncedGlobalSearchQuery }),
+    enabled: debouncedGlobalSearchQuery.length > 0,
   });
 
   const categories = categoriesQuery.data ?? [];
@@ -239,6 +266,7 @@ function App() {
               categories={categories}
               resourceTypes={resourceTypes}
               resources={globalResults}
+              globalResultsQuery={globalResultsQuery}
               onOpenType={handleTypeSelect}
               onOpenCategory={handleCategoryOpenFromSearch}
             />
@@ -262,47 +290,55 @@ function App() {
               setSearchQuery('');
             }}
           >
-            <ResourceList
-              categoryId={selectedCategory}
-              type={selectedType}
-              searchQuery={searchQuery}
-              onNotify={showToast}
-            />
+            <Suspense fallback={<LazyPanelFallback />}>
+              <ResourceList
+                categoryId={selectedCategory}
+                type={selectedType}
+                searchQuery={searchQuery}
+                onNotify={showToast}
+              />
+            </Suspense>
           </TypeCategories>
         )}
       </main>
 
       {showCategoryManager && (
-        <CategoryManager
-          open={showCategoryManager}
-          selectedType={selectedType}
-          onNotify={showToast}
-          onClose={() => {
-            setShowCategoryManager(false);
-          }}
-        />
+        <Suspense fallback={<LazyPanelFallback />}>
+          <CategoryManager
+            open={showCategoryManager}
+            selectedType={selectedType}
+            onNotify={showToast}
+            onClose={() => {
+              setShowCategoryManager(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {showResourceTypeManager && (
-        <ResourceTypeManager
-          open={showResourceTypeManager}
-          onNotify={showToast}
-          onClose={() => {
-            setShowResourceTypeManager(false);
-          }}
-        />
+        <Suspense fallback={<LazyPanelFallback />}>
+          <ResourceTypeManager
+            open={showResourceTypeManager}
+            onNotify={showToast}
+            onClose={() => {
+              setShowResourceTypeManager(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {showAddResource && (
-        <AddResourceDialog
-          open={showAddResource}
-          onClose={handleResourceAdded}
-          onSuccess={handleResourceSuccess}
-          onNotify={showToast}
-          categories={categories}
-          selectedType={selectedType}
-          resourceTypes={resourceTypes}
-        />
+        <Suspense fallback={<LazyPanelFallback />}>
+          <AddResourceDialog
+            open={showAddResource}
+            onClose={handleResourceAdded}
+            onSuccess={handleResourceSuccess}
+            onNotify={showToast}
+            categories={categories}
+            selectedType={selectedType}
+            resourceTypes={resourceTypes}
+          />
+        </Suspense>
       )}
       
       <input

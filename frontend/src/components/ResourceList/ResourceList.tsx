@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Heart, Folder, GripVertical, Edit2, ChevronRight, Copy } from 'lucide-react';
-import * as Icons from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Trash2, ExternalLink, Heart, GripVertical, Edit2, ChevronRight, Copy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import {
@@ -17,6 +15,7 @@ import {
 } from '../ui/alert-dialog';
 import type { ResourceWithSync } from '../../types';
 import { api, ApiError } from '../../lib/api';
+import { getIcon } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
 import { AddResourceDialog } from '../AddResourceDialog/AddResourceDialog';
 
@@ -28,7 +27,6 @@ interface ResourceListProps {
 }
 
 export function ResourceList({ categoryId, type, searchQuery, onNotify }: ResourceListProps) {
-  const iconMap = Icons as unknown as Record<string, LucideIcon>;
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
@@ -146,8 +144,6 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
       </div>
     );
   }
-
-  const getIcon = (iconName: string) => iconMap[iconName] ?? Folder;
 
   return (
     <>

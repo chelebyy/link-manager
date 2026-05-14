@@ -22,7 +22,9 @@ async function request<T>(input: string, init?: RequestOptions): Promise<T> {
     try {
       const payload = await response.json() as { error?: string };
       message = payload.error || message;
-    } catch {}
+    } catch {
+      // Response body may be empty or non-JSON.
+    }
     throw new ApiError(message, response.status);
   }
 
