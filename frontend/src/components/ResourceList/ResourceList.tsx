@@ -129,7 +129,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
     return (
       <div className="space-y-1">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex items-center gap-3 rounded-sm border px-3 py-2">
+          <div key={`resource-skeleton-${i}`} className="flex items-center gap-3 rounded-sm border px-3 py-2">
             <Skeleton className="h-4 w-4" />
             <Skeleton className="h-4 w-4" />
             <div className="flex-1"><Skeleton className="h-4 w-3/4" /></div>
