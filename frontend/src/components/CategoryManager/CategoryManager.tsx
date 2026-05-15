@@ -21,6 +21,7 @@ import {
 import type { Category } from '../../types';
 import { api, ApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query-keys';
+import { sortCategoriesAlphabetically } from '../../lib/resource-view';
 
 const presetColors = [
   '#58a6ff', '#10b981', '#f59e0b', '#ef4444', '#9ecbff',
@@ -66,7 +67,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   });
 
   const resourceTypes = useMemo(() => resourceTypesQuery.data ?? [], [resourceTypesQuery.data]);
-  const categories = categoriesQuery.data ?? [];
+  const categories = sortCategoriesAlphabetically(categoriesQuery.data ?? []);
 
   useEffect(() => {
     if (!selectedType && resourceTypes.length > 0) {

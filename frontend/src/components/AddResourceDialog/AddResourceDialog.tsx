@@ -23,6 +23,7 @@ import type { Category, ResourceTypeDefinition } from '../../types';
 import { api, ApiError } from '../../lib/api';
 import { getIcon } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
+import { sortCategoriesAlphabetically } from '../../lib/resource-view';
 
 interface AddResourceDialogProps {
   open: boolean;
@@ -53,7 +54,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const [error, setError] = useState<string>('');
   const isEditing = initialResource !== null;
 
-  const filteredCategories = categories.filter((category) => category.type === type);
+  const filteredCategories = sortCategoriesAlphabetically(categories.filter((category) => category.type === type));
   const typeResourcesQuery = useQuery({
     queryKey: queryKeys.resources({ categoryId: null, type, search: '' }),
     queryFn: () => api.getResources({ type }),
