@@ -1,5 +1,14 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { query } from '../../shared/db/index.js';
+import {
+  DUPLICATE_RESOURCE_URL_ERROR,
+  getResourceIdentity,
+  hasResourceUrlConflict,
+  isResourceUrlConflictError,
+  normalizeOptionalText,
+} from '../resources/url-conflicts.js';
+
+const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
 
 type ImportPayload = {
   resourceTypes?: Array<Record<string, unknown>>;
@@ -113,47 +122,82 @@ export async function dataRoutes(app: FastifyInstance, options: FastifyPluginOpt
     }
 
     for (const item of resources) {
-      await query(
-        `INSERT INTO resources (id, category_id, type, title, url, description, metadata, is_favorite, sort_order)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT (id) DO UPDATE SET
-           category_id = EXCLUDED.category_id,
-           type = EXCLUDED.type,
-           title = EXCLUDED.title,
-           url = EXCLUDED.url,
-           description = EXCLUDED.description,
-           metadata = EXCLUDED.metadata,
-           is_favorite = EXCLUDED.is_favorite,
-           sort_order = EXCLUDED.sort_order,
-           updated_at = NOW()`,
-        [
-          toNumber(item.id),
-          item.category_id === null || item.category_id === undefined ? null : toNumber(item.category_id),
-          String(item.type),
-          String(item.title),
-          item.url ? String(item.url) : null,
-          item.description ? String(item.description) : null,
-          JSON.stringify(item.metadata ?? {}),
-          Boolean(item.is_favorite),
-          toNumber(item.sort_order),
-        ]
-      ).catch(async () => {
-        await query(
-          `INSERT OR REPLACE INTO resources (id, category_id, type, title, url, description, metadata, is_favorite, sort_order, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-          [
-            toNumber(item.id),
-            item.category_id === null || item.category_id === undefined ? null : toNumber(item.category_id),
-            String(item.type),
-            String(item.title),
-            item.url ? String(item.url) : null,
-            item.description ? String(item.description) : null,
-            JSON.stringify(item.metadata ?? {}),
-            Boolean(item.is_favorite) ? 1 : 0,
-            toNumber(item.sort_order),
-          ]
-        );
-      });
+      const resourceId = toNumber(item.id);
+      const resourceType = String(item.type);
+      const resourceUrl = normalizeOptionalText(item.url === null || item.url === undefined ? null : String(item.url));
+      const resourceDescription = normalizeOptionalText(item.description === null || item.description === undefined ? null : String(item.description));
+      const existingResource = await getResourceIdentity(resourceId);
+      const isSelfEdit = existingResource !== undefined
+        && existingResource.type === resourceType
+        && existingResource.url === resourceUrl;
+
+      if (resourceUrl && !isSelfEdit && await hasResourceUrlConflict(resourceType, resourceUrl, existingResource ? resourceId : undefined)) {
+        reply.status(409);
+        return { error: DUPLICATE_RESOURCE_URL_ERROR };
+      }
+
+      try {
+        if (isPostgres) {
+          await query(
+            `INSERT INTO resources (id, category_id, type, title, url, description, metadata, is_favorite, sort_order)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (id) DO UPDATE SET
+               category_id = EXCLUDED.category_id,
+               type = EXCLUDED.type,
+               title = EXCLUDED.title,
+               url = EXCLUDED.url,
+               description = EXCLUDED.description,
+               metadata = EXCLUDED.metadata,
+               is_favorite = EXCLUDED.is_favorite,
+               sort_order = EXCLUDED.sort_order,
+               updated_at = NOW()`,
+            [
+              resourceId,
+              item.category_id === null || item.category_id === undefined ? null : toNumber(item.category_id),
+              resourceType,
+              String(item.title),
+              resourceUrl,
+              resourceDescription,
+              JSON.stringify(item.metadata ?? {}),
+              Boolean(item.is_favorite),
+              toNumber(item.sort_order),
+            ]
+          );
+        } else {
+          await query(
+            `INSERT INTO resources (id, category_id, type, title, url, description, metadata, is_favorite, sort_order, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+             ON CONFLICT(id) DO UPDATE SET
+               category_id = excluded.category_id,
+               type = excluded.type,
+               title = excluded.title,
+               url = excluded.url,
+               description = excluded.description,
+               metadata = excluded.metadata,
+               is_favorite = excluded.is_favorite,
+               sort_order = excluded.sort_order,
+               updated_at = datetime('now')`,
+            [
+              resourceId,
+              item.category_id === null || item.category_id === undefined ? null : toNumber(item.category_id),
+              resourceType,
+              String(item.title),
+              resourceUrl,
+              resourceDescription,
+              JSON.stringify(item.metadata ?? {}),
+              Boolean(item.is_favorite) ? 1 : 0,
+              toNumber(item.sort_order),
+            ]
+          );
+        }
+      } catch (error) {
+        if (isResourceUrlConflictError(error)) {
+          reply.status(409);
+          return { error: DUPLICATE_RESOURCE_URL_ERROR };
+        }
+
+        throw error;
+      }
     }
 
     return {
