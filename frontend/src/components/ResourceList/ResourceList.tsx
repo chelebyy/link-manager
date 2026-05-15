@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Heart, GripVertical, Edit2, ChevronRight, Copy } from 'lucide-react';
+import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import {
@@ -18,15 +18,18 @@ import { api, ApiError } from '../../lib/api';
 import { getIcon } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
 import { AddResourceDialog } from '../AddResourceDialog/AddResourceDialog';
+import { filterResourcesByMode, sortResourcesForView, type ResourceFilterMode } from '../../lib/resource-view';
 
 interface ResourceListProps {
   categoryId: number | null;
   type: string | null;
   searchQuery: string;
+  resourceFilterMode: ResourceFilterMode;
+  onVisibleResourcesChange?: (resources: ResourceWithSync[]) => void;
   onNotify?: (kind: 'success' | 'error', title: string, description?: string) => void;
 }
 
-export function ResourceList({ categoryId, type, searchQuery, onNotify }: ResourceListProps) {
+export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode, onVisibleResourcesChange, onNotify }: ResourceListProps) {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
@@ -51,7 +54,13 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
   });
 
   const resources = resourcesQuery.data ?? [];
+  const visibleResources = filterResourcesByMode(sortResourcesForView(resources), resourceFilterMode);
+  const canReorderResources = resourceFilterMode === 'all';
   const loading = resourcesQuery.isLoading;
+
+  useEffect(() => {
+    onVisibleResourcesChange?.(visibleResources);
+  }, [onVisibleResourcesChange, visibleResources]);
 
   useEffect(() => {
     if (resourcesQuery.error instanceof ApiError) {
@@ -110,9 +119,23 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
   };
 
   const handleDrop = async (targetId: number) => {
+    if (!canReorderResources) {
+      onNotify?.('error', 'Sadece önemli filtresinde sıralama kapalı');
+      return;
+    }
+
     if (draggedId === null || draggedId === targetId) return;
 
-    const next = [...resources];
+    const draggedResource = visibleResources.find((item) => item.id === draggedId);
+    const targetResource = visibleResources.find((item) => item.id === targetId);
+    if (!draggedResource || !targetResource) return;
+
+    if (draggedResource.is_favorite !== targetResource.is_favorite) {
+      onNotify?.('error', 'Önemli ve normal kayıtlar birlikte taşınamaz');
+      return;
+    }
+
+    const next = [...visibleResources];
     const fromIndex = next.findIndex((item) => item.id === draggedId);
     const toIndex = next.findIndex((item) => item.id === targetId);
     if (fromIndex === -1 || toIndex === -1) return;
@@ -137,10 +160,12 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
     );
   }
 
-  if (resources.length === 0) {
+  if (visibleResources.length === 0) {
     return (
       <div className="py-8 text-center text-sm text-muted-foreground">
-        Henüz kaynak eklenmemiş. Yeni bir kaynak eklemek için "Ekle" butonunu kullanın.
+        {resourceFilterMode === 'important'
+          ? 'Henüz önemli olarak işaretlenmiş kayıt yok.'
+          : 'Henüz kaynak eklenmemiş. Yeni bir kaynak eklemek için "Ekle" butonunu kullanın.'}
       </div>
     );
   }
@@ -148,13 +173,13 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
   return (
     <>
       <div className="space-y-1">
-        {resources.map((resource) => {
+        {visibleResources.map((resource) => {
           const Icon = getIcon(resource.type);
 
           return (
             <div
               key={resource.id}
-              draggable
+              draggable={canReorderResources && !reorderMutation.isPending}
               onDragStart={() => setDraggedId(resource.id)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}
@@ -168,6 +193,7 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-sm font-medium">{resource.title}</span>
+                  {resource.is_favorite ? <Star className="h-3.5 w-3.5 fill-red-500 text-red-500 shrink-0" /> : null}
                   {resource.category ? (
                     <span 
                       className="text-[10px] px-1.5 py-0.5 rounded-sm font-mono shrink-0"
@@ -221,13 +247,13 @@ export function ResourceList({ categoryId, type, searchQuery, onNotify }: Resour
                 ) : null}
                 
                 <Button 
-                  aria-label={resource.is_favorite ? 'Favoriden çıkar' : 'Favoriye ekle'} 
+                  aria-label={resource.is_favorite ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle'} 
                   variant="ghost" 
                   size="icon" 
                   className="h-9 w-9 opacity-100 sm:opacity-0 sm:group-hover:opacity-100" 
                   onClick={(e) => { e.stopPropagation(); void toggleFavorite(resource.id, resource.is_favorite); }}
                 >
-                  <Heart className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
+                  <Star className={`h-4 w-4 ${resource.is_favorite ? 'fill-red-500 text-red-500' : ''}`} />
                 </Button>
                 
                 <Button 

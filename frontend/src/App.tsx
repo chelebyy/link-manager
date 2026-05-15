@@ -1,14 +1,22 @@
-import { lazy, Suspense, useRef, useState, useEffect } from 'react';
+import { lazy, Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
 import { Button } from './components/ui/button';
-import { Plus, Settings, Github, LayoutGrid, Download, Upload } from 'lucide-react';
+import { Plus, Settings, Github, LayoutGrid, Download, Upload, FileText } from 'lucide-react';
 import { GlobalSearchPanel } from './components/GlobalSearchPanel';
 import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
-import type { ExportPayload } from './types';
+import type { ExportPayload, ResourceWithSync } from './types';
 import { api, ApiError } from './lib/api';
 import { queryKeys } from './lib/query-keys';
+import {
+  buildExportFilename,
+  buildFullExportMarkdown,
+  buildSelectedViewMarkdown,
+  downloadMarkdown,
+  sortCategoriesAlphabetically,
+  type ResourceFilterMode,
+} from './lib/resource-view';
 
 const AddResourceDialog = lazy(() =>
   import('./components/AddResourceDialog/AddResourceDialog').then((module) => ({ default: module.AddResourceDialog }))
@@ -49,6 +57,8 @@ function App() {
   const [showAddResource, setShowAddResource] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [resourceFilterMode, setResourceFilterMode] = useState<ResourceFilterMode>('all');
+  const [visibleResources, setVisibleResources] = useState<ResourceWithSync[]>([]);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const importRef = useRef<HTMLInputElement | null>(null);
   const debouncedGlobalSearchQuery = useDebouncedValue(globalSearchQuery.trim(), 250);
@@ -69,7 +79,7 @@ function App() {
     enabled: debouncedGlobalSearchQuery.length > 0,
   });
 
-  const categories = categoriesQuery.data ?? [];
+  const categories = useMemo(() => sortCategoriesAlphabetically(categoriesQuery.data ?? []), [categoriesQuery.data]);
   const resourceTypes = resourceTypesQuery.data ?? [];
   const globalResults = globalResultsQuery.data ?? [];
 
@@ -96,6 +106,7 @@ function App() {
     setSelectedCategory(null);
     setSearchQuery('');
     setGlobalSearchQuery('');
+    setResourceFilterMode('all');
   };
 
   const handleCategoryOpenFromSearch = (type: string, categoryId: number) => {
@@ -113,6 +124,7 @@ function App() {
     setSelectedType(type);
     setSelectedCategory(null);
     setSearchQuery('');
+    setResourceFilterMode('all');
   };
 
   const handleExport = async () => {
@@ -129,6 +141,45 @@ function App() {
     } catch {
       showToast('error', 'Export başarısız', 'Beklenmeyen bir hata oluştu.');
     }
+  };
+
+  const handleMarkdownExport = async () => {
+    try {
+      const data = await api.exportData();
+      const markdown = buildFullExportMarkdown({
+        exportedAt: data.exported_at,
+        resourceTypes: data.resourceTypes,
+        categories: sortCategoriesAlphabetically(data.categories),
+        resources: data.resources,
+      });
+
+      downloadMarkdown(buildExportFilename('link-manager-export-all'), markdown);
+      showToast('success', 'Markdown export hazır');
+    } catch {
+      showToast('error', 'Markdown export başarısız', 'Beklenmeyen bir hata oluştu.');
+    }
+  };
+
+  const handleCurrentViewMarkdownExport = () => {
+    if (!selectedTypeConfig) {
+      showToast('error', 'Görünüm export için önce bir kart seçin');
+      return;
+    }
+
+    const selectedCategoryName = selectedCategory
+      ? categories.find((category) => category.id === selectedCategory)?.name ?? null
+      : null;
+
+    const markdown = buildSelectedViewMarkdown({
+      typeLabel: selectedTypeConfig.name,
+      selectedCategoryName,
+      searchQuery,
+      filterMode: resourceFilterMode,
+      resources: visibleResources,
+    });
+
+    downloadMarkdown(buildExportFilename(`link-manager-${selectedTypeConfig.id}-view`), markdown);
+    showToast('success', 'Görünüm Markdown indirildi');
   };
 
   const importMutation = useMutation({
@@ -215,6 +266,28 @@ function App() {
               variant="outline"
               size="sm"
               className="rounded-sm border-border font-mono text-xs shrink-0"
+              onClick={handleMarkdownExport}
+              aria-label="Download all data as Markdown"
+            >
+              <FileText className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+              <span className="hidden sm:inline">MD Tümü</span>
+            </Button>
+            {selectedType ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-sm border-border font-mono text-xs shrink-0"
+                onClick={handleCurrentViewMarkdownExport}
+                aria-label="Download current view as Markdown"
+              >
+                <Download className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
+                <span className="hidden sm:inline">MD Görünüm</span>
+              </Button>
+            ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-sm border-border font-mono text-xs shrink-0"
               onClick={() => importRef.current?.click()}
               aria-label="Import data"
             >
@@ -288,12 +361,15 @@ function App() {
             categories={selectedTypeCategories}
             selectedCategory={selectedCategory}
             searchQuery={searchQuery}
+            resourceFilterMode={resourceFilterMode}
             onSelectCategory={handleCategorySelect}
             onSearchChange={setSearchQuery}
+            onResourceFilterChange={setResourceFilterMode}
             onBack={() => {
               setSelectedType(null);
               setSelectedCategory(null);
               setSearchQuery('');
+              setResourceFilterMode('all');
             }}
           >
             <Suspense fallback={<LazyPanelFallback />}>
@@ -301,6 +377,8 @@ function App() {
                 categoryId={selectedCategory}
                 type={selectedType}
                 searchQuery={searchQuery}
+                resourceFilterMode={resourceFilterMode}
+                onVisibleResourcesChange={setVisibleResources}
                 onNotify={showToast}
               />
             </Suspense>

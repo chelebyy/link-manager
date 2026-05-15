@@ -3,6 +3,7 @@ import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import type { Category, ResourceTypeDefinition, ResourceWithSync } from '../types';
+import { sortCategoriesAlphabetically } from '../lib/resource-view';
 
 interface GlobalSearchPanelProps {
   query: string;
@@ -26,9 +27,9 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
     : [];
 
   const matchingCategories = normalized
-    ? categories.filter((category) =>
+    ? sortCategoriesAlphabetically(categories.filter((category) =>
         [category.name, category.type].some((value) => value.toLowerCase().includes(normalized))
-      )
+      ))
     : [];
 
   if (!query.trim()) {

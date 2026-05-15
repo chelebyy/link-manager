@@ -4,6 +4,7 @@ import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import type { Category } from '../../types';
+import type { ResourceFilterMode } from '../../lib/resource-view';
 
 interface TypeCategoriesProps {
   typeLabel: string;
@@ -11,8 +12,10 @@ interface TypeCategoriesProps {
   categories: Category[];
   selectedCategory: number | null;
   searchQuery: string;
+  resourceFilterMode: ResourceFilterMode;
   onSelectCategory: (categoryId: number | null) => void;
   onSearchChange: (query: string) => void;
+  onResourceFilterChange: (mode: ResourceFilterMode) => void;
   onBack: () => void;
   children: ReactNode;
 }
@@ -23,8 +26,10 @@ export function TypeCategories({
   categories,
   selectedCategory,
   searchQuery,
+  resourceFilterMode,
   onSelectCategory,
   onSearchChange,
+  onResourceFilterChange,
   onBack,
   children,
 }: TypeCategoriesProps) {
@@ -147,7 +152,7 @@ export function TypeCategories({
 
         <section className="flex-1 min-w-0 space-y-4">
           <div className="flex flex-col gap-4 rounded-lg border bg-card lg:bg-transparent lg:border-0 lg:p-0 px-4 py-3">
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h3 className="text-lg font-semibold font-mono">
                   {selectedCategoryName ?? typeLabel}
@@ -157,14 +162,37 @@ export function TypeCategories({
                 </p>
               </div>
 
-              <div className="relative w-full lg:max-w-xs">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(event) => onSearchChange(event.target.value)}
-                  placeholder="Ara..."
-                  className="pl-9 h-9 border-border/50 bg-background/50 rounded-sm font-mono text-xs"
-                />
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-end">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={resourceFilterMode === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-9 px-3 text-xs"
+                    onClick={() => onResourceFilterChange('all')}
+                  >
+                    Tümü
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={resourceFilterMode === 'important' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-9 px-3 text-xs"
+                    onClick={() => onResourceFilterChange('important')}
+                  >
+                    Önemli
+                  </Button>
+                </div>
+
+                <div className="relative w-full lg:w-72">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(event) => onSearchChange(event.target.value)}
+                    placeholder="Ara..."
+                    className="pl-9 h-9 border-border/50 bg-background/50 rounded-sm font-mono text-xs"
+                  />
+                </div>
               </div>
             </div>
           </div>
