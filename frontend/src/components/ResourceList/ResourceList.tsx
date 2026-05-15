@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy } from 'lucide-react';
+import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy, Download, Square, CheckSquare } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import {
@@ -18,7 +18,14 @@ import { api, ApiError } from '../../lib/api';
 import { getIcon } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
 import { AddResourceDialog } from '../AddResourceDialog/AddResourceDialog';
-import { filterResourcesByMode, sortResourcesForView, type ResourceFilterMode } from '../../lib/resource-view';
+import {
+  buildExportFilename,
+  buildSelectedViewMarkdown,
+  downloadMarkdown,
+  filterResourcesByMode,
+  sortResourcesForView,
+  type ResourceFilterMode,
+} from '../../lib/resource-view';
 
 interface ResourceListProps {
   categoryId: number | null;
@@ -27,14 +34,73 @@ interface ResourceListProps {
   resourceFilterMode: ResourceFilterMode;
   onVisibleResourcesChange?: (resources: ResourceWithSync[]) => void;
   onNotify?: (kind: 'success' | 'error', title: string, description?: string) => void;
+  isSelectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
+  onSelectionChange?: (ids: Set<number>) => void;
 }
 
-export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode, onVisibleResourcesChange, onNotify }: ResourceListProps) {
+export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode, onVisibleResourcesChange, onNotify, isSelectionMode: externalIsSelectionMode, onToggleSelectionMode, onSelectionChange }: ResourceListProps) {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [editingResource, setEditingResource] = useState<ResourceWithSync | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<number>>(new Set());
+
+  const isSelectionMode = externalIsSelectionMode ?? false;
+  const selectedIds = internalSelectedIds;
+
+  useEffect(() => {
+    onSelectionChange?.(selectedIds);
+  }, [onSelectionChange, selectedIds]);
+
+  useEffect(() => {
+    if (externalIsSelectionMode === false && selectedIds.size > 0) {
+      setInternalSelectedIds(new Set());
+    }
+  }, [externalIsSelectionMode, selectedIds]);
+
+  const toggleSelection = (id: number) => {
+    setInternalSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === visibleResources.length) {
+      setInternalSelectedIds(new Set());
+    } else {
+      setInternalSelectedIds(new Set(visibleResources.map((r) => r.id)));
+    }
+  };
+
+  const downloadSelected = () => {
+    const selected = visibleResources.filter((r) => selectedIds.has(r.id));
+    const typeLabel = resourceTypesQuery.data?.find((resourceType) => resourceType.id === type)?.name ?? type ?? 'Kaynaklar';
+    const selectedCategoryName = categoryId
+      ? categoriesQuery.data?.find((category) => category.id === categoryId)?.name ?? null
+      : null;
+
+    const markdown = buildSelectedViewMarkdown({
+      typeLabel,
+      selectedCategoryName,
+      searchQuery,
+      filterMode: resourceFilterMode,
+      resources: selected,
+    });
+
+    downloadMarkdown(buildExportFilename(`link-manager-${type ?? 'resources'}-secili`), markdown);
+
+    onNotify?.('success', 'Seçili kaynaklar indirildi');
+    setInternalSelectedIds(new Set());
+    onToggleSelectionMode?.();
+  };
 
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories(type ?? undefined),
@@ -54,13 +120,14 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
   });
 
   const resources = resourcesQuery.data ?? [];
-  const visibleResources = filterResourcesByMode(sortResourcesForView(resources), resourceFilterMode);
+  const sortedResources = useMemo(() => sortResourcesForView(resources), [resources]);
+  const visibleResources = useMemo(() => filterResourcesByMode(sortedResources, resourceFilterMode), [sortedResources, resourceFilterMode]);
   const canReorderResources = resourceFilterMode === 'all';
   const loading = resourcesQuery.isLoading;
 
   useEffect(() => {
     onVisibleResourcesChange?.(visibleResources);
-  }, [onVisibleResourcesChange, visibleResources]);
+  }, [onVisibleResourcesChange, visibleResources.length]);
 
   useEffect(() => {
     if (resourcesQuery.error instanceof ApiError) {
@@ -93,12 +160,8 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     },
   });
 
-  const toggleFavorite = async (id: number, current: boolean) => {
-    try {
-      await favoriteMutation.mutateAsync({ id, next: !current });
-    } catch (error) {
-      console.error('Failed to toggle favorite:', error);
-    }
+  const toggleFavorite = (id: number, current: boolean) => {
+    favoriteMutation.mutate({ id, next: !current });
   };
 
   const confirmDelete = async () => {
@@ -172,9 +235,38 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
 
   return (
     <>
+      {isSelectionMode && (
+        <div className="flex items-center justify-between mb-3 p-2 bg-muted/30 rounded-sm border border-border">
+          <div className="flex items-center gap-2">
+            <button onClick={toggleSelectAll} className="p-1 hover:bg-accent rounded" title="Tümünü seç">
+              {selectedIds.size === visibleResources.length ? (
+                <CheckSquare className="h-4 w-4 text-primary" />
+              ) : (
+                <Square className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+            <span className="text-sm text-muted-foreground">{selectedIds.size} seçili</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setInternalSelectedIds(new Set()); onToggleSelectionMode?.(); }}
+            >
+              İptal
+            </Button>
+            <Button size="sm" onClick={downloadSelected} disabled={selectedIds.size === 0}>
+              <Download className="h-4 w-4 mr-1" />
+              İndir
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-1">
         {visibleResources.map((resource) => {
           const Icon = getIcon(resource.type);
+          const isSelected = selectedIds.has(resource.id);
 
           return (
             <div
@@ -183,10 +275,18 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
               onDragStart={() => setDraggedId(resource.id)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}
-              onClick={() => setExpandedId(expandedId === resource.id ? null : resource.id)}
-              className="group flex items-center gap-3 rounded-sm border border-transparent hover:border-border hover:bg-muted/30 px-3 py-2 cursor-pointer transition-all touch-manipulation"
+              onClick={() => isSelectionMode ? toggleSelection(resource.id) : setExpandedId(expandedId === resource.id ? null : resource.id)}
+              className={`group flex items-center gap-3 rounded-sm border border-transparent hover:border-border hover:bg-muted/30 px-3 py-2 cursor-pointer transition-all touch-manipulation ${isSelectionMode ? 'cursor-pointer' : ''}`}
             >
-              <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground cursor-grab" />
+              {isSelectionMode ? (
+                <div className="flex items-center justify-center w-5 h-5">
+                  <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-border'}`}>
+                    {isSelected && <CheckSquare className="h-3 w-3 text-primary-foreground" />}
+                  </div>
+                </div>
+              ) : (
+                <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground cursor-grab" />
+              )}
               
               <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
               

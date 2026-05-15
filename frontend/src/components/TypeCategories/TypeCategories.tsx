@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Search, ChevronDown, Square, CheckSquare } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import type { Category } from '../../types';
@@ -18,6 +18,8 @@ interface TypeCategoriesProps {
   onResourceFilterChange: (mode: ResourceFilterMode) => void;
   onBack: () => void;
   children: ReactNode;
+  isSelectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
 }
 
 export function TypeCategories({
@@ -32,6 +34,8 @@ export function TypeCategories({
   onResourceFilterChange,
   onBack,
   children,
+  isSelectionMode = false,
+  onToggleSelectionMode,
 }: TypeCategoriesProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectedCategoryName = selectedCategory
@@ -183,6 +187,26 @@ export function TypeCategories({
                     Önemli
                   </Button>
                 </div>
+
+                <Button
+                  type="button"
+                  variant={isSelectionMode ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-9 px-3 text-xs"
+                  onClick={onToggleSelectionMode}
+                >
+                  {isSelectionMode ? (
+                    <>
+                      <CheckSquare className="h-4 w-4 mr-1" />
+                      Seçim Bitir
+                    </>
+                  ) : (
+                    <>
+                      <Square className="h-4 w-4 mr-1" />
+                      Seç
+                    </>
+                  )}
+                </Button>
 
                 <div className="relative w-full lg:w-72">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

@@ -62,6 +62,8 @@ function App() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const importRef = useRef<HTMLInputElement | null>(null);
   const debouncedGlobalSearchQuery = useDebouncedValue(globalSearchQuery.trim(), 250);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories(),
@@ -95,6 +97,16 @@ function App() {
 
   const dismissToast = (id: number) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode((current) => {
+      const next = !current;
+      if (!next) {
+        setSelectedIds(new Set());
+      }
+      return next;
+    });
   };
 
   const handleCategorySelect = (categoryId: number | null) => {
@@ -163,6 +175,24 @@ function App() {
   const handleCurrentViewMarkdownExport = () => {
     if (!selectedTypeConfig) {
       showToast('error', 'Görünüm export için önce bir kart seçin');
+      return;
+    }
+
+    // Eğer seçim modundaysa sadece seçili kaynakları indir
+    if (isSelectionMode && selectedIds.size > 0) {
+      const selectedResources = visibleResources.filter(r => selectedIds.has(r.id));
+      const markdown = buildSelectedViewMarkdown({
+        typeLabel: selectedTypeConfig.name,
+        selectedCategoryName: selectedCategory
+          ? categories.find((category) => category.id === selectedCategory)?.name ?? null
+          : null,
+        searchQuery,
+        filterMode: resourceFilterMode,
+        resources: selectedResources,
+      });
+
+      downloadMarkdown(buildExportFilename(`link-manager-${selectedTypeConfig.id}-secili`), markdown);
+      showToast('success', `${selectedIds.size} kaynak indirildi`);
       return;
     }
 
@@ -370,7 +400,11 @@ function App() {
               setSelectedCategory(null);
               setSearchQuery('');
               setResourceFilterMode('all');
+              setIsSelectionMode(false);
+              setSelectedIds(new Set());
             }}
+            isSelectionMode={isSelectionMode}
+            onToggleSelectionMode={toggleSelectionMode}
           >
             <Suspense fallback={<LazyPanelFallback />}>
               <ResourceList
@@ -380,6 +414,9 @@ function App() {
                 resourceFilterMode={resourceFilterMode}
                 onVisibleResourcesChange={setVisibleResources}
                 onNotify={showToast}
+                isSelectionMode={isSelectionMode}
+                onToggleSelectionMode={toggleSelectionMode}
+                onSelectionChange={setSelectedIds}
               />
             </Suspense>
           </TypeCategories>
