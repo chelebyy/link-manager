@@ -203,21 +203,28 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
   app.patch('/:id/favorite', async (request, reply) => {
     const { id } = request.params as ResourceParams;
     const { is_favorite } = request.body as any;
-    
+
+    // Validate id is a valid number
+    const resourceId = parseInt(id, 10);
+    if (isNaN(resourceId)) {
+      reply.status(400);
+      return { error: 'Invalid resource ID' };
+    }
+
     const favValue = isPostgres ? is_favorite : (is_favorite ? 1 : 0);
     const result = await query(
       `UPDATE resources SET is_favorite = ${param(0)}, updated_at = ${now()} WHERE id = ${param(1)} RETURNING *`,
-      [favValue, id]
+      [favValue, resourceId]
     );
-    
+
     // For SQLite, check rowCount; for PostgreSQL, check rows.length
     const isSuccess = isPostgres ? result.rows.length > 0 : (result.rowCount ?? 0) > 0;
     if (!isSuccess) {
       reply.status(404);
       return { error: 'Resource not found' };
     }
-    
-    return result.rows[0] || { id, is_favorite: favValue };
+
+    return result.rows[0] || { id: resourceId, is_favorite: favValue };
   });
 
   app.patch('/reorder', async (request, reply) => {

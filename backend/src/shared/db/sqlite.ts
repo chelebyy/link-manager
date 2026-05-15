@@ -4,6 +4,9 @@ import { dbConfig } from './config.js';
 let db: Database.Database | null = null;
 
 const DEFAULT_CATEGORY_TYPE = 'website';
+const DEFAULT_SQLITE_DB_PATH = 'link-manager.db';
+
+const getSqliteDbPath = () => process.env.SQLITE_DB_PATH || DEFAULT_SQLITE_DB_PATH;
 
 const createResourceTypesTableSql = `
   CREATE TABLE IF NOT EXISTS resource_types (
@@ -191,7 +194,7 @@ const ensureResourcesUrlUniqueness = (database: Database.Database) => {
 export const initSqliteDb = () => {
   if (db) return db;
 
-  db = new Database('link-manager.db');
+  db = new Database(getSqliteDbPath());
 
   db.exec(createResourceTypesTableSql);
   db.exec(createCategoriesTableSql);
@@ -285,11 +288,16 @@ export const sqliteQuery = (sql: string, params?: any[]) => {
   }
 
   if (normalizedSql.includes('returning')) {
-    const row = params && params.length > 0 ? stmt.get(...params) : stmt.get();
-    return row ? [row] : [];
+    const rows = params && params.length > 0 ? stmt.all(...params) : stmt.all();
+    return { rows, rowCount: rows.length };
   }
 
   return params && params.length > 0 ? stmt.run(...params) : stmt.run();
+};
+
+export const closeSqliteDb = () => {
+  db?.close();
+  db = null;
 };
 
 export { db as sqliteDb };

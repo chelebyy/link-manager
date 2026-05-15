@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
-import { initSqliteDb, sqliteQuery } from './sqlite.js';
+import { closeSqliteDb, initSqliteDb, sqliteQuery } from './sqlite.js';
 
 dotenv.config();
 
@@ -17,11 +17,27 @@ const getPostgresPool = () => {
 };
 
 const getSqliteRowCount = (result: unknown) => {
+  if (typeof result === 'object' && result !== null && 'rowCount' in result) {
+    return Number(result.rowCount);
+  }
+
   if (typeof result === 'object' && result !== null && 'changes' in result) {
     return Number(result.changes);
   }
 
   return 0;
+};
+
+const getSqliteRows = (result: unknown) => {
+  if (Array.isArray(result)) {
+    return result;
+  }
+
+  if (typeof result === 'object' && result !== null && 'rows' in result && Array.isArray(result.rows)) {
+    return result.rows;
+  }
+
+  return [];
 };
 
 export const db = {
@@ -32,7 +48,7 @@ export const db = {
       return getPostgresPool().query(text, params);
     } else {
       const result = sqliteQuery(text, params);
-      return { rows: Array.isArray(result) ? result : [], rowCount: getSqliteRowCount(result) };
+      return { rows: getSqliteRows(result), rowCount: getSqliteRowCount(result) };
     }
   },
 
@@ -272,7 +288,10 @@ export const db = {
     if (postgresPool) {
       await postgresPool.end();
       postgresPool = null;
+      return;
     }
+
+    closeSqliteDb();
   }
 };
 
