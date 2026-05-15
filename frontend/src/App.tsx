@@ -141,8 +141,9 @@ function App() {
       ]);
       showToast('success', 'Import tamamlandı');
     },
-    onError: () => {
-      showToast('error', 'Import başarısız', 'Dosya içeriği işlenemedi.');
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Dosya içeriği işlenemedi.';
+      showToast('error', message);
     },
   });
 
