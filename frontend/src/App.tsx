@@ -141,8 +141,9 @@ function App() {
       ]);
       showToast('success', 'Import tamamlandı');
     },
-    onError: () => {
-      showToast('error', 'Import başarısız', 'Dosya içeriği işlenemedi.');
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Dosya içeriği işlenemedi.';
+      showToast('error', message);
     },
   });
 
@@ -153,7 +154,12 @@ function App() {
     try {
       const text = await file.text();
       const payload = JSON.parse(text) as ExportPayload;
-      await importMutation.mutateAsync(payload);
+
+      try {
+        await importMutation.mutateAsync(payload);
+      } catch {
+        return;
+      }
     } catch {
       showToast('error', 'Import başarısız', 'Geçerli bir JSON dosyası seçin.');
     } finally {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -54,6 +54,31 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const isEditing = initialResource !== null;
 
   const filteredCategories = categories.filter((category) => category.type === type);
+  const typeResourcesQuery = useQuery({
+    queryKey: queryKeys.resources({ categoryId: null, type, search: '' }),
+    queryFn: () => api.getResources({ type }),
+    enabled: open && type.length > 0,
+  });
+
+  const showDuplicateUrlError = () => {
+    const message = 'URL zaten mevcut';
+    setError(message);
+    onNotify?.('error', message);
+  };
+
+  const hasDuplicateUrl = (candidateUrl: string | null) => {
+    if (candidateUrl === null) {
+      return false;
+    }
+
+    return (typeResourcesQuery.data ?? []).some((resource) => {
+      if (resource.id === initialResource?.id) {
+        return false;
+      }
+
+      return resource.url === candidateUrl;
+    });
+  };
 
   const createMutation = useMutation({
     mutationFn: (payload: { type: string; title: string; url: string | null; description: string | null; category_id: number | null }) => api.createResource(payload),
@@ -69,6 +94,11 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     onError: (error) => {
       const message = error instanceof ApiError ? error.message : 'Kaynak eklenemedi.';
       setError(message);
+      if (error instanceof ApiError && error.status === 409 && error.message === 'URL zaten mevcut') {
+        onNotify?.('error', message);
+        return;
+      }
+
       onNotify?.('error', 'Kaynak eklenemedi', message);
     },
   });
@@ -87,6 +117,11 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     onError: (error) => {
       const message = error instanceof ApiError ? error.message : 'Kaynak güncellenemedi.';
       setError(message);
+      if (error instanceof ApiError && error.status === 409 && error.message === 'URL zaten mevcut') {
+        onNotify?.('error', message);
+        return;
+      }
+
       onNotify?.('error', 'Kaynak güncellenemedi', message);
     },
   });
@@ -131,6 +166,12 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
       return;
     }
 
+    const candidateUrl = url || null;
+    if (hasDuplicateUrl(candidateUrl)) {
+      showDuplicateUrlError();
+      return;
+    }
+
     setError('');
 
     setLoading(true);
@@ -140,7 +181,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
           id: initialResource.id,
           payload: {
             title,
-            url: url || null,
+            url: candidateUrl,
             description: description || null,
             category_id: categoryId ? parseInt(categoryId) : null,
           },
@@ -148,13 +189,13 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         onClose();
         return;
       } else {
-        await createMutation.mutateAsync({
-          type,
-          title,
-          url: url || null,
-          description: description || null,
-          category_id: categoryId ? parseInt(categoryId) : null,
-        });
+          await createMutation.mutateAsync({
+            type,
+            title,
+            url: candidateUrl,
+            description: description || null,
+            category_id: categoryId ? parseInt(categoryId) : null,
+          });
       }
 
       setTitle('');

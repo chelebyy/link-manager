@@ -165,6 +165,46 @@ export const db = {
         `);
 
         await pool.query(`
+          CREATE OR REPLACE FUNCTION enforce_resource_url_uniqueness()
+          RETURNS TRIGGER AS $$
+          BEGIN
+            IF NEW.url IS NULL THEN
+              RETURN NEW;
+            END IF;
+
+            IF TG_OP = 'UPDATE'
+              AND NEW.type IS NOT DISTINCT FROM OLD.type
+              AND NEW.url IS NOT DISTINCT FROM OLD.url THEN
+              RETURN NEW;
+            END IF;
+
+            IF EXISTS (
+              SELECT 1
+              FROM resources
+              WHERE type = NEW.type
+                AND url = NEW.url
+                AND (TG_OP = 'INSERT' OR id <> NEW.id)
+            ) THEN
+              RAISE EXCEPTION 'URL zaten mevcut' USING ERRCODE = '23505';
+            END IF;
+
+            RETURN NEW;
+          END;
+          $$ LANGUAGE plpgsql;
+        `);
+
+        await pool.query(`
+          DROP TRIGGER IF EXISTS resources_block_duplicate_url_on_write ON resources;
+        `);
+
+        await pool.query(`
+          CREATE TRIGGER resources_block_duplicate_url_on_write
+          BEFORE INSERT OR UPDATE OF type, url ON resources
+          FOR EACH ROW
+          EXECUTE FUNCTION enforce_resource_url_uniqueness();
+        `);
+
+        await pool.query(`
           CREATE INDEX IF NOT EXISTS categories_type_sort_order_idx
           ON categories(type, sort_order);
         `);

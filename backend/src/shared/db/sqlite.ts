@@ -153,6 +153,41 @@ const migrateResourcesTable = (database: Database.Database) => {
   console.log('Resources table migration completed');
 };
 
+const ensureResourcesUrlUniqueness = (database: Database.Database) => {
+  database.exec(`
+    DROP INDEX IF EXISTS resources_type_url_unique_enforced_idx;
+
+    DROP TRIGGER IF EXISTS resources_block_duplicate_url_insert;
+    CREATE TRIGGER resources_block_duplicate_url_insert
+    BEFORE INSERT ON resources
+    FOR EACH ROW
+    WHEN NEW.url IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM resources
+        WHERE type = NEW.type AND url = NEW.url AND id <> NEW.id
+      )
+    BEGIN
+      SELECT RAISE(ABORT, 'URL zaten mevcut');
+    END;
+
+    DROP TRIGGER IF EXISTS resources_block_duplicate_url_update;
+    CREATE TRIGGER resources_block_duplicate_url_update
+    BEFORE UPDATE OF type, url ON resources
+    FOR EACH ROW
+    WHEN NEW.url IS NOT NULL
+      AND (NEW.type <> OLD.type OR NEW.url <> OLD.url)
+      AND EXISTS (
+        SELECT 1
+        FROM resources
+        WHERE type = NEW.type AND url = NEW.url AND id <> OLD.id
+      )
+    BEGIN
+      SELECT RAISE(ABORT, 'URL zaten mevcut');
+    END;
+  `);
+};
+
 export const initSqliteDb = () => {
   if (db) return db;
 
@@ -233,6 +268,7 @@ export const initSqliteDb = () => {
 
   migrateCategoriesForTypeScoping(db);
   migrateResourcesTable(db);
+  ensureResourcesUrlUniqueness(db);
   seedDefaultResourceTypes(db);
 
   console.log('SQLite database initialized');

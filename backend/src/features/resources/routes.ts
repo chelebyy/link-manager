@@ -1,5 +1,12 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { query } from '../../shared/db/index.js';
+import {
+  DUPLICATE_RESOURCE_URL_ERROR,
+  getResourceIdentity,
+  hasResourceUrlConflict,
+  isResourceUrlConflictError,
+  normalizeOptionalText,
+} from './url-conflicts.js';
 
 const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
 const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
@@ -29,14 +36,6 @@ type ResourceParams = {
 
 type ResourceReorderBody = {
   ids?: number[];
-};
-
-const normalizeOptionalText = (value: string | null | undefined) => {
-  if (value === undefined || value === null) {
-    return null;
-  }
-
-  return value.trim() === '' ? null : value;
 };
 
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
@@ -88,19 +87,34 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'type and title are required' };
     }
 
+    const normalizedUrl = normalizeOptionalText(url);
+    if (normalizedUrl && await hasResourceUrlConflict(type, normalizedUrl)) {
+      reply.status(409);
+      return { error: DUPLICATE_RESOURCE_URL_ERROR };
+    }
+
     const sortResult = await query(
       `SELECT MAX(sort_order) as max_order FROM resources WHERE type = ${param(0)}`,
       [type]
     );
     const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
-    
-    const result = await query(
-      `INSERT INTO resources (category_id, type, title, url, description, metadata, sort_order) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}, ${param(6)}) RETURNING *`,
-      [category_id ?? null, type, title, normalizeOptionalText(url), normalizeOptionalText(description), JSON.stringify(metadata), nextOrder]
-    );
-    
-    reply.status(201);
-    return result.rows[0];
+
+    try {
+      const result = await query(
+        `INSERT INTO resources (category_id, type, title, url, description, metadata, sort_order) VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}, ${param(6)}) RETURNING *`,
+        [category_id ?? null, type, title, normalizedUrl, normalizeOptionalText(description), JSON.stringify(metadata), nextOrder]
+      );
+
+      reply.status(201);
+      return result.rows[0];
+    } catch (error) {
+      if (isResourceUrlConflictError(error)) {
+        reply.status(409);
+        return { error: DUPLICATE_RESOURCE_URL_ERROR };
+      }
+
+      throw error;
+    }
   });
 
   app.patch('/:id', async (request, reply) => {
@@ -137,23 +151,47 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'No fields to update' };
     }
 
+    if (url !== undefined) {
+      const existingResource = await getResourceIdentity(id);
+      if (!existingResource) {
+        reply.status(404);
+        return { error: 'Resource not found' };
+      }
+
+      const normalizedUrl = normalizeOptionalText(url);
+      const hasUrlChanged = normalizedUrl !== existingResource.url;
+      if (normalizedUrl && hasUrlChanged && await hasResourceUrlConflict(existingResource.type, normalizedUrl, id)) {
+        reply.status(409);
+        return { error: DUPLICATE_RESOURCE_URL_ERROR };
+      }
+    }
+
     values.push(id);
-    
-    const result = await query(
-      `UPDATE resources SET ${fields.join(', ')}, updated_at = ${now()} WHERE id = ${param(paramIndex)} RETURNING *`,
-      values
-    );
-    
-    const isSuccess = result.rows.length > 0 || (!isPostgres && (result.rowCount ?? 0) > 0);
-    if (!isSuccess) {
-      reply.status(404);
-      return { error: 'Resource not found' };
+
+    try {
+      const result = await query(
+        `UPDATE resources SET ${fields.join(', ')}, updated_at = ${now()} WHERE id = ${param(paramIndex)} RETURNING *`,
+        values
+      );
+
+      const isSuccess = result.rows.length > 0 || (!isPostgres && (result.rowCount ?? 0) > 0);
+      if (!isSuccess) {
+        reply.status(404);
+        return { error: 'Resource not found' };
+      }
+
+      if (result.rows.length > 0) {
+        return result.rows[0];
+      }
+      return { id };
+    } catch (error) {
+      if (isResourceUrlConflictError(error)) {
+        reply.status(409);
+        return { error: DUPLICATE_RESOURCE_URL_ERROR };
+      }
+
+      throw error;
     }
-    
-    if (result.rows.length > 0) {
-      return result.rows[0];
-    }
-    return { id };
   });
 
   app.delete('/:id', async (request, reply) => {
