@@ -165,7 +165,7 @@ const ensureResourcesUrlUniqueness = (database: Database.Database) => {
       AND EXISTS (
         SELECT 1
         FROM resources
-        WHERE type = NEW.type AND url = NEW.url
+        WHERE type = NEW.type AND url = NEW.url AND id <> NEW.id
       )
     BEGIN
       SELECT RAISE(ABORT, 'URL zaten mevcut');

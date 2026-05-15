@@ -154,7 +154,12 @@ function App() {
     try {
       const text = await file.text();
       const payload = JSON.parse(text) as ExportPayload;
-      await importMutation.mutateAsync(payload);
+
+      try {
+        await importMutation.mutateAsync(payload);
+      } catch {
+        return;
+      }
     } catch {
       showToast('error', 'Import başarısız', 'Geçerli bir JSON dosyası seçin.');
     } finally {
