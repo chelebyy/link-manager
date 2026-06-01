@@ -17,7 +17,7 @@ interface ToastBannerProps {
 
 export function ToastBanner({ toasts, onDismiss }: ToastBannerProps) {
   return (
-    <div className="fixed right-4 top-4 z-[100] flex w-full max-w-sm flex-col gap-2">
+    <div className="fixed right-2 sm:right-4 top-4 z-[100] flex w-full max-w-[calc(100vw-1rem)] sm:max-w-sm flex-col gap-2">
       {toasts.map((toast) => {
         const Icon = toast.kind === 'success' ? CheckCircle2 : AlertCircle;
         return (

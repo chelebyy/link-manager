@@ -62,7 +62,7 @@ export function TypeCategories({
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         <details open={isOpen} className="lg:hidden rounded-lg border bg-card">
           <summary
-            className="flex items-center justify-between px-3 py-2 cursor-pointer list-none select-none"
+            className="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none min-h-[44px] hover:bg-muted/50 transition-colors"
             onClick={(e) => {
               e.preventDefault();
               setIsOpen(!isOpen);
@@ -110,7 +110,7 @@ export function TypeCategories({
           </div>
         </details>
 
-        <aside className="hidden lg:block shrink-0 w-64 max-h-[calc(100vh-160px)] overflow-y-auto rounded-lg border bg-card sticky top-20">
+        <aside className="hidden lg:block shrink-0 lg:w-48 xl:w-64 max-h-[calc(100vh-160px)] overflow-y-auto rounded-lg border bg-card sticky top-20">
           <div className="border-b px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kategoriler</p>
           </div>

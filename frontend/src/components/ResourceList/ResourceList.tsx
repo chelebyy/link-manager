@@ -271,7 +271,7 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
           return (
             <div
               key={resource.id}
-              draggable={canReorderResources && !reorderMutation.isPending}
+              draggable={canReorderResources && !reorderMutation.isPending && !('ontouchstart' in window)}
               onDragStart={() => setDraggedId(resource.id)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}

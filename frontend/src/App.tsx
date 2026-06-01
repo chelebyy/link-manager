@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
 import { TypeCategories } from './components/TypeCategories/TypeCategories';
 import { Button } from './components/ui/button';
-import { Plus, Settings, Github, LayoutGrid, Download, Upload, FileText } from 'lucide-react';
+import { Plus, Settings, Github, LayoutGrid, Download, Upload, FileText, Menu } from 'lucide-react';
+import { MobileMenu } from './components/MobileMenu';
 import { GlobalSearchPanel } from './components/GlobalSearchPanel';
 import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
 import type { ExportPayload, ResourceWithSync } from './types';
@@ -281,83 +282,133 @@ function App() {
               Link Manager
             </h1>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide -mr-3 pr-3 min-w-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-sm border-border font-mono text-xs shrink-0"
-              onClick={handleExport}
-              aria-label="Export data"
-            >
-              <Download className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-sm border-border font-mono text-xs shrink-0"
-              onClick={handleMarkdownExport}
-              aria-label="Download all data as Markdown"
-            >
-              <FileText className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden sm:inline">MD Tümü</span>
-            </Button>
-            {selectedType ? (
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 className="rounded-sm border-border font-mono text-xs shrink-0"
-                onClick={handleCurrentViewMarkdownExport}
-                aria-label="Download current view as Markdown"
+                onClick={handleExport}
+                aria-label="Export data"
               >
-                <Download className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-                <span className="hidden sm:inline">MD Görünüm</span>
+                <Download className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                <span>Export</span>
               </Button>
-            ) : null}
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-sm border-border font-mono text-xs shrink-0"
-              onClick={() => importRef.current?.click()}
-              aria-label="Import data"
-            >
-              <Upload className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden sm:inline">Import</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-sm border-border font-mono text-xs shrink-0"
-              onClick={() => setShowResourceTypeManager(true)}
-              aria-label="Manage resource type cards"
-            >
-              <LayoutGrid className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden sm:inline">Kartlar</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-sm border-border font-mono text-xs shrink-0"
-              onClick={() => setShowCategoryManager(true)}
-              aria-label="Manage categories"
-            >
-              <Settings className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden sm:inline">Kategoriler</span>
-            </Button>
-            <Button
-              size="sm"
-              className="rounded-sm font-mono text-xs shrink-0"
-              onClick={() => setShowAddResource(true)}
-              aria-label="Add new resource"
-            >
-              <Plus className="h-3 w-3 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden md:inline">Ekle</span>
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-sm border-border font-mono text-xs shrink-0"
+                onClick={handleMarkdownExport}
+                aria-label="Download all data as Markdown"
+              >
+                <FileText className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                <span>MD Tümü</span>
+              </Button>
+              {selectedType ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-sm border-border font-mono text-xs shrink-0"
+                  onClick={handleCurrentViewMarkdownExport}
+                  aria-label="Download current view as Markdown"
+                >
+                  <Download className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                  <span>MD Görünüm</span>
+                </Button>
+              ) : null}
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-sm border-border font-mono text-xs shrink-0"
+                onClick={() => importRef.current?.click()}
+                aria-label="Import data"
+              >
+                <Upload className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                <span>Import</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-sm border-border font-mono text-xs shrink-0"
+                onClick={() => setShowResourceTypeManager(true)}
+                aria-label="Manage resource type cards"
+              >
+                <LayoutGrid className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                <span>Kartlar</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-sm border-border font-mono text-xs shrink-0"
+                onClick={() => setShowCategoryManager(true)}
+                aria-label="Manage categories"
+              >
+                <Settings className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                <span>Kategoriler</span>
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-sm font-mono text-xs shrink-0"
+                onClick={() => setShowAddResource(true)}
+                aria-label="Add new resource"
+              >
+                <Plus className="h-3 w-3 mr-1.5" aria-hidden="true" />
+                <span>Ekle</span>
+              </Button>
+            </div>
+
+            <div className="sm:hidden">
+              <MobileMenu
+                trigger={<Menu className="h-5 w-5" />}
+                items={[
+                  {
+                    id: 'export',
+                    label: 'Export',
+                    icon: <Download className="h-4 w-4" />,
+                    onClick: handleExport,
+                  },
+                  {
+                    id: 'md-all',
+                    label: 'MD Tümü',
+                    icon: <FileText className="h-4 w-4" />,
+                    onClick: handleMarkdownExport,
+                  },
+                  ...(selectedType
+                    ? [
+                        {
+                          id: 'md-view',
+                          label: 'MD Görünüm',
+                          icon: <Download className="h-4 w-4" />,
+                          onClick: handleCurrentViewMarkdownExport,
+                        },
+                      ]
+                    : []),
+                  {
+                    id: 'import',
+                    label: 'Import',
+                    icon: <Upload className="h-4 w-4" />,
+                    onClick: () => importRef.current?.click(),
+                  },
+                  {
+                    id: 'cards',
+                    label: 'Kartlar',
+                    icon: <LayoutGrid className="h-4 w-4" />,
+                    onClick: () => setShowResourceTypeManager(true),
+                  },
+                  {
+                    id: 'categories',
+                    label: 'Kategoriler',
+                    icon: <Settings className="h-4 w-4" />,
+                    onClick: () => setShowCategoryManager(true),
+                  },
+                ]}
+              />
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-3 sm:px-4 py-6 pb-24 sm:pb-6">
         {isLoading ? (
           <div className="space-y-8">
             <div className="h-24 rounded-lg bg-muted animate-pulse" />
@@ -469,6 +520,15 @@ function App() {
         onChange={handleImport}
         className="hidden"
       />
+
+      <button
+        type="button"
+        onClick={() => setShowAddResource(true)}
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 active:opacity-80 transition-opacity sm:hidden"
+        aria-label="Yeni kaynak ekle"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
     </div>
   );
 }

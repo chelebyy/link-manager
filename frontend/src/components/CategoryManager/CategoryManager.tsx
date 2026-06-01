@@ -245,7 +245,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                 <button
                   key={color}
                   type="button"
-                  className={`w-6 h-6 rounded-full border-2 ${
+                  className={`w-10 h-10 sm:w-6 sm:h-6 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-full border-2 flex items-center justify-center ${
                     colorInput === color ? 'border-foreground' : 'border-transparent'
                   }`}
                   style={{ backgroundColor: color }}
@@ -290,22 +290,22 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
+                      className="h-8 w-8 sm:h-6 sm:w-6 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                       onClick={() => startEditCategory(category)}
                       aria-label={`${category.name} kategorisini düzenle`}
                       disabled={deleteMutation.isPending}
                     >
-                      <Edit2 className="h-3 w-3" />
+                      <Edit2 className="h-4 w-4 sm:h-3 sm:w-3" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-destructive"
+                      className="h-8 w-8 sm:h-6 sm:w-6 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-destructive"
                       onClick={() => deleteCategory(category.id)}
                       aria-label={`${category.name} kategorisini sil`}
                       disabled={deleteMutation.isPending}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-4 w-4 sm:h-3 sm:w-3" />
                     </Button>
                   </div>
                 </div>

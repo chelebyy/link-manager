@@ -68,7 +68,7 @@ export function GlobalSearchPanel({ query, onQueryChange, categories, resourceTy
           <span className="ml-3 font-mono text-sm text-[#6b7280]">Searching...</span>
         </div>
       ) : (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-3 min-w-0 overflow-hidden">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-w-0 overflow-hidden">
           <Card className="border-[#d1d5db] rounded-sm min-w-0 overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="font-mono text-sm uppercase tracking-wide text-[#6b7280]">Card Results</CardTitle>

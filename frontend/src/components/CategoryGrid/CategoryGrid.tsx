@@ -14,7 +14,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
     return (
       <div className="space-y-10">
         <div className="text-center space-y-3">
-          <h2 className="text-3xl font-bold font-mono tracking-tight">Link Manager</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold font-mono tracking-tight">Link Manager</h2>
           <p className="text-muted-foreground font-sans text-sm">
             Kaynaklarinizi organize edin ve yonetin
           </p>
@@ -24,7 +24,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
             <div key={`skeleton-filter-${i}`} className="h-10 w-24 bg-muted animate-pulse rounded-md" />
           ))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <Card key={`skeleton-card-${i}`} className="border-[#d1d5db] rounded-sm bg-background">
               <CardHeader className="pb-3 min-h-0">
@@ -42,7 +42,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
   return (
     <div className="space-y-10">
       <div className="text-center space-y-3">
-        <h2 className="text-3xl font-bold font-mono tracking-tight">Link Manager</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold font-mono tracking-tight">Link Manager</h2>
         <p className="text-muted-foreground font-sans text-sm">
           Kaynaklarinizi organize edin ve yonetin
         </p>
@@ -72,7 +72,7 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" role="list">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-5" role="list">
         {resourceTypes.map((type) => {
           const IconComponent = getIcon(type.icon);
 

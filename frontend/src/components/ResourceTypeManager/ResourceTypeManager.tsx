@@ -228,7 +228,7 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
               <Label htmlFor="rt-icon-picker">İkon</Label>
               <div
                 id="rt-icon-picker"
-                className="grid max-h-40 grid-cols-8 gap-2 overflow-y-auto rounded-md border bg-background p-2"
+                className="grid max-h-40 grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 overflow-y-auto rounded-md border bg-background p-2"
                 role="group"
                 aria-label="İkon seçin"
               >
@@ -239,7 +239,7 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                       key={icon}
                       type="button"
                       onClick={() => setFormData({ ...formData, icon })}
-                      className={`flex aspect-square items-center justify-center rounded border transition-colors ${formData.icon === icon ? 'border-primary bg-primary/10 text-primary' : 'border-transparent hover:bg-muted/50'}`}
+                      className={`flex aspect-square min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 items-center justify-center rounded border transition-colors ${formData.icon === icon ? 'border-primary bg-primary/10 text-primary' : 'border-transparent hover:bg-muted/50'}`}
                       aria-label={icon}
                       aria-pressed={formData.icon === icon}
                       disabled={isSubmitting}
@@ -265,7 +265,7 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                   <button
                     key={color}
                     type="button"
-                    className={`h-8 w-8 rounded-full border-2 transition-all ${colorInput === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'}`}
+                    className={`h-10 w-10 sm:h-8 sm:w-8 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-full border-2 transition-all ${colorInput === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'}`}
                     style={{ backgroundColor: color }}
                     onClick={() => {
                       setFormData({ ...formData, color });
@@ -327,7 +327,7 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-10 w-10 sm:h-8 sm:w-8 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                         onClick={() => handleEdit(type)}
                         aria-label={`${type.name} kart tipini düzenle`}
                         disabled={isDeleting || isReordering}
@@ -338,7 +338,7 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive"
+                          className="h-10 w-10 sm:h-8 sm:w-8 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-destructive"
                           onClick={() => void handleDelete(type)}
                           aria-label={`${type.name} kart tipini sil`}
                           disabled={isDeleting || isReordering}
