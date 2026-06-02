@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { query } from '../../shared/db/index.js';
+import { z } from 'zod';
+import { query, withTransaction } from '../../shared/db/index.js';
 import {
   DUPLICATE_RESOURCE_URL_ERROR,
   getResourceIdentity,
@@ -255,22 +256,48 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
   });
 
   app.patch('/reorder', async (request, reply) => {
-    const { ids } = request.body as ResourceReorderBody;
+    const reorderSchema = z.object({
+      ids: z.array(z.number().int().positive()).min(1),
+    });
 
-    if (!ids || ids.length === 0) {
+    const parsed = reorderSchema.safeParse(request.body);
+    if (!parsed.success) {
       reply.status(400);
-      return { error: 'ids are required' };
+      return { error: 'ids must be a non-empty array of positive integers' };
     }
 
-    await Promise.all(
-      ids.map((id, index) =>
-        query(
-          `UPDATE resources SET sort_order = ${param(0)}, updated_at = ${now()} WHERE id = ${param(1)}`,
-          [index + 1, id]
-        )
-      )
-    );
+    const { ids } = parsed.data;
 
-    return { success: true };
+    if (new Set(ids).size !== ids.length) {
+      reply.status(400);
+      return { error: 'ids must not contain duplicates' };
+    }
+
+    const NOT_FOUND = Symbol('reorder-id-not-found');
+
+    try {
+      await withTransaction(async (txQuery) => {
+        let updatedCount = 0;
+        for (let index = 0; index < ids.length; index += 1) {
+          const result = await txQuery(
+            `UPDATE resources SET sort_order = ${param(0)}, updated_at = ${now()} WHERE id = ${param(1)}`,
+            [index + 1, ids[index]]
+          );
+          updatedCount += result.rowCount ?? 0;
+        }
+        if (updatedCount !== ids.length) {
+          throw NOT_FOUND;
+        }
+      });
+    } catch (err) {
+      if (err === NOT_FOUND) {
+        reply.status(400);
+        return { error: 'One or more resource ids do not exist' };
+      }
+      throw err;
+    }
+
+    reply.status(204);
+    return null;
   });
 }
