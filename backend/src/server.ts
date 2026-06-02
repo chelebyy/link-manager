@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import auth from '@fastify/auth';
+import rateLimit from '@fastify/rate-limit';
 import dotenv from 'dotenv';
 import { closeDb, initDb } from './shared/db/index.js';
 import { apiKey } from './shared/config/index.js';
@@ -33,6 +34,16 @@ await app.register(cors, {
 
 await app.register(auth);
 
+// SEC-03: rate limit (60 requests / 15 minutes per IP) on all routes.
+// /api/health is exempt via per-route `config: { rateLimit: false }` below.
+await app.register(rateLimit, {
+  global: true,
+  max: 60,
+  timeWindow: '15 minutes',
+  keyGenerator: (request: any) => request.ip,
+  skipOnError: true,
+});
+
 app.decorate('verifyApiKey', async (request: any, reply: any) => {
   if (!apiKey) {
     reply.code(500).send({ error: 'API key not configured on server' });
@@ -59,7 +70,7 @@ app.addHook('preHandler', async (request, reply) => {
   }
 });
 
-app.get('/api/health', async () => {
+app.get('/api/health', { config: { rateLimit: false } }, async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
