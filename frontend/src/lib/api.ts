@@ -1,5 +1,7 @@
 import type { Category, ExportPayload, ResourceTypeDefinition, ResourceWithSync } from '../types';
 
+const API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
+
 type RequestOptions = RequestInit & {
   skipJson?: boolean;
 };
@@ -15,7 +17,15 @@ export class ApiError extends Error {
 }
 
 async function request<T>(input: string, init?: RequestOptions): Promise<T> {
-  const response = await fetch(input, init);
+  const headers = new Headers(init?.headers);
+  if (!headers.has('Content-Type') && init?.body) {
+    headers.set('Content-Type', 'application/json');
+  }
+  if (API_KEY) {
+    headers.set('Authorization', `Bearer ${API_KEY}`);
+  }
+
+  const response = await fetch(input, { ...init, headers });
 
   if (!response.ok) {
     let message = 'İstek başarısız oldu.';

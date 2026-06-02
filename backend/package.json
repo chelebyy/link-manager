@@ -10,6 +10,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@fastify/auth": "^5.0.4",
     "@fastify/cors": "^10.0.0",
     "@octokit/rest": "^22.0.0",
     "better-sqlite3": "^12.8.0",
