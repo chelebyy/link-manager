@@ -210,8 +210,21 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
 
   app.delete('/:id', async (request, reply) => {
     const { id } = request.params as ResourceParams;
-    await query(`DELETE FROM resources WHERE id = ${param(0)}`, [id]);
+
+    if (!/^\d+$/.test(id)) {
+      reply.status(400);
+      return { error: 'Invalid resource id' };
+    }
+
+    const result = await query(`DELETE FROM resources WHERE id = ${param(0)}`, [id]);
+
+    if (!result.rowCount) {
+      reply.status(404);
+      return { error: 'Resource not found' };
+    }
+
     reply.status(204);
+    return null;
   });
 
   app.patch('/:id/favorite', async (request, reply) => {
