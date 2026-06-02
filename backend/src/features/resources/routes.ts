@@ -13,6 +13,9 @@ const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
 const boolTrue = () => isPostgres ? 'true' : '1';
 const now = () => isPostgres ? 'NOW()' : "datetime('now')";
 
+const ALLOWED_SORT_COLUMNS = new Set(['id', 'sort_order', 'title', 'url', 'created_at', 'updated_at']);
+const ALLOWED_ORDER = new Set(['asc', 'desc']);
+
 type ResourceCreateBody = {
   category_id?: number | null;
   type?: string;
@@ -41,7 +44,18 @@ type ResourceReorderBody = {
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
   app.get('/', async (request, reply) => {
       const { category, type, favorite, search, sort = 'sort_order', order = 'asc' } = request.query as any;
-    
+
+    if (!ALLOWED_SORT_COLUMNS.has(sort)) {
+      reply.status(400);
+      return { error: `Invalid sort column. Allowed: ${[...ALLOWED_SORT_COLUMNS].join(', ')}` };
+    }
+
+    const normalizedOrder = String(order).toLowerCase();
+    if (!ALLOWED_ORDER.has(normalizedOrder)) {
+      reply.status(400);
+      return { error: `Invalid order value. Allowed: ${[...ALLOWED_ORDER].join(', ')}` };
+    }
+
     let sql = `
       SELECT r.*, c.name as category_name, c.color as category_color, c.icon as category_icon,
              s.github_id, s.last_release_tag, s.has_updates, s.last_sync_at
@@ -73,7 +87,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
        params.push(`%${search}%`);
       }
 
-    sql += ` ORDER BY r.${sort} ${order.toUpperCase()}`;
+    sql += ` ORDER BY r.${sort} ${normalizedOrder.toUpperCase()}`;
 
     const result = await query(sql, params);
     return result.rows;
