@@ -164,7 +164,21 @@ export const downloadMarkdown = (filename: string, content: string) => {
   link.href = url;
   link.download = filename;
   link.click();
-  URL.revokeObjectURL(url);
+  // Defer revoke to avoid Firefox race where revoking too early cancels the
+  // in-flight download (Bugzilla 1424255). setTimeout(0) gives the browser
+  // one event-loop tick to start the download before the URL is freed.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+};
+
+export const downloadJson = (filename: string, data: unknown) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  // See downloadMarkdown: defer revoke to avoid Firefox download race.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
 export const buildExportFilename = (prefix: string) => `${prefix}-${new Date().toISOString().slice(0, 10)}.md`;
