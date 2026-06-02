@@ -172,7 +172,8 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     try {
       await deleteMutation.mutateAsync(deleteId);
     } catch (error) {
-      console.error('Failed to delete resource:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kaynak silinemedi', message);
     } finally {
       setDeleteId(null);
     }

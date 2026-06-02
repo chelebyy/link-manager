@@ -155,7 +155,8 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
       setEditingCategory(null);
       setError('');
     } catch (error) {
-      console.error('Failed to create category:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kategori kaydedilemedi', message);
     } finally {
       setLoading(false);
     }
@@ -167,7 +168,8 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     try {
       await deleteMutation.mutateAsync(id);
     } catch (error) {
-      console.error('Failed to delete category:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kategori silinemedi', message);
     }
   };
 

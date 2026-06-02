@@ -207,7 +207,8 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
       setError('');
       onClose();
     } catch (error) {
-      console.error('Failed to add resource:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kaynak kaydedilemedi', message);
     } finally {
       setLoading(false);
     }
