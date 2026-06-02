@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { query } from '../../shared/db/index.js';
+import { query, withTransaction } from '../../shared/db/index.js';
 
 const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
 const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
@@ -109,11 +109,25 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
 
   app.delete('/:id', async (request, reply) => {
     const { id } = request.params as CategoryParams;
-    
-    await query(`UPDATE resources SET category_id = NULL WHERE category_id = ${param(0)}`, [id]);
-    await query(`DELETE FROM categories WHERE id = ${param(0)}`, [id]);
-    
+
+    if (!/^\d+$/.test(id)) {
+      reply.status(400);
+      return { error: 'Invalid category id' };
+    }
+
+    const deletedRowCount = await withTransaction(async (txQuery) => {
+      await txQuery(`UPDATE resources SET category_id = NULL WHERE category_id = ${param(0)}`, [id]);
+      const deleteResult = await txQuery(`DELETE FROM categories WHERE id = ${param(0)}`, [id]);
+      return deleteResult.rowCount;
+    });
+
+    if (!deletedRowCount) {
+      reply.status(404);
+      return { error: 'Category not found' };
+    }
+
     reply.status(204);
+    return null;
   });
 
   app.patch('/reorder', async (request, reply) => {
