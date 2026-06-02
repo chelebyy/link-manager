@@ -1,3 +1,5 @@
+# link-manager backend — invalidates build cache on 2026-06-02 deploy fix
+# (LINK_MANAGER_API_KEY env now injected from Dokploy project-level secrets)
 FROM node:20-alpine AS builder
 WORKDIR /app
 

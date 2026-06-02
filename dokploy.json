@@ -55,10 +55,6 @@
         {
           "name": "PORT",
           "value": "3000"
-        },
-        {
-          "name": "LINK_MANAGER_API_KEY",
-          "value": "${LINK_MANAGER_API_KEY}"
         }
       ],
       "dependsOn": ["postgres"],
@@ -75,10 +71,6 @@
         {
           "name": "VITE_API_URL",
           "value": "/api"
-        },
-        {
-          "name": "VITE_API_KEY",
-          "value": "${VITE_API_KEY}"
         }
       ],
       "dependsOn": ["backend"],
