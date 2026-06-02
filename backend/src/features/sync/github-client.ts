@@ -93,7 +93,7 @@ export const githubClient = {
         rateLimitReset = Number.parseInt(response.headers['x-ratelimit-reset'] || '0', 10);
       }
 
-      const isEmpty = response.status === 304 || !response.data || response.data.length === 0;
+      const isEmpty = (response.status as number) === 304 || !response.data || response.data.length === 0;
       if (isEmpty) {
         return { data: null, etag: response.headers?.etag ?? etag ?? undefined };
       }
