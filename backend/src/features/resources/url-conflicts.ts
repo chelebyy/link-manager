@@ -1,7 +1,6 @@
-import { query as defaultQuery } from '../../shared/db/index.js';
+import { db, query as defaultQuery } from '../../shared/db/index.js';
 
-const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
-const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
+const param = (index: number) => db.isPostgres ? `$${index + 1}` : `?`;
 
 export const DUPLICATE_RESOURCE_URL_ERROR = 'URL zaten mevcut';
 

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { z, ZodSchema } from 'zod';
-import { query, withTransaction } from '../../shared/db/index.js';
+import { db, query, withTransaction } from '../../shared/db/index.js';
 import {
   DUPLICATE_RESOURCE_URL_ERROR,
   getResourceIdentity,
@@ -9,10 +9,9 @@ import {
   normalizeOptionalText,
 } from './url-conflicts.js';
 
-const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
-const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
-const boolTrue = () => isPostgres ? 'true' : '1';
-const now = () => isPostgres ? 'NOW()' : "datetime('now')";
+const param = (index: number) => db.isPostgres ? `$${index + 1}` : `?`;
+const boolTrue = () => db.isPostgres ? 'true' : '1';
+const now = () => db.isPostgres ? 'NOW()' : "datetime('now')";
 
 const resourcesListQuerySchema = z
   .object({
@@ -214,7 +213,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
         values
       );
 
-      const isSuccess = result.rows.length > 0 || (!isPostgres && (result.rowCount ?? 0) > 0);
+      const isSuccess = result.rows.length > 0 || (!db.isPostgres && (result.rowCount ?? 0) > 0);
       if (!isSuccess) {
         reply.status(404);
         return { error: 'Resource not found' };
@@ -264,14 +263,14 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'Invalid resource ID' };
     }
 
-    const favValue = isPostgres ? is_favorite : (is_favorite ? 1 : 0);
+    const favValue = db.isPostgres ? is_favorite : (is_favorite ? 1 : 0);
     const result = await query(
       `UPDATE resources SET is_favorite = ${param(0)}, updated_at = ${now()} WHERE id = ${param(1)} RETURNING *`,
       [favValue, resourceId]
     );
 
     // For SQLite, check rowCount; for PostgreSQL, check rows.length
-    const isSuccess = isPostgres ? result.rows.length > 0 : (result.rowCount ?? 0) > 0;
+    const isSuccess = db.isPostgres ? result.rows.length > 0 : (result.rowCount ?? 0) > 0;
     if (!isSuccess) {
       reply.status(404);
       return { error: 'Resource not found' };

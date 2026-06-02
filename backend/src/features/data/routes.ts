@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { query, withTransaction, type TxQuery } from '../../shared/db/index.js';
+import { db, query, withTransaction, type TxQuery } from '../../shared/db/index.js';
 import {
   DUPLICATE_RESOURCE_URL_ERROR,
   getResourceIdentity,
@@ -7,8 +7,6 @@ import {
   isResourceUrlConflictError,
   normalizeOptionalText,
 } from '../resources/url-conflicts.js';
-
-const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
 
 type ImportPayload = {
   resourceTypes?: Array<Record<string, unknown>>;
@@ -22,7 +20,7 @@ const toNumber = (value: unknown, fallback = 0) => {
 };
 
 const upsertResourceType = async (txQuery: TxQuery, item: Record<string, unknown>) => {
-  if (isPostgres) {
+  if (db.isPostgres) {
     await txQuery(
       `INSERT INTO resource_types (id, name, icon, color, description, is_builtin, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -62,7 +60,7 @@ const upsertResourceType = async (txQuery: TxQuery, item: Record<string, unknown
 };
 
 const upsertCategory = async (txQuery: TxQuery, item: Record<string, unknown>) => {
-  if (isPostgres) {
+  if (db.isPostgres) {
     await txQuery(
       `INSERT INTO categories (id, name, type, color, icon, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -120,7 +118,7 @@ const upsertResource = async (txQuery: TxQuery, item: Record<string, unknown>) =
     throw err;
   }
 
-  if (isPostgres) {
+  if (db.isPostgres) {
     await txQuery(
       `INSERT INTO resources (id, category_id, type, title, url, description, metadata, is_favorite, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
