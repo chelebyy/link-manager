@@ -86,9 +86,22 @@ await app.register(resourceTypesRoutes, { prefix: '/api/resource-types' });
 await app.register(dataRoutes, { prefix: '/api/data' });
 
 app.setErrorHandler((error: any, request, reply) => {
+  // Always log the full error server-side so operators retain debug context.
   app.log.error(error);
-  reply.status(error.statusCode || 500).send({
-    error: error.message || 'Internal Server Error',
+
+  const statusCode = error.statusCode || 500;
+  const isProd = process.env.NODE_ENV === 'production';
+  const isServerError = statusCode >= 500;
+
+  // SEC-05: in production, replace 5xx error.message with a generic string
+  // so we don't leak stack traces, file paths, or internal details to clients.
+  // 4xx errors (e.g. 400 Zod validation messages) keep their message because
+  // they are safe, user-facing feedback.
+  const safeMessage =
+    isServerError && isProd ? 'Internal Server Error' : error.message || 'Internal Server Error';
+
+  reply.status(statusCode).send({
+    error: safeMessage,
     code: error.code || 'INTERNAL_ERROR',
   });
 });
