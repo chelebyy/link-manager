@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import auth from '@fastify/auth';
 import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet';
 import dotenv from 'dotenv';
 import { closeDb, initDb } from './shared/db/index.js';
 import { apiKey } from './shared/config/index.js';
@@ -30,6 +31,18 @@ await app.register(cors, {
     ? process.env.FRONTEND_URL || false
     : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
+});
+
+// SEC-10: helmet adds baseline security headers (X-Frame-Options, HSTS,
+// X-Content-Type-Options, etc.) to every response. CSP and COEP are
+// disabled because the SPA is served from a different origin (nginx) and
+// this API only ever returns JSON — there's no HTML/asset context to
+// protect here. `crossOriginResourcePolicy: cross-origin` lets the SPA
+// fetch API responses when hosted on a different origin.
+await app.register(helmet, {
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
 });
 
 await app.register(auth);
@@ -111,6 +124,11 @@ const start = async () => {
     await initDb();
 
     const port = parseInt(process.env.PORT || '3000', 10);
+    // Bind to 0.0.0.0 (all interfaces) intentionally: this server runs inside
+    // a Docker container behind nginx, and Docker networking requires the
+    // process to listen on all interfaces for port forwarding to work. Do
+    // NOT change this to 127.0.0.1 without also changing the Docker/Compose
+    // network configuration.
     await app.listen({ port, host: '0.0.0.0' });
     app.log.info(`Server running on port ${port}`);
   } catch (err) {
