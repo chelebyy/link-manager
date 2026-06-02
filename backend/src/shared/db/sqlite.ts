@@ -282,13 +282,16 @@ export const sqliteQuery = (sql: string, params?: any[]) => {
   const database = initSqliteDb();
   const stmt = database.prepare(sql);
   const normalizedSql = sql.trim().toLowerCase();
+  const executeAll = (statement: Database.Statement, p?: any[]) =>
+    p && p.length > 0 ? statement.all(...p) : statement.all();
 
-  if (normalizedSql.startsWith('select')) {
-    return params && params.length > 0 ? stmt.all(...params) : stmt.all();
+  if (normalizedSql.startsWith('select') || normalizedSql.startsWith('with')) {
+    const rows = executeAll(stmt, params);
+    return { rows, rowCount: rows.length };
   }
 
   if (normalizedSql.includes('returning')) {
-    const rows = params && params.length > 0 ? stmt.all(...params) : stmt.all();
+    const rows = executeAll(stmt, params);
     return { rows, rowCount: rows.length };
   }
 
