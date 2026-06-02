@@ -135,7 +135,8 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
 
       resetForm();
     } catch (error) {
-      console.error('Failed to save resource type:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kart kaydedilemedi', message);
     } finally {
       setLoading(false);
     }
@@ -160,7 +161,8 @@ export function ResourceTypeManager({ open, onNotify, onClose }: ResourceTypeMan
     try {
       await deleteMutation.mutateAsync(type.id);
     } catch (error) {
-      console.error('Failed to delete resource type:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kart silinemedi', message);
     }
   };
 

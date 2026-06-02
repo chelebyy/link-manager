@@ -60,6 +60,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     queryFn: () => api.getResources({ type }),
     enabled: open && type.length > 0,
   });
+  const isDuplicateCheckLoading = typeResourcesQuery.isFetching || typeResourcesQuery.isLoading;
 
   const showDuplicateUrlError = () => {
     const message = 'URL zaten mevcut';
@@ -206,7 +207,8 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
       setError('');
       onClose();
     } catch (error) {
-      console.error('Failed to add resource:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kaynak kaydedilemedi', message);
     } finally {
       setLoading(false);
     }
@@ -272,7 +274,15 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
               placeholder={type === 'github' ? 'https://github.com/owner/repo' : 'https://example.com'}
               type="url"
               autoComplete="url"
+              disabled={isDuplicateCheckLoading}
+              aria-busy={isDuplicateCheckLoading}
             />
+            {isDuplicateCheckLoading ? (
+              <p className="text-xs text-muted-foreground flex items-center gap-1" role="status" aria-live="polite">
+                <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                Mevcut URL'ler kontrol ediliyor...
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -313,7 +323,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
             <Button type="button" variant="outline" onClick={() => onClose()}>
               İptal
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || isDuplicateCheckLoading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { query, withTransaction } from '../../shared/db/index.js';
+import { db, query, withTransaction } from '../../shared/db/index.js';
 
-const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
-const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
+const param = (index: number) => db.isPostgres ? `$${index + 1}` : `?`;
 
 type CategoryListQuery = {
   type?: string;
@@ -83,7 +82,7 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
       return { error: 'name, color and icon are required' };
     }
     
-    const updateTime = isPostgres ? 'NOW()' : "datetime('now')";
+    const updateTime = db.isPostgres ? 'NOW()' : "datetime('now')";
     try {
       const result = await query(
         `UPDATE categories SET name = ${param(0)}, color = ${param(1)}, icon = ${param(2)}, updated_at = ${updateTime} WHERE id = ${param(3)} RETURNING *`,
@@ -141,7 +140,7 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
     await Promise.all(
       ids.map((id, index) =>
         query(
-          `UPDATE categories SET sort_order = ${param(0)}, updated_at = ${isPostgres ? 'NOW()' : "datetime('now')"} WHERE id = ${param(1)}`,
+          `UPDATE categories SET sort_order = ${param(0)}, updated_at = ${db.isPostgres ? 'NOW()' : "datetime('now')"} WHERE id = ${param(1)}`,
           [index + 1, id]
         )
       )

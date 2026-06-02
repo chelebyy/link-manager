@@ -1,9 +1,8 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { query } from '../../shared/db/index.js';
+import { db, query } from '../../shared/db/index.js';
 
-const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
-const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
-const falseValue = () => isPostgres ? 'FALSE' : '0';
+const param = (index: number) => db.isPostgres ? `$${index + 1}` : `?`;
+const falseValue = () => db.isPostgres ? 'FALSE' : '0';
 
 const AVAILABLE_ICONS = [
   'Github', 'Globe', 'Wrench', 'FileText', 'Folder',
@@ -79,7 +78,7 @@ export async function resourceTypesRoutes(app: FastifyInstance, options: Fastify
     await Promise.all(
       ids.map((id, index) =>
         query(
-          `UPDATE resource_types SET sort_order = ${param(0)}, updated_at = ${isPostgres ? 'NOW()' : "datetime('now')"} WHERE id = ${param(1)}`,
+          `UPDATE resource_types SET sort_order = ${param(0)}, updated_at = ${db.isPostgres ? 'NOW()' : "datetime('now')"} WHERE id = ${param(1)}`,
           [index + 1, id]
         )
       )
@@ -195,7 +194,7 @@ export async function resourceTypesRoutes(app: FastifyInstance, options: Fastify
       values.push(sort_order);
     }
 
-    const updateTime = isPostgres ? 'NOW()' : "datetime('now')";
+    const updateTime = db.isPostgres ? 'NOW()' : "datetime('now')";
     updates.push(`updated_at = ${updateTime}`);
 
     if (updates.length === 1) {

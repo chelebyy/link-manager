@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy, Download, Square, CheckSquare } from 'lucide-react';
+import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy, Download, Square, CheckSquare, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import {
@@ -125,9 +125,11 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
   const canReorderResources = resourceFilterMode === 'all';
   const loading = resourcesQuery.isLoading;
 
+  // F4: depend on the memoized array reference (changes when sort/filter mutates the order)
+  // so reordering with the same length still notifies the parent.
   useEffect(() => {
     onVisibleResourcesChange?.(visibleResources);
-  }, [onVisibleResourcesChange, visibleResources.length]);
+  }, [onVisibleResourcesChange, visibleResources]);
 
   useEffect(() => {
     if (resourcesQuery.error instanceof ApiError) {
@@ -170,7 +172,8 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     try {
       await deleteMutation.mutateAsync(deleteId);
     } catch (error) {
-      console.error('Failed to delete resource:', error);
+      const message = error instanceof ApiError ? error.message : 'Beklenmeyen bir hata oluştu.';
+      onNotify?.('error', 'Kaynak silinemedi', message);
     } finally {
       setDeleteId(null);
     }
@@ -181,27 +184,70 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     await reorderMutation.mutateAsync(nextResources.map((item) => item.id));
   };
 
-  const handleDrop = async (targetId: number) => {
+  // F5: guard clipboard access — navigator.clipboard?.writeText returns undefined when the
+  // API is unavailable, and calling .catch on undefined throws a TypeError.
+  const copyToClipboard = (text: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(console.error);
+    }
+  };
+
+  // UX-1: touch-friendly reorder fallback (desktop still uses native drag).
+  const moveResource = async (resourceId: number, direction: 'up' | 'down') => {
     if (!canReorderResources) {
       onNotify?.('error', 'Sadece önemli filtresinde sıralama kapalı');
       return;
     }
+    const fromIndex = visibleResources.findIndex((item) => item.id === resourceId);
+    if (fromIndex === -1) return;
+    const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= visibleResources.length) return;
 
-    if (draggedId === null || draggedId === targetId) return;
+    const current = visibleResources[fromIndex];
+    const neighbor = visibleResources[toIndex];
+    if (current.is_favorite !== neighbor.is_favorite) {
+      onNotify?.('error', 'Önemli ve normal kayıtlar birlikte taşınamaz');
+      return;
+    }
+
+    const next = [...visibleResources];
+    next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, current);
+    await reorderResources(next);
+  };
+
+  const handleDrop = async (targetId: number) => {
+    if (!canReorderResources) {
+      onNotify?.('error', 'Sadece önemli filtresinde sıralama kapalı');
+      setDraggedId(null);
+      return;
+    }
+
+    if (draggedId === null || draggedId === targetId) {
+      setDraggedId(null);
+      return;
+    }
 
     const draggedResource = visibleResources.find((item) => item.id === draggedId);
     const targetResource = visibleResources.find((item) => item.id === targetId);
-    if (!draggedResource || !targetResource) return;
+    if (!draggedResource || !targetResource) {
+      setDraggedId(null);
+      return;
+    }
 
     if (draggedResource.is_favorite !== targetResource.is_favorite) {
       onNotify?.('error', 'Önemli ve normal kayıtlar birlikte taşınamaz');
+      setDraggedId(null);
       return;
     }
 
     const next = [...visibleResources];
     const fromIndex = next.findIndex((item) => item.id === draggedId);
     const toIndex = next.findIndex((item) => item.id === targetId);
-    if (fromIndex === -1 || toIndex === -1) return;
+    if (fromIndex === -1 || toIndex === -1) {
+      setDraggedId(null);
+      return;
+    }
 
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved);
@@ -273,8 +319,24 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
               key={resource.id}
               draggable={canReorderResources && !reorderMutation.isPending && !('ontouchstart' in window)}
               onDragStart={() => setDraggedId(resource.id)}
+              // F6: also reset when the drag is cancelled (dropped outside, escaped, etc.)
+              onDragEnd={() => setDraggedId(null)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => void handleDrop(resource.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                // UX-2: keyboard activation; preventDefault to avoid Enter double-firing the
+                // native click on a div with role=button.
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  if (isSelectionMode) {
+                    toggleSelection(resource.id);
+                  } else {
+                    setExpandedId(expandedId === resource.id ? null : resource.id);
+                  }
+                }
+              }}
               onClick={() => isSelectionMode ? toggleSelection(resource.id) : setExpandedId(expandedId === resource.id ? null : resource.id)}
               className={`group flex items-center gap-3 rounded-sm border border-transparent hover:border-border hover:bg-muted/30 px-3 py-2 cursor-pointer transition-all touch-manipulation ${isSelectionMode ? 'cursor-pointer' : ''}`}
             >
@@ -309,7 +371,7 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
                     <div className="flex items-start gap-2 mt-0.5">
                       <p className="text-xs text-muted-foreground flex-1">{resource.description}</p>
                       <button
-                        onClick={(e) => { e.stopPropagation(); void navigator.clipboard?.writeText(resource.description ?? '').catch(console.error); }}
+                        onClick={(e) => { e.stopPropagation(); copyToClipboard(resource.description ?? ''); }}
                         className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity"
                         title="Açıklamayı kopyala"
                       >
@@ -320,7 +382,7 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
                     <div className="flex items-center gap-2">
                       <p className="text-xs text-muted-foreground truncate flex-1">{resource.description}</p>
                       <button
-                        onClick={(e) => { e.stopPropagation(); void navigator.clipboard?.writeText(resource.description ?? '').catch(console.error); }}
+                        onClick={(e) => { e.stopPropagation(); copyToClipboard(resource.description ?? ''); }}
                         className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 hover:bg-accent rounded transition-opacity shrink-0"
                         title="Açıklamayı kopyala"
                       >
@@ -334,6 +396,33 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
               <ChevronRight className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${expandedId === resource.id ? 'rotate-90' : ''}`} />
               
               <div className="flex items-center gap-2 shrink-0">
+                {/*
+                  UX-1: native drag is disabled on touch devices (draggable=false) because
+                  HTML5 drag isn't supported there. Provide a minimal up/down fallback that
+                  is only visible on coarse pointers (touch) so desktop UX is unchanged.
+                */}
+                {canReorderResources && !reorderMutation.isPending && (
+                  <>
+                    <Button
+                      aria-label="Yukarı taşı"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 hidden pointer-coarse:inline-flex"
+                      onClick={(e) => { e.stopPropagation(); void moveResource(resource.id, 'up'); }}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      aria-label="Aşağı taşı"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 hidden pointer-coarse:inline-flex"
+                      onClick={(e) => { e.stopPropagation(); void moveResource(resource.id, 'down'); }}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
                 {resource.url ? (
                   <a 
                     href={resource.url} 

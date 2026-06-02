@@ -14,6 +14,7 @@ import {
   buildExportFilename,
   buildFullExportMarkdown,
   buildSelectedViewMarkdown,
+  downloadJson,
   downloadMarkdown,
   sortCategoriesAlphabetically,
   type ResourceFilterMode,
@@ -143,13 +144,10 @@ function App() {
   const handleExport = async () => {
     try {
       const data = await api.exportData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `link-manager-export-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
+      downloadJson(
+        `link-manager-export-${new Date().toISOString().slice(0, 10)}.json`,
+        data
+      );
       showToast('success', 'Export tamamlandı');
     } catch {
       showToast('error', 'Export başarısız', 'Beklenmeyen bir hata oluştu.');

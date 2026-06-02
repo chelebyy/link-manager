@@ -81,7 +81,14 @@ export function CategoryGrid({ resourceTypes, isLoading, onSelectType, selectedT
               key={type.id}
               className="cursor-pointer border-[#d1d5db] rounded-sm transition-all duration-200 hover:border-[#58a6ff] bg-background"
               onClick={() => onSelectType(type.id)}
-              role="listitem"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectType(type.id);
+                }
+              }}
             >
               <CardHeader className="pb-3 min-h-0">
                 <div

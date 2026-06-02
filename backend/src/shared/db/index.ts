@@ -4,7 +4,7 @@ import { closeSqliteDb, initSqliteDb, sqliteQuery } from './sqlite.js';
 
 dotenv.config();
 
-const usePostgres = process.env.DATABASE_URL?.includes('postgresql');
+const usePostgres = Boolean(process.env.DATABASE_URL?.includes('postgresql'));
 let postgresPool: Pool | null = null;
 
 const getPostgresPool = () => {

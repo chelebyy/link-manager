@@ -58,6 +58,11 @@ describe('downloadMarkdown', () => {
     const anchor = clickSpy.mock.instances[0] as HTMLAnchorElement | undefined;
     expect(anchor?.download).toBe('selected.md');
     expect(anchor?.href).toBe('blob:test');
+
+    // Revoke is deferred via setTimeout(..., 0) to avoid the Firefox
+    // download race (Bugzilla 1424255). Flush the timer to assert it ran.
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await new Promise<void>((resolve) => setTimeout(resolve, 10));
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:test');
   });
 });

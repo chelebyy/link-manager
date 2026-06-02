@@ -1,6 +1,6 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { z } from 'zod';
-import { query, withTransaction } from '../../shared/db/index.js';
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
+import { z, ZodSchema } from 'zod';
+import { db, query, withTransaction } from '../../shared/db/index.js';
 import {
   DUPLICATE_RESOURCE_URL_ERROR,
   getResourceIdentity,
@@ -9,53 +9,82 @@ import {
   normalizeOptionalText,
 } from './url-conflicts.js';
 
-const isPostgres = process.env.DATABASE_URL?.includes('postgresql');
-const param = (index: number) => isPostgres ? `$${index + 1}` : `?`;
-const boolTrue = () => isPostgres ? 'true' : '1';
-const now = () => isPostgres ? 'NOW()' : "datetime('now')";
+const param = (index: number) => db.isPostgres ? `$${index + 1}` : `?`;
+const boolTrue = () => db.isPostgres ? 'true' : '1';
+const now = () => db.isPostgres ? 'NOW()' : "datetime('now')";
 
-const ALLOWED_SORT_COLUMNS = new Set(['id', 'sort_order', 'title', 'url', 'created_at', 'updated_at']);
-const ALLOWED_ORDER = new Set(['asc', 'desc']);
+const resourcesListQuerySchema = z
+  .object({
+    category: z.string().optional(),
+    type: z.string().optional(),
+    favorite: z.enum(['true', 'false']).optional(),
+    search: z.string().optional(),
+    sort: z.enum(['id', 'sort_order', 'title', 'url', 'created_at', 'updated_at']).default('sort_order'),
+    order: z.enum(['asc', 'desc']).default('asc'),
+  })
+  .strict();
 
-type ResourceCreateBody = {
-  category_id?: number | null;
-  type?: string;
-  title?: string;
-  url?: string | null;
-  description?: string | null;
-  metadata?: Record<string, unknown>;
-};
+const resourceCreateSchema = z
+  .object({
+    category_id: z.number().int().nullable().optional(),
+    type: z.string().min(1),
+    title: z.string().min(1),
+    url: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    metadata: z.record(z.unknown()).optional(),
+  })
+  .strict();
 
-type ResourceUpdateBody = {
-  category_id?: number | null;
-  title?: string;
-  url?: string | null;
-  description?: string | null;
-  metadata?: Record<string, unknown>;
-};
+const resourceUpdateSchema = z
+  .object({
+    category_id: z.number().int().nullable().optional(),
+    title: z.string().optional(),
+    url: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    metadata: z.record(z.unknown()).optional(),
+  })
+  .strict();
+
+const resourceFavoriteSchema = z
+  .object({
+    is_favorite: z.boolean(),
+  })
+  .strict();
+
+const reorderSchema = z
+  .object({
+    ids: z.array(z.number().int().positive()).min(1),
+  })
+  .strict();
+
+type ResourcesListQuery = z.infer<typeof resourcesListQuerySchema>;
+type ResourceCreateBody = z.infer<typeof resourceCreateSchema>;
+type ResourceUpdateBody = z.infer<typeof resourceUpdateSchema>;
 
 type ResourceParams = {
   id: string;
 };
 
-type ResourceReorderBody = {
-  ids?: number[];
-};
+function validate<T>(
+  schema: ZodSchema<T>,
+  source: 'query' | 'body' | 'params' = 'body',
+) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    const result = schema.safeParse(request[source]);
+    if (!result.success) {
+      reply.status(400);
+      return reply.send({ error: result.error.issues.map((i) => `${i.path.join('.') || 'value'}: ${i.message}`).join('; ') });
+    }
+    (request as FastifyRequest & { validated?: Record<string, unknown> }).validated = {
+      ...(request as FastifyRequest & { validated?: Record<string, unknown> }).validated,
+      [source]: result.data,
+    };
+  };
+}
 
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
-  app.get('/', async (request, reply) => {
-      const { category, type, favorite, search, sort = 'sort_order', order = 'asc' } = request.query as any;
-
-    if (!ALLOWED_SORT_COLUMNS.has(sort)) {
-      reply.status(400);
-      return { error: `Invalid sort column. Allowed: ${[...ALLOWED_SORT_COLUMNS].join(', ')}` };
-    }
-
-    const normalizedOrder = String(order).toLowerCase();
-    if (!ALLOWED_ORDER.has(normalizedOrder)) {
-      reply.status(400);
-      return { error: `Invalid order value. Allowed: ${[...ALLOWED_ORDER].join(', ')}` };
-    }
+  app.get('/', { preHandler: validate(resourcesListQuerySchema, 'query') }, async (request, reply) => {
+    const { category, type, favorite, search, sort, order } = (request as FastifyRequest & { validated: { query: ResourcesListQuery } }).validated.query;
 
     let sql = `
       SELECT r.*, c.name as category_name, c.color as category_color, c.icon as category_icon,
@@ -65,7 +94,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       LEFT JOIN resource_sync_state s ON r.id = s.resource_id
       WHERE 1=1
     `;
-    const params: any[] = [];
+    const params: unknown[] = [];
     let paramIndex = 0;
 
     if (category) {
@@ -88,21 +117,16 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
        params.push(`%${search}%`);
       }
 
-    sql += ` ORDER BY r.${sort} ${normalizedOrder.toUpperCase()}`;
+    sql += ` ORDER BY r.${sort} ${order.toUpperCase()}`;
 
     const result = await query(sql, params);
     return result.rows;
   });
 
-  app.post('/', async (request, reply) => {
-    const { category_id, type, title, url, description, metadata = {} } = request.body as ResourceCreateBody;
+  app.post('/', { preHandler: validate(resourceCreateSchema, 'body') }, async (request, reply) => {
+    const { category_id, type, title, url, description, metadata = {} } = (request as FastifyRequest & { validated: { body: ResourceCreateBody } }).validated.body;
 
-    if (!type || !title) {
-      reply.status(400);
-      return { error: 'type and title are required' };
-    }
-
-    const normalizedUrl = normalizeOptionalText(url);
+    const normalizedUrl = normalizeOptionalText(url ?? null);
     if (normalizedUrl && await hasResourceUrlConflict(type, normalizedUrl)) {
       reply.status(409);
       return { error: DUPLICATE_RESOURCE_URL_ERROR };
@@ -132,12 +156,12 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     }
   });
 
-  app.patch('/:id', async (request, reply) => {
+  app.patch('/:id', { preHandler: validate(resourceUpdateSchema, 'body') }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
-    const { category_id, title, url, description, metadata } = request.body as ResourceUpdateBody;
-    
+    const { category_id, title, url, description, metadata } = (request as FastifyRequest & { validated: { body: ResourceUpdateBody } }).validated.body;
+
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
     let paramIndex = 0;
 
     if (category_id !== undefined) {
@@ -189,7 +213,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
         values
       );
 
-      const isSuccess = result.rows.length > 0 || (!isPostgres && (result.rowCount ?? 0) > 0);
+      const isSuccess = result.rows.length > 0 || (!db.isPostgres && (result.rowCount ?? 0) > 0);
       if (!isSuccess) {
         reply.status(404);
         return { error: 'Resource not found' };
@@ -228,9 +252,9 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     return null;
   });
 
-  app.patch('/:id/favorite', async (request, reply) => {
+  app.patch('/:id/favorite', { preHandler: validate(resourceFavoriteSchema, 'body') }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
-    const { is_favorite } = request.body as any;
+    const { is_favorite } = (request as FastifyRequest & { validated: { body: { is_favorite: boolean } } }).validated.body;
 
     // Validate id is a valid number
     const resourceId = parseInt(id, 10);
@@ -239,14 +263,14 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'Invalid resource ID' };
     }
 
-    const favValue = isPostgres ? is_favorite : (is_favorite ? 1 : 0);
+    const favValue = db.isPostgres ? is_favorite : (is_favorite ? 1 : 0);
     const result = await query(
       `UPDATE resources SET is_favorite = ${param(0)}, updated_at = ${now()} WHERE id = ${param(1)} RETURNING *`,
       [favValue, resourceId]
     );
 
     // For SQLite, check rowCount; for PostgreSQL, check rows.length
-    const isSuccess = isPostgres ? result.rows.length > 0 : (result.rowCount ?? 0) > 0;
+    const isSuccess = db.isPostgres ? result.rows.length > 0 : (result.rowCount ?? 0) > 0;
     if (!isSuccess) {
       reply.status(404);
       return { error: 'Resource not found' };
@@ -255,18 +279,8 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     return result.rows[0] || { id: resourceId, is_favorite: favValue };
   });
 
-  app.patch('/reorder', async (request, reply) => {
-    const reorderSchema = z.object({
-      ids: z.array(z.number().int().positive()).min(1),
-    });
-
-    const parsed = reorderSchema.safeParse(request.body);
-    if (!parsed.success) {
-      reply.status(400);
-      return { error: 'ids must be a non-empty array of positive integers' };
-    }
-
-    const { ids } = parsed.data;
+  app.patch('/reorder', { preHandler: validate(reorderSchema, 'body') }, async (request, reply) => {
+    const { ids } = (request as FastifyRequest & { validated: { body: z.infer<typeof reorderSchema> } }).validated.body;
 
     if (new Set(ids).size !== ids.length) {
       reply.status(400);
