@@ -17,12 +17,20 @@ interface ToastBannerProps {
 
 export function ToastBanner({ toasts, onDismiss }: ToastBannerProps) {
   return (
-    <div className="fixed right-2 sm:right-4 top-4 z-[100] flex w-full max-w-[calc(100vw-1rem)] sm:max-w-sm flex-col gap-2">
+    <div
+      role="region"
+      aria-label="Bildirimler"
+      aria-live="polite"
+      className="fixed right-2 sm:right-4 top-4 z-[100] flex w-full max-w-[calc(100vw-1rem)] sm:max-w-sm flex-col gap-2"
+    >
       {toasts.map((toast) => {
         const Icon = toast.kind === 'success' ? CheckCircle2 : AlertCircle;
+        const isError = toast.kind === 'error';
         return (
           <div
             key={toast.id}
+            role={isError ? 'alert' : 'status'}
+            aria-live={isError ? 'assertive' : undefined}
             className={`rounded-lg border p-4 shadow-lg ${toast.kind === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100' : 'border-red-200 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/50 dark:text-red-100'}`}
           >
             <div className="flex items-start gap-3">
