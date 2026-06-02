@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, type PoolClient } from 'pg';
 import dotenv from 'dotenv';
 import { closeSqliteDb, initSqliteDb, sqliteQuery } from './sqlite.js';
 
@@ -298,3 +298,53 @@ export const db = {
 export const query = db.query.bind(db);
 export const initDb = db.init.bind(db);
 export const closeDb = db.close.bind(db);
+
+export type TxQueryResult = { rows: any[]; rowCount: number };
+export type TxQuery = (sql: string, params?: unknown[]) => Promise<TxQueryResult>;
+
+const runPostgresTransaction = async <T>(fn: (txQuery: TxQuery) => Promise<T>): Promise<T> => {
+  const pool = getPostgresPool();
+  const client: PoolClient = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const txQuery: TxQuery = async (sql, params) => {
+      const result = await client.query(sql, params as any[]);
+      return { rows: result.rows, rowCount: result.rowCount ?? 0 };
+    };
+    const out = await fn(txQuery);
+    await client.query('COMMIT');
+    return out;
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch { /* ignore */ }
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
+const runSqliteTransaction = async <T>(fn: (txQuery: TxQuery) => Promise<T>): Promise<T> => {
+  const database = initSqliteDb();
+  database.exec('BEGIN');
+  let committed = false;
+  try {
+    const txQuery: TxQuery = async (sql, params) => {
+      const result = sqliteQuery(sql, params as any[] | undefined);
+      return { rows: getSqliteRows(result), rowCount: getSqliteRowCount(result) };
+    };
+    const out = await fn(txQuery);
+    database.exec('COMMIT');
+    committed = true;
+    return out;
+  } finally {
+    if (!committed) {
+      try { database.exec('ROLLBACK'); } catch { /* ignore */ }
+    }
+  }
+};
+
+export async function withTransaction<T>(fn: (txQuery: TxQuery) => Promise<T>): Promise<T> {
+  if (usePostgres) {
+    return runPostgresTransaction(fn);
+  }
+  return runSqliteTransaction(fn);
+}
