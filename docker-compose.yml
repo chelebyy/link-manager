@@ -52,6 +52,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_KEY: ${VITE_API_KEY:-}
     container_name: link-manager-frontend
     restart: unless-stopped
     environment:
