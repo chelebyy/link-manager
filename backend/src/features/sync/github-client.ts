@@ -71,12 +71,17 @@ async function withBackoff<T>(
 }
 
 export const githubClient = {
-  async getLatestCommit(owner: string, repo: string, etag?: string): Promise<{ data: CommitInfo | null; etag: string | undefined }> {
+  async getLatestCommit(
+    owner: string,
+    repo: string,
+    etag?: string,
+    client?: Octokit,
+  ): Promise<{ data: CommitInfo | null; etag: string | undefined }> {
     return withBackoff(async () => {
       const headers: Record<string, string> = {};
       if (etag) headers['If-None-Match'] = etag;
 
-      const response = await getOctokit().rest.repos.listCommits({
+      const response = await (client ?? getOctokit()).rest.repos.listCommits({
         owner,
         repo,
         per_page: 1,
@@ -88,7 +93,10 @@ export const githubClient = {
         rateLimitReset = Number.parseInt(response.headers['x-ratelimit-reset'] || '0', 10);
       }
 
-      if (!response.data || response.data.length === 0) return { data: null, etag: undefined };
+      const isEmpty = response.status === 304 || !response.data || response.data.length === 0;
+      if (isEmpty) {
+        return { data: null, etag: response.headers?.etag ?? etag ?? undefined };
+      }
 
       const commit = response.data[0]!;
       return {
