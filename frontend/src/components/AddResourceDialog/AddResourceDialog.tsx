@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
@@ -45,7 +45,8 @@ interface AddResourceDialogProps {
 
 export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes, initialResource = null }: AddResourceDialogProps) {
   const queryClient = useQueryClient();
-  const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
+  const defaultType = selectedType ?? (resourceTypes[0]?.id || 'website');
+  const [type, setType] = useState<string>(initialResource?.type ?? defaultType);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -58,6 +59,31 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     : type === 'website' && !selectedType && resourceTypes[0]?.id
       ? resourceTypes[0].id
       : type;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (initialResource) {
+      setType(initialResource.type);
+      setTitle(initialResource.title);
+      setUrl(initialResource.url ?? '');
+      setDescription(initialResource.description ?? '');
+      setCategoryId(initialResource.category_id ? initialResource.category_id.toString() : '');
+      setError('');
+      setLoading(false);
+      return;
+    }
+
+    setType(defaultType);
+    setTitle('');
+    setUrl('');
+    setDescription('');
+    setCategoryId('');
+    setError('');
+    setLoading(false);
+  }, [open, initialResource, defaultType]);
 
   const filteredCategories = sortCategoriesAlphabetically(categories.filter((category) => category.type === effectiveType));
   const typeResourcesQuery = useQuery({
@@ -173,15 +199,15 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         });
         onClose();
         return;
-      } else {
-          await createMutation.mutateAsync({
-            type: effectiveType,
-            title,
-            url: candidateUrl,
-            description: description || null,
-            category_id: categoryId ? parseInt(categoryId) : null,
-          });
       }
+
+      await createMutation.mutateAsync({
+        type: effectiveType,
+        title,
+        url: candidateUrl,
+        description: description || null,
+        category_id: categoryId ? parseInt(categoryId) : null,
+      });
 
       setTitle('');
       setUrl('');
