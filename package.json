@@ -13,11 +13,11 @@
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "knip": "knip"
+    "knip": "knip --workspace backend && npm --prefix frontend run knip"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
-    "concurrently": "^8.2.2",
+    "concurrently": "^10.0.3",
     "knip": "^6.15.0",
     "typescript": "^6.0.3"
   }

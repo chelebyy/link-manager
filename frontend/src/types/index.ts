@@ -9,8 +9,6 @@ export interface Category {
   updated_at: string;
 }
 
-export type ResourceType = string;
-
 export interface ResourceTypeDefinition {
   id: string;
   name: string;
@@ -38,7 +36,7 @@ export interface Resource {
   updated_at: string;
 }
 
-export interface ResourceSyncState {
+interface ResourceSyncState {
   resource_id: number;
   github_id: number | null;
   github_owner: string;
@@ -62,14 +60,6 @@ export interface ResourceSyncState {
 export interface ResourceWithSync extends Resource {
   sync_state?: ResourceSyncState;
   category?: Category;
-}
-
-export interface DashboardStats {
-  total_resources: number;
-  total_categories: number;
-  github_count: number;
-  favorites_count: number;
-  categories_with_count: (Category & { resource_count: number })[];
 }
 
 export interface ExportPayload {

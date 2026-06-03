@@ -45,7 +45,8 @@ interface AddResourceDialogProps {
 
 export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes, initialResource = null }: AddResourceDialogProps) {
   const queryClient = useQueryClient();
-  const [type, setType] = useState<string>(selectedType ?? (resourceTypes[0]?.id || 'website'));
+  const defaultType = selectedType ?? (resourceTypes[0]?.id || 'website');
+  const [type, setType] = useState<string>(initialResource?.type ?? defaultType);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -53,12 +54,42 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const isEditing = initialResource !== null;
+  const effectiveType = initialResource
+    ? type
+    : type === 'website' && !selectedType && resourceTypes[0]?.id
+      ? resourceTypes[0].id
+      : type;
 
-  const filteredCategories = sortCategoriesAlphabetically(categories.filter((category) => category.type === type));
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (initialResource) {
+      setType(initialResource.type);
+      setTitle(initialResource.title);
+      setUrl(initialResource.url ?? '');
+      setDescription(initialResource.description ?? '');
+      setCategoryId(initialResource.category_id ? initialResource.category_id.toString() : '');
+      setError('');
+      setLoading(false);
+      return;
+    }
+
+    setType(defaultType);
+    setTitle('');
+    setUrl('');
+    setDescription('');
+    setCategoryId('');
+    setError('');
+    setLoading(false);
+  }, [open, initialResource, defaultType]);
+
+  const filteredCategories = sortCategoriesAlphabetically(categories.filter((category) => category.type === effectiveType));
   const typeResourcesQuery = useQuery({
-    queryKey: queryKeys.resources({ categoryId: null, type, search: '' }),
-    queryFn: () => api.getResources({ type }),
-    enabled: open && type.length > 0,
+    queryKey: queryKeys.resources({ categoryId: null, type: effectiveType, search: '' }),
+    queryFn: () => api.getResources({ type: effectiveType }),
+    enabled: open && effectiveType.length > 0,
   });
   const isDuplicateCheckLoading = typeResourcesQuery.isFetching || typeResourcesQuery.isLoading;
 
@@ -133,28 +164,6 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
     setCategoryId('');
   };
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const defaultType = selectedType ?? resourceTypes[0]?.id ?? 'website';
-    if (initialResource) {
-      setType(initialResource.type);
-      setTitle(initialResource.title);
-      setUrl(initialResource.url ?? '');
-      setDescription(initialResource.description ?? '');
-      setCategoryId(initialResource.category_id ? String(initialResource.category_id) : '');
-    } else {
-      setType(defaultType);
-      setTitle('');
-      setUrl('');
-      setDescription('');
-      setCategoryId('');
-    }
-    setError('');
-  }, [open, selectedType, resourceTypes, initialResource]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -190,15 +199,15 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         });
         onClose();
         return;
-      } else {
-          await createMutation.mutateAsync({
-            type,
-            title,
-            url: candidateUrl,
-            description: description || null,
-            category_id: categoryId ? parseInt(categoryId) : null,
-          });
       }
+
+      await createMutation.mutateAsync({
+        type: effectiveType,
+        title,
+        url: candidateUrl,
+        description: description || null,
+        category_id: categoryId ? parseInt(categoryId) : null,
+      });
 
       setTitle('');
       setUrl('');
@@ -227,7 +236,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="resource-type">Tip</Label>
-            <Select value={type} onValueChange={handleTypeChange} disabled={isEditing}>
+            <Select value={effectiveType} onValueChange={handleTypeChange} disabled={isEditing}>
               <SelectTrigger id="resource-type">
                 <SelectValue />
               </SelectTrigger>
@@ -271,7 +280,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
               id="resource-url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder={type === 'github' ? 'https://github.com/owner/repo' : 'https://example.com'}
+              placeholder={effectiveType === 'github' ? 'https://github.com/owner/repo' : 'https://example.com'}
               type="url"
               autoComplete="url"
               disabled={isDuplicateCheckLoading}

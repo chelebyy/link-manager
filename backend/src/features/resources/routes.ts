@@ -31,7 +31,7 @@ const resourceCreateSchema = z
     title: z.string().min(1),
     url: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 
@@ -41,7 +41,7 @@ const resourceUpdateSchema = z
     title: z.string().optional(),
     url: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 

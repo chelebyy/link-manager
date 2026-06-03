@@ -39,20 +39,10 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   const queryClient = useQueryClient();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [managedType, setManagedType] = useState<string>(selectedType ?? 'website');
+  const [managedType, setManagedType] = useState<string | null>(selectedType);
   const [loading, setLoading] = useState(false);
   const [colorInput, setColorInput] = useState(presetColors[0]);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    if (selectedType) {
-      setManagedType(selectedType);
-    }
-  }, [open, selectedType]);
 
   const resourceTypesQuery = useQuery({
     queryKey: queryKeys.resourceTypes(),
@@ -60,20 +50,15 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
     enabled: open,
   });
 
-  const categoriesQuery = useQuery({
-    queryKey: queryKeys.categories(managedType),
-    queryFn: () => api.getCategories(managedType),
-    enabled: open && !!managedType,
-  });
-
   const resourceTypes = useMemo(() => resourceTypesQuery.data ?? [], [resourceTypesQuery.data]);
-  const categories = sortCategoriesAlphabetically(categoriesQuery.data ?? []);
+  const effectiveManagedType = managedType ?? selectedType ?? resourceTypes[0]?.id ?? 'website';
 
-  useEffect(() => {
-    if (!selectedType && resourceTypes.length > 0) {
-      setManagedType(resourceTypes[0].id);
-    }
-  }, [selectedType, resourceTypes]);
+  const categoriesQuery = useQuery({
+    queryKey: queryKeys.categories(effectiveManagedType),
+    queryFn: () => api.getCategories(effectiveManagedType),
+    enabled: open && !!effectiveManagedType,
+  });
+  const categories = sortCategoriesAlphabetically(categoriesQuery.data ?? []);
 
   useEffect(() => {
     const error = resourceTypesQuery.error || categoriesQuery.error;
@@ -85,7 +70,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   const createMutation = useMutation({
     mutationFn: (payload: { name: string; type: string; color: string; icon: string }) => api.createCategory(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(effectiveManagedType) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
       onNotify?.('success', 'Kategori eklendi');
     },
@@ -99,7 +84,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: { name: string; color: string; icon: string } }) => api.updateCategory(id, payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(effectiveManagedType) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
       onNotify?.('success', 'Kategori güncellendi');
     },
@@ -113,7 +98,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.deleteCategory(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(managedType) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.categories(effectiveManagedType) });
       await queryClient.invalidateQueries({ queryKey: ['resources'] });
       onNotify?.('success', 'Kategori silindi');
     },
@@ -147,7 +132,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
           name: newCategoryName,
           color: colorInput,
           icon: 'Folder',
-          type: managedType,
+          type: effectiveManagedType,
         });
       }
 
@@ -206,7 +191,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category-type">Kart</Label>
-            <Select value={managedType} onValueChange={setManagedType}>
+            <Select value={effectiveManagedType} onValueChange={setManagedType}>
               <SelectTrigger id="category-type">
                 <SelectValue />
               </SelectTrigger>
@@ -273,7 +258,7 @@ export function CategoryManager({ open, selectedType, onNotify, onClose }: Categ
           </div>
 
           <div className="border-t pt-4">
-            <Label>{getTypeName(managedType)} kategorileri</Label>
+            <Label>{getTypeName(effectiveManagedType)} kategorileri</Label>
             <div className="space-y-1 mt-2 max-h-[300px] overflow-y-auto">
               {categories.map((category) => (
                 <div
