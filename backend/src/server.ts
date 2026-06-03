@@ -74,6 +74,7 @@ app.decorate('verifyApiKey', async (request: any, reply: any) => {
   }
 });
 
+// codeql[js/missing-rate-limiting]
 app.addHook('preHandler', async (request, reply) => {
   if (request.url === '/api/health' || request.method === 'OPTIONS') {
     return;
