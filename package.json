@@ -13,7 +13,7 @@
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "knip": "knip"
+    "knip": "knip --workspace backend && npm --prefix frontend run knip"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",

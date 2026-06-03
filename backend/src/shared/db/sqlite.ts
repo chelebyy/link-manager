@@ -303,4 +303,3 @@ export const closeSqliteDb = () => {
   db = null;
 };
 
-export { db as sqliteDb };

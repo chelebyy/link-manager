@@ -299,7 +299,7 @@ export const query = db.query.bind(db);
 export const initDb = db.init.bind(db);
 export const closeDb = db.close.bind(db);
 
-export type TxQueryResult = { rows: any[]; rowCount: number };
+type TxQueryResult = { rows: any[]; rowCount: number };
 export type TxQuery = (sql: string, params?: unknown[]) => Promise<TxQueryResult>;
 
 const runPostgresTransaction = async <T>(fn: (txQuery: TxQuery) => Promise<T>): Promise<T> => {

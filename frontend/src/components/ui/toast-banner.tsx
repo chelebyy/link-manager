@@ -1,7 +1,7 @@
 import { X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from './button';
 
-export type ToastKind = 'success' | 'error';
+type ToastKind = 'success' | 'error';
 
 export interface ToastItem {
   id: number;
