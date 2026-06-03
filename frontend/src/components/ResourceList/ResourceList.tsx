@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy, Download, Square, CheckSquare, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -27,6 +27,8 @@ import {
   type ResourceFilterMode,
 } from '../../lib/resource-view';
 
+const EMPTY_SELECTED_IDS = new Set<number>();
+
 interface ResourceListProps {
   categoryId: number | null;
   type: string | null;
@@ -46,19 +48,14 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
   const [editingResource, setEditingResource] = useState<ResourceWithSync | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<number>>(new Set());
+  const lastVisibleResourcesSignatureRef = useRef<string | null>(null);
 
   const isSelectionMode = externalIsSelectionMode ?? false;
-  const selectedIds = internalSelectedIds;
+  const selectedIds = isSelectionMode ? internalSelectedIds : EMPTY_SELECTED_IDS;
 
   useEffect(() => {
     onSelectionChange?.(selectedIds);
   }, [onSelectionChange, selectedIds]);
-
-  useEffect(() => {
-    if (externalIsSelectionMode === false && selectedIds.size > 0) {
-      setInternalSelectedIds(new Set());
-    }
-  }, [externalIsSelectionMode, selectedIds]);
 
   const toggleSelection = (id: number) => {
     setInternalSelectedIds((prev) => {
@@ -119,17 +116,30 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     placeholderData: keepPreviousData,
   });
 
-  const resources = resourcesQuery.data ?? [];
-  const sortedResources = useMemo(() => sortResourcesForView(resources), [resources]);
-  const visibleResources = useMemo(() => filterResourcesByMode(sortedResources, resourceFilterMode), [sortedResources, resourceFilterMode]);
+  const visibleResources = filterResourcesByMode(sortResourcesForView(resourcesQuery.data ?? []), resourceFilterMode);
+  const visibleResourcesSignature = JSON.stringify(
+    visibleResources.map((resource) => ({
+      id: resource.id,
+      title: resource.title,
+      url: resource.url,
+      description: resource.description,
+      isFavorite: resource.is_favorite,
+      categoryId: resource.category_id,
+      categoryName: resource.category?.name ?? null,
+      categoryColor: resource.category?.color ?? null,
+    }))
+  );
   const canReorderResources = resourceFilterMode === 'all';
   const loading = resourcesQuery.isLoading;
 
-  // F4: depend on the memoized array reference (changes when sort/filter mutates the order)
-  // so reordering with the same length still notifies the parent.
   useEffect(() => {
+    if (lastVisibleResourcesSignatureRef.current === visibleResourcesSignature) {
+      return;
+    }
+
+    lastVisibleResourcesSignatureRef.current = visibleResourcesSignature;
     onVisibleResourcesChange?.(visibleResources);
-  }, [onVisibleResourcesChange, visibleResources]);
+  }, [onVisibleResourcesChange, visibleResources, visibleResourcesSignature]);
 
   useEffect(() => {
     if (resourcesQuery.error instanceof ApiError) {
@@ -483,23 +493,26 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
         </AlertDialogContent>
       </AlertDialog>
 
-      <AddResourceDialog
-        open={editingResource !== null}
-        onClose={() => setEditingResource(null)}
-        onNotify={onNotify}
-        onSuccess={() => setEditingResource(null)}
-        categories={categoriesQuery.data ?? []}
-        selectedType={type}
-        resourceTypes={resourceTypesQuery.data ?? []}
-        initialResource={editingResource ? {
-          id: editingResource.id,
-          type: editingResource.type,
-          title: editingResource.title,
-          url: editingResource.url,
-          description: editingResource.description,
-          category_id: editingResource.category_id,
-        } : null}
-      />
+      {editingResource ? (
+        <AddResourceDialog
+          key={editingResource.id}
+          open
+          onClose={() => setEditingResource(null)}
+          onNotify={onNotify}
+          onSuccess={() => setEditingResource(null)}
+          categories={categoriesQuery.data ?? []}
+          selectedType={type}
+          resourceTypes={resourceTypesQuery.data ?? []}
+          initialResource={{
+            id: editingResource.id,
+            type: editingResource.type,
+            title: editingResource.title,
+            url: editingResource.url,
+            description: editingResource.description,
+            category_id: editingResource.category_id,
+          }}
+        />
+      ) : null}
     </>
   );
 }

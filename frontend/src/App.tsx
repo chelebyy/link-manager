@@ -247,12 +247,14 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    const error = categoriesQuery.error || resourceTypesQuery.error || globalResultsQuery.error;
-    if (error instanceof ApiError) {
-      showToast('error', 'Veri yüklenemedi', error.message);
-    }
-  }, [categoriesQuery.error, resourceTypesQuery.error, globalResultsQuery.error]);
+  const queryLoadError =
+    categoriesQuery.error instanceof ApiError
+      ? categoriesQuery.error
+      : resourceTypesQuery.error instanceof ApiError
+        ? resourceTypesQuery.error
+        : globalResultsQuery.error instanceof ApiError
+          ? globalResultsQuery.error
+          : null;
 
   const selectedTypeConfig = selectedType
     ? resourceTypes.find(t => t.id === selectedType)
@@ -407,6 +409,13 @@ function App() {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-6 pb-24 sm:pb-6">
+        {queryLoadError ? (
+          <div className="mb-6 rounded-sm border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <strong className="mr-2">Veri yüklenemedi:</strong>
+            {queryLoadError.message}
+          </div>
+        ) : null}
+
         {isLoading ? (
           <div className="space-y-8">
             <div className="h-24 rounded-lg bg-muted animate-pulse" />
@@ -457,6 +466,7 @@ function App() {
           >
             <Suspense fallback={<LazyPanelFallback />}>
               <ResourceList
+                key={isSelectionMode ? 'selection-mode' : 'browse-mode'}
                 categoryId={selectedCategory}
                 type={selectedType}
                 searchQuery={searchQuery}
