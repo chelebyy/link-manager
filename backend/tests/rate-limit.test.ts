@@ -52,7 +52,14 @@ const buildApp = async (apiKey: string | undefined) => {
     timestamp: new Date().toISOString(),
   }));
 
-  app.get('/api/ping', async () => ({ pong: true }));
+  app.get('/api/ping', {
+    config: {
+      rateLimit: {
+        max: 60,
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async () => ({ pong: true }));
 
   app.setErrorHandler((error: any, request, reply) => {
     reply.status(error.statusCode || 500).send({

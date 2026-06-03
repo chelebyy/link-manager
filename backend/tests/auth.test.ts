@@ -6,6 +6,7 @@ import os from 'node:os';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import auth from '@fastify/auth';
+import rateLimit from '@fastify/rate-limit';
 
 const buildApp = async () => {
   const configModule = await import('../src/shared/config/index.js');
@@ -14,6 +15,13 @@ const buildApp = async () => {
   const app = Fastify({ logger: false });
   await app.register(cors, { origin: true });
   await app.register(auth);
+  await app.register(rateLimit, {
+    global: true,
+    max: 60,
+    timeWindow: '15 minutes',
+    keyGenerator: (request) => request.ip,
+    skipOnError: true,
+  });
 
   app.decorate('verifyApiKey', async (request: any, reply: any) => {
     if (!apiKey) {
@@ -118,6 +126,13 @@ test('API key auth: returns 500 when server has no API_KEY configured', async (t
 
   const app = Fastify({ logger: false });
   await app.register(auth);
+  await app.register(rateLimit, {
+    global: true,
+    max: 60,
+    timeWindow: '15 minutes',
+    keyGenerator: (request) => request.ip,
+    skipOnError: true,
+  });
   app.decorate('verifyApiKey', async (request: any, reply: any) => {
     if (!configModule.apiKey) {
       reply.code(500).send({ error: 'API key not configured on server' });

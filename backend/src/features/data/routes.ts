@@ -175,7 +175,14 @@ const upsertResource = async (txQuery: TxQuery, item: Record<string, unknown>) =
 };
 
 export async function dataRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
-  app.get('/export', async () => {
+  app.get('/export', {
+    config: {
+      rateLimit: {
+        max: 60,
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async () => {
     const [resourceTypes, categories, resources] = await Promise.all([
       query('SELECT * FROM resource_types ORDER BY sort_order ASC, name ASC', []),
       query('SELECT * FROM categories ORDER BY sort_order ASC, name ASC', []),
@@ -190,7 +197,14 @@ export async function dataRoutes(app: FastifyInstance, options: FastifyPluginOpt
     };
   });
 
-  app.post('/import', async (request, reply) => {
+  app.post('/import', {
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async (request, reply) => {
     const body = request.body as ImportPayload;
 
     if (!body || (!Array.isArray(body.resourceTypes) && !Array.isArray(body.categories) && !Array.isArray(body.resources))) {

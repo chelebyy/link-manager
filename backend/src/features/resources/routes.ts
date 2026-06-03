@@ -65,6 +65,15 @@ type ResourceParams = {
   id: string;
 };
 
+const securedRouteRateLimit = {
+  config: {
+    rateLimit: {
+      max: 60,
+      timeWindow: '15 minutes',
+    },
+  },
+} as const;
+
 function validate<T>(
   schema: ZodSchema<T>,
   source: 'query' | 'body' | 'params' = 'body',
@@ -83,7 +92,10 @@ function validate<T>(
 }
 
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
-  app.get('/', { preHandler: validate(resourcesListQuerySchema, 'query') }, async (request, reply) => {
+  app.get('/', {
+    ...securedRouteRateLimit,
+    preHandler: validate(resourcesListQuerySchema, 'query'),
+  }, async (request, reply) => {
     const { category, type, favorite, search, sort, order } = (request as FastifyRequest & { validated: { query: ResourcesListQuery } }).validated.query;
 
     let sql = `
@@ -123,7 +135,10 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     return result.rows;
   });
 
-  app.post('/', { preHandler: validate(resourceCreateSchema, 'body') }, async (request, reply) => {
+  app.post('/', {
+    ...securedRouteRateLimit,
+    preHandler: validate(resourceCreateSchema, 'body'),
+  }, async (request, reply) => {
     const { category_id, type, title, url, description, metadata = {} } = (request as FastifyRequest & { validated: { body: ResourceCreateBody } }).validated.body;
 
     const normalizedUrl = normalizeOptionalText(url ?? null);
@@ -156,7 +171,10 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     }
   });
 
-  app.patch('/:id', { preHandler: validate(resourceUpdateSchema, 'body') }, async (request, reply) => {
+  app.patch('/:id', {
+    ...securedRouteRateLimit,
+    preHandler: validate(resourceUpdateSchema, 'body'),
+  }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
     const { category_id, title, url, description, metadata } = (request as FastifyRequest & { validated: { body: ResourceUpdateBody } }).validated.body;
 
@@ -233,7 +251,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     }
   });
 
-  app.delete('/:id', async (request, reply) => {
+  app.delete('/:id', securedRouteRateLimit, async (request, reply) => {
     const { id } = request.params as ResourceParams;
 
     if (!/^\d+$/.test(id)) {
@@ -252,7 +270,10 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     return null;
   });
 
-  app.patch('/:id/favorite', { preHandler: validate(resourceFavoriteSchema, 'body') }, async (request, reply) => {
+  app.patch('/:id/favorite', {
+    ...securedRouteRateLimit,
+    preHandler: validate(resourceFavoriteSchema, 'body'),
+  }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
     const { is_favorite } = (request as FastifyRequest & { validated: { body: { is_favorite: boolean } } }).validated.body;
 
@@ -279,7 +300,10 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     return result.rows[0] || { id: resourceId, is_favorite: favValue };
   });
 
-  app.patch('/reorder', { preHandler: validate(reorderSchema, 'body') }, async (request, reply) => {
+  app.patch('/reorder', {
+    ...securedRouteRateLimit,
+    preHandler: validate(reorderSchema, 'body'),
+  }, async (request, reply) => {
     const { ids } = (request as FastifyRequest & { validated: { body: z.infer<typeof reorderSchema> } }).validated.body;
 
     if (new Set(ids).size !== ids.length) {
