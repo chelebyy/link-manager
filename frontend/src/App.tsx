@@ -1,15 +1,24 @@
-import { lazy, Suspense, useMemo, useRef, useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CategoryGrid } from './components/CategoryGrid/CategoryGrid';
-import { TypeCategories } from './components/TypeCategories/TypeCategories';
-import { Button } from './components/ui/button';
-import { Plus, Settings, Github, LayoutGrid, Download, Upload, FileText, Menu } from 'lucide-react';
-import { MobileMenu } from './components/MobileMenu';
-import { GlobalSearchPanel } from './components/GlobalSearchPanel';
-import { ToastBanner, type ToastItem } from './components/ui/toast-banner';
-import type { ExportPayload, ResourceWithSync } from './types';
-import { api, ApiError } from './lib/api';
-import { queryKeys } from './lib/query-keys';
+import { lazy, Suspense, useMemo, useRef, useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CategoryGrid } from "./components/CategoryGrid/CategoryGrid";
+import { TypeCategories } from "./components/TypeCategories/TypeCategories";
+import { Button } from "./components/ui/button";
+import {
+  Plus,
+  Settings,
+  LayoutGrid,
+  Download,
+  Upload,
+  FileText,
+  Menu,
+} from "lucide-react";
+import { MobileMenu } from "./components/MobileMenu";
+import { GlobalSearchPanel } from "./components/GlobalSearchPanel";
+import { ToastBanner, type ToastItem } from "./components/ui/toast-banner";
+import type { ExportPayload, ResourceWithSync } from "./types";
+import { api, ApiError } from "./lib/api";
+import { getIcon } from "./lib/icon-map";
+import { queryKeys } from "./lib/query-keys";
 import {
   buildExportFilename,
   buildFullExportMarkdown,
@@ -18,20 +27,29 @@ import {
   downloadMarkdown,
   sortCategoriesAlphabetically,
   type ResourceFilterMode,
-} from './lib/resource-view';
+} from "./lib/resource-view";
 
 const AddResourceDialog = lazy(() =>
-  import('./components/AddResourceDialog/AddResourceDialog').then((module) => ({ default: module.AddResourceDialog }))
+  import("./components/AddResourceDialog/AddResourceDialog").then((module) => ({
+    default: module.AddResourceDialog,
+  })),
 );
 const CategoryManager = lazy(() =>
-  import('./components/CategoryManager/CategoryManager').then((module) => ({ default: module.CategoryManager }))
+  import("./components/CategoryManager/CategoryManager").then((module) => ({
+    default: module.CategoryManager,
+  })),
 );
 const ResourceList = lazy(() =>
-  import('./components/ResourceList/ResourceList').then((module) => ({ default: module.ResourceList }))
+  import("./components/ResourceList/ResourceList").then((module) => ({
+    default: module.ResourceList,
+  })),
 );
 const ResourceTypeManager = lazy(() =>
-  import('./components/ResourceTypeManager').then((module) => ({ default: module.ResourceTypeManager }))
+  import("./components/ResourceTypeManager").then((module) => ({
+    default: module.ResourceTypeManager,
+  })),
 );
+const GithubIcon = getIcon("Github");
 
 const LazyPanelFallback = () => (
   <div className="rounded-sm border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -43,7 +61,10 @@ function useDebouncedValue(value: string, delayMs: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => setDebouncedValue(value), delayMs);
+    const timeoutId = window.setTimeout(
+      () => setDebouncedValue(value),
+      delayMs,
+    );
     return () => window.clearTimeout(timeoutId);
   }, [delayMs, value]);
 
@@ -57,13 +78,19 @@ function App() {
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showResourceTypeManager, setShowResourceTypeManager] = useState(false);
   const [showAddResource, setShowAddResource] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
-  const [resourceFilterMode, setResourceFilterMode] = useState<ResourceFilterMode>('all');
-  const [visibleResources, setVisibleResources] = useState<ResourceWithSync[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [resourceFilterMode, setResourceFilterMode] =
+    useState<ResourceFilterMode>("all");
+  const [visibleResources, setVisibleResources] = useState<ResourceWithSync[]>(
+    [],
+  );
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const importRef = useRef<HTMLInputElement | null>(null);
-  const debouncedGlobalSearchQuery = useDebouncedValue(globalSearchQuery.trim(), 250);
+  const debouncedGlobalSearchQuery = useDebouncedValue(
+    globalSearchQuery.trim(),
+    250,
+  );
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
@@ -83,13 +110,20 @@ function App() {
     enabled: debouncedGlobalSearchQuery.length > 0,
   });
 
-  const categories = useMemo(() => sortCategoriesAlphabetically(categoriesQuery.data ?? []), [categoriesQuery.data]);
+  const categories = useMemo(
+    () => sortCategoriesAlphabetically(categoriesQuery.data ?? []),
+    [categoriesQuery.data],
+  );
   const resourceTypes = resourceTypesQuery.data ?? [];
   const globalResults = globalResultsQuery.data ?? [];
 
   const isLoading = categoriesQuery.isLoading || resourceTypesQuery.isLoading;
 
-  const showToast = (kind: ToastItem['kind'], title: string, description?: string) => {
+  const showToast = (
+    kind: ToastItem["kind"],
+    title: string,
+    description?: string,
+  ) => {
     const id = Date.now() + Math.random();
     setToasts((current) => [...current, { id, kind, title, description }]);
     window.setTimeout(() => {
@@ -118,16 +152,16 @@ function App() {
   const handleTypeSelect = (type: string | null) => {
     setSelectedType(type);
     setSelectedCategory(null);
-    setSearchQuery('');
-    setGlobalSearchQuery('');
-    setResourceFilterMode('all');
+    setSearchQuery("");
+    setGlobalSearchQuery("");
+    setResourceFilterMode("all");
   };
 
   const handleCategoryOpenFromSearch = (type: string, categoryId: number) => {
     setSelectedType(type);
     setSelectedCategory(categoryId);
-    setSearchQuery('');
-    setGlobalSearchQuery('');
+    setSearchQuery("");
+    setGlobalSearchQuery("");
   };
 
   const handleResourceAdded = () => {
@@ -137,8 +171,8 @@ function App() {
   const handleResourceSuccess = (type: string) => {
     setSelectedType(type);
     setSelectedCategory(null);
-    setSearchQuery('');
-    setResourceFilterMode('all');
+    setSearchQuery("");
+    setResourceFilterMode("all");
   };
 
   const handleExport = async () => {
@@ -146,11 +180,11 @@ function App() {
       const data = await api.exportData();
       downloadJson(
         `link-manager-export-${new Date().toISOString().slice(0, 10)}.json`,
-        data
+        data,
       );
-      showToast('success', 'Export tamamlandı');
+      showToast("success", "Export tamamlandı");
     } catch {
-      showToast('error', 'Export başarısız', 'Beklenmeyen bir hata oluştu.');
+      showToast("error", "Export başarısız", "Beklenmeyen bir hata oluştu.");
     }
   };
 
@@ -164,39 +198,53 @@ function App() {
         resources: data.resources,
       });
 
-      downloadMarkdown(buildExportFilename('link-manager-export-all'), markdown);
-      showToast('success', 'Markdown export hazır');
+      downloadMarkdown(
+        buildExportFilename("link-manager-export-all"),
+        markdown,
+      );
+      showToast("success", "Markdown export hazır");
     } catch {
-      showToast('error', 'Markdown export başarısız', 'Beklenmeyen bir hata oluştu.');
+      showToast(
+        "error",
+        "Markdown export başarısız",
+        "Beklenmeyen bir hata oluştu.",
+      );
     }
   };
 
   const handleCurrentViewMarkdownExport = () => {
     if (!selectedTypeConfig) {
-      showToast('error', 'Görünüm export için önce bir kart seçin');
+      showToast("error", "Görünüm export için önce bir kart seçin");
       return;
     }
 
     // Eğer seçim modundaysa sadece seçili kaynakları indir
     if (isSelectionMode && selectedIds.size > 0) {
-      const selectedResources = visibleResources.filter(r => selectedIds.has(r.id));
+      const selectedResources = visibleResources.filter((r) =>
+        selectedIds.has(r.id),
+      );
       const markdown = buildSelectedViewMarkdown({
         typeLabel: selectedTypeConfig.name,
         selectedCategoryName: selectedCategory
-          ? categories.find((category) => category.id === selectedCategory)?.name ?? null
+          ? (categories.find((category) => category.id === selectedCategory)
+              ?.name ?? null)
           : null,
         searchQuery,
         filterMode: resourceFilterMode,
         resources: selectedResources,
       });
 
-      downloadMarkdown(buildExportFilename(`link-manager-${selectedTypeConfig.id}-secili`), markdown);
-      showToast('success', `${selectedIds.size} kaynak indirildi`);
+      downloadMarkdown(
+        buildExportFilename(`link-manager-${selectedTypeConfig.id}-secili`),
+        markdown,
+      );
+      showToast("success", `${selectedIds.size} kaynak indirildi`);
       return;
     }
 
     const selectedCategoryName = selectedCategory
-      ? categories.find((category) => category.id === selectedCategory)?.name ?? null
+      ? (categories.find((category) => category.id === selectedCategory)
+          ?.name ?? null)
       : null;
 
     const markdown = buildSelectedViewMarkdown({
@@ -207,8 +255,11 @@ function App() {
       resources: visibleResources,
     });
 
-    downloadMarkdown(buildExportFilename(`link-manager-${selectedTypeConfig.id}-view`), markdown);
-    showToast('success', 'Görünüm Markdown indirildi');
+    downloadMarkdown(
+      buildExportFilename(`link-manager-${selectedTypeConfig.id}-view`),
+      markdown,
+    );
+    showToast("success", "Görünüm Markdown indirildi");
   };
 
   const importMutation = useMutation({
@@ -217,13 +268,14 @@ function App() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
-        queryClient.invalidateQueries({ queryKey: ['resources'] }),
+        queryClient.invalidateQueries({ queryKey: ["resources"] }),
       ]);
-      showToast('success', 'Import tamamlandı');
+      showToast("success", "Import tamamlandı");
     },
     onError: (error) => {
-      const message = error instanceof ApiError ? error.message : 'Dosya içeriği işlenemedi.';
-      showToast('error', message);
+      const message =
+        error instanceof ApiError ? error.message : "Dosya içeriği işlenemedi.";
+      showToast("error", message);
     },
   });
 
@@ -241,9 +293,9 @@ function App() {
         return;
       }
     } catch {
-      showToast('error', 'Import başarısız', 'Geçerli bir JSON dosyası seçin.');
+      showToast("error", "Import başarısız", "Geçerli bir JSON dosyası seçin.");
     } finally {
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
@@ -257,7 +309,7 @@ function App() {
           : null;
 
   const selectedTypeConfig = selectedType
-    ? resourceTypes.find(t => t.id === selectedType)
+    ? resourceTypes.find((t) => t.id === selectedType)
     : null;
 
   const selectedTypeCategories = selectedType
@@ -270,13 +322,13 @@ function App() {
       <header className="sticky top-0 z-50 w-full border-b border-[#d1d5db] bg-background pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-3 sm:px-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0 shrink-0">
-            <Github className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <GithubIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
             <h1
               className="font-mono text-lg sm:text-xl font-semibold cursor-pointer hover:text-primary transition-colors truncate"
               onClick={() => {
                 setSelectedType(null);
                 setSelectedCategory(null);
-                setSearchQuery('');
+                setSearchQuery("");
               }}
             >
               Link Manager
@@ -362,42 +414,42 @@ function App() {
                 trigger={<Menu className="h-5 w-5" />}
                 items={[
                   {
-                    id: 'export',
-                    label: 'Export',
+                    id: "export",
+                    label: "Export",
                     icon: <Download className="h-4 w-4" />,
                     onClick: handleExport,
                   },
                   {
-                    id: 'md-all',
-                    label: 'MD Tümü',
+                    id: "md-all",
+                    label: "MD Tümü",
                     icon: <FileText className="h-4 w-4" />,
                     onClick: handleMarkdownExport,
                   },
                   ...(selectedType
                     ? [
                         {
-                          id: 'md-view',
-                          label: 'MD Görünüm',
+                          id: "md-view",
+                          label: "MD Görünüm",
                           icon: <Download className="h-4 w-4" />,
                           onClick: handleCurrentViewMarkdownExport,
                         },
                       ]
                     : []),
                   {
-                    id: 'import',
-                    label: 'Import',
+                    id: "import",
+                    label: "Import",
                     icon: <Upload className="h-4 w-4" />,
                     onClick: () => importRef.current?.click(),
                   },
                   {
-                    id: 'cards',
-                    label: 'Kartlar',
+                    id: "cards",
+                    label: "Kartlar",
                     icon: <LayoutGrid className="h-4 w-4" />,
                     onClick: () => setShowResourceTypeManager(true),
                   },
                   {
-                    id: 'categories',
-                    label: 'Kategoriler',
+                    id: "categories",
+                    label: "Kategoriler",
                     icon: <Settings className="h-4 w-4" />,
                     onClick: () => setShowCategoryManager(true),
                   },
@@ -421,7 +473,10 @@ function App() {
             <div className="h-24 rounded-lg bg-muted animate-pulse" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={`skeleton-${i}`} className="h-32 rounded-lg bg-muted animate-pulse" />
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-32 rounded-lg bg-muted animate-pulse"
+                />
               ))}
             </div>
           </div>
@@ -438,14 +493,26 @@ function App() {
               onOpenCategory={handleCategoryOpenFromSearch}
             />
             <CategoryGrid
-              resourceTypes={globalSearchQuery.trim() ? resourceTypes.filter((type) => [type.name, type.description ?? '', type.id].some((value) => value.toString().toLowerCase().includes(globalSearchQuery.trim().toLowerCase()))) : resourceTypes}
+              resourceTypes={
+                globalSearchQuery.trim()
+                  ? resourceTypes.filter((type) =>
+                      [type.name, type.description ?? "", type.id].some(
+                        (value) =>
+                          value
+                            .toString()
+                            .toLowerCase()
+                            .includes(globalSearchQuery.trim().toLowerCase()),
+                      ),
+                    )
+                  : resourceTypes
+              }
               onSelectType={handleTypeSelect}
             />
           </div>
         ) : (
           <TypeCategories
             typeLabel={selectedTypeConfig?.name || selectedType}
-            typeColor={selectedTypeConfig?.color || '#6366f1'}
+            typeColor={selectedTypeConfig?.color || "#6366f1"}
             categories={selectedTypeCategories}
             selectedCategory={selectedCategory}
             searchQuery={searchQuery}
@@ -456,8 +523,8 @@ function App() {
             onBack={() => {
               setSelectedType(null);
               setSelectedCategory(null);
-              setSearchQuery('');
-              setResourceFilterMode('all');
+              setSearchQuery("");
+              setResourceFilterMode("all");
               setIsSelectionMode(false);
               setSelectedIds(new Set());
             }}
@@ -466,7 +533,7 @@ function App() {
           >
             <Suspense fallback={<LazyPanelFallback />}>
               <ResourceList
-                key={isSelectionMode ? 'selection-mode' : 'browse-mode'}
+                key={isSelectionMode ? "selection-mode" : "browse-mode"}
                 categoryId={selectedCategory}
                 type={selectedType}
                 searchQuery={searchQuery}
@@ -520,7 +587,7 @@ function App() {
           />
         </Suspense>
       )}
-      
+
       <input
         ref={importRef}
         type="file"

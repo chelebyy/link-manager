@@ -1,3 +1,4 @@
+import * as lucideIcons from "lucide-react";
 import {
   Bell,
   Book,
@@ -15,7 +16,6 @@ import {
   Filter,
   Flag,
   Folder,
-  Github,
   Globe,
   Heart,
   Home,
@@ -39,8 +39,20 @@ import {
   Video,
   Wrench,
   Zap,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+function isLucideIcon(candidate: unknown): candidate is LucideIcon {
+  return typeof candidate === "function";
+}
+
+function resolveLucideIcon(name: string): LucideIcon | undefined {
+  const candidate = Reflect.get(lucideIcons, name);
+  return isLucideIcon(candidate) ? candidate : undefined;
+}
+
+const githubIcon =
+  resolveLucideIcon("Github") ?? resolveLucideIcon("GitHub") ?? Folder;
 
 export const iconMap = {
   Bell,
@@ -59,7 +71,7 @@ export const iconMap = {
   Filter,
   Flag,
   Folder,
-  Github,
+  Github: githubIcon,
   Globe,
   Heart,
   Home,
