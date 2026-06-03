@@ -140,6 +140,7 @@ test('API key auth: returns 500 when server has no API_KEY configured', async (t
       return reply;
     }
   });
+
   // codeql[js/missing-rate-limiting]
   app.addHook('preHandler', async (request, reply) => {
     if (request.url === '/api/health' || request.method === 'OPTIONS') return;

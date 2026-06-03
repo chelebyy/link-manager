@@ -4,6 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import Fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 
 test('resources route DELETE returns 204 for existing, 404 for missing, 400 for invalid id', async (t) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'link-manager-delete-'));
@@ -16,6 +17,13 @@ test('resources route DELETE returns 204 for existing, 404 for missing, 400 for 
   const { resourcesRoutes } = await import('../src/features/resources/routes.js');
 
   const app = Fastify({ logger: false });
+  await app.register(rateLimit, {
+    global: true,
+    max: 60,
+    timeWindow: '15 minutes',
+    keyGenerator: (request) => request.ip,
+    skipOnError: true,
+  });
   await app.register(resourcesRoutes, { prefix: '/api/resources' });
 
   t.after(async () => {

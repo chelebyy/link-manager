@@ -94,7 +94,7 @@ function validate<T>(
 export async function resourcesRoutes(app: FastifyInstance, options: FastifyPluginOptions) {
   app.get('/', {
     ...securedRouteRateLimit,
-    preHandler: validate(resourcesListQuerySchema, 'query'),
+    preHandler: [app.rateLimit(), validate(resourcesListQuerySchema, 'query')],
   }, async (request, reply) => {
     const { category, type, favorite, search, sort, order } = (request as FastifyRequest & { validated: { query: ResourcesListQuery } }).validated.query;
 
@@ -137,7 +137,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
 
   app.post('/', {
     ...securedRouteRateLimit,
-    preHandler: validate(resourceCreateSchema, 'body'),
+    preHandler: [app.rateLimit(), validate(resourceCreateSchema, 'body')],
   }, async (request, reply) => {
     const { category_id, type, title, url, description, metadata = {} } = (request as FastifyRequest & { validated: { body: ResourceCreateBody } }).validated.body;
 
@@ -173,7 +173,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
 
   app.patch('/:id', {
     ...securedRouteRateLimit,
-    preHandler: validate(resourceUpdateSchema, 'body'),
+    preHandler: [app.rateLimit(), validate(resourceUpdateSchema, 'body')],
   }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
     const { category_id, title, url, description, metadata } = (request as FastifyRequest & { validated: { body: ResourceUpdateBody } }).validated.body;
@@ -272,7 +272,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
 
   app.patch('/:id/favorite', {
     ...securedRouteRateLimit,
-    preHandler: validate(resourceFavoriteSchema, 'body'),
+    preHandler: [app.rateLimit(), validate(resourceFavoriteSchema, 'body')],
   }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
     const { is_favorite } = (request as FastifyRequest & { validated: { body: { is_favorite: boolean } } }).validated.body;
@@ -302,7 +302,7 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
 
   app.patch('/reorder', {
     ...securedRouteRateLimit,
-    preHandler: validate(reorderSchema, 'body'),
+    preHandler: [app.rateLimit(), validate(reorderSchema, 'body')],
   }, async (request, reply) => {
     const { ids } = (request as FastifyRequest & { validated: { body: z.infer<typeof reorderSchema> } }).validated.body;
 

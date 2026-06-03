@@ -4,6 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import Fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 
 test('zod validation enforces strict schemas on resources + sync routes', async (t) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'link-manager-zod-'));
@@ -17,6 +18,13 @@ test('zod validation enforces strict schemas on resources + sync routes', async 
   const { syncRoutes } = await import('../src/features/sync/routes.js');
 
   const app = Fastify({ logger: false });
+  await app.register(rateLimit, {
+    global: true,
+    max: 60,
+    timeWindow: '15 minutes',
+    keyGenerator: (request) => request.ip,
+    skipOnError: true,
+  });
   await app.register(resourcesRoutes, { prefix: '/api/resources' });
   await app.register(syncRoutes, { prefix: '/api' });
 
