@@ -96,22 +96,6 @@ export const db = {
         `);
 
         await pool.query(`
-          DO $$
-          BEGIN
-            IF NOT EXISTS (
-              SELECT 1
-              FROM pg_constraint
-              WHERE conname = 'categories_type_check'
-            ) THEN
-              ALTER TABLE categories
-              ADD CONSTRAINT categories_type_check
-              CHECK (type IN ('github', 'skill', 'website', 'note'));
-            END IF;
-          END
-          $$;
-        `);
-
-        await pool.query(`
           ALTER TABLE categories
           DROP CONSTRAINT IF EXISTS categories_type_check;
         `);
