@@ -38,6 +38,7 @@ const resourceCreateSchema = z
 const resourceUpdateSchema = z
   .object({
     category_id: z.number().int().nullable().optional(),
+    type: z.string().min(1).optional(),
     title: z.string().optional(),
     url: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
@@ -176,12 +177,33 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     preHandler: [app.rateLimit(), validate(resourceUpdateSchema, 'body')],
   }, async (request, reply) => {
     const { id } = request.params as ResourceParams;
-    const { category_id, title, url, description, metadata } = (request as FastifyRequest & { validated: { body: ResourceUpdateBody } }).validated.body;
+    const { category_id, type, title, url, description, metadata } = (request as FastifyRequest & { validated: { body: ResourceUpdateBody } }).validated.body;
 
     const fields: string[] = [];
     const values: unknown[] = [];
     let paramIndex = 0;
 
+    const needsExistingResource = type !== undefined || url !== undefined;
+    const existingResource = needsExistingResource ? await getResourceIdentity(id) : undefined;
+    if (needsExistingResource && !existingResource) {
+      reply.status(404);
+      return { error: 'Resource not found' };
+    }
+
+    if (type !== undefined) {
+      fields.push(`type = ${param(paramIndex++)}`);
+      values.push(type);
+
+      if (existingResource && type !== existingResource.type) {
+        const sortResult = await query(
+          `SELECT MAX(sort_order) as max_order FROM resources WHERE type = ${param(0)}`,
+          [type]
+        );
+        const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
+        fields.push(`sort_order = ${param(paramIndex++)}`);
+        values.push(nextOrder);
+      }
+    }
     if (category_id !== undefined) {
       fields.push(`category_id = ${param(paramIndex++)}`);
       values.push(category_id);
@@ -208,16 +230,11 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'No fields to update' };
     }
 
-    if (url !== undefined) {
-      const existingResource = await getResourceIdentity(id);
-      if (!existingResource) {
-        reply.status(404);
-        return { error: 'Resource not found' };
-      }
-
-      const normalizedUrl = normalizeOptionalText(url);
-      const hasUrlChanged = normalizedUrl !== existingResource.url;
-      if (normalizedUrl && hasUrlChanged && await hasResourceUrlConflict(existingResource.type, normalizedUrl, id)) {
+    if (existingResource && (url !== undefined || type !== undefined)) {
+      const targetType = type ?? existingResource.type;
+      const normalizedUrl = url !== undefined ? normalizeOptionalText(url) : existingResource.url;
+      const hasIdentityChanged = targetType !== existingResource.type || normalizedUrl !== existingResource.url;
+      if (normalizedUrl && hasIdentityChanged && await hasResourceUrlConflict(targetType, normalizedUrl, id)) {
         reply.status(409);
         return { error: DUPLICATE_RESOURCE_URL_ERROR };
       }

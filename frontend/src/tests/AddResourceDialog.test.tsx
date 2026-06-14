@@ -173,6 +173,51 @@ describe('AddResourceDialog F9 — submit disabled while duplicate check is fetc
   });
 });
 
+describe('AddResourceDialog resource type changes while editing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedApi.getResources.mockResolvedValue([]);
+    mockedApi.updateResource.mockResolvedValue({
+      id: 42,
+      category_id: null,
+      type: 'github',
+      title: 'React Docs',
+      url: 'https://react.dev',
+      description: null,
+      metadata: {},
+      is_favorite: false,
+      sort_order: 3,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    });
+  });
+
+  it('allows moving an existing resource to another resource type', async () => {
+    const onSuccess = vi.fn();
+
+    renderDialog({
+      onSuccess,
+      initialResource: {
+        id: 42,
+        type: 'website',
+        title: 'React Docs',
+        url: 'https://react.dev',
+        description: null,
+        category_id: null,
+      },
+    });
+
+    fireEvent.pointerDown(await screen.findByRole('combobox', { name: /Tip/i }));
+    fireEvent.click(await screen.findByRole('option', { name: /GitHub/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Kaydet/i }));
+
+    await waitFor(() => {
+      expect(mockedApi.updateResource).toHaveBeenCalledWith(42, expect.objectContaining({ type: 'github' }));
+    });
+    expect(onSuccess).toHaveBeenCalledWith('github');
+  });
+});
+
 function createDeferred() {
   let resolve!: (value: unknown) => void;
   const promise = new Promise((r) => {

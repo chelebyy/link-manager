@@ -109,7 +109,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  updateResource: (id: number, payload: { title: string; url: string | null; description: string | null; category_id: number | null; metadata?: Record<string, unknown> }) =>
+  updateResource: (id: number, payload: { type?: string; title: string; url: string | null; description: string | null; category_id: number | null; metadata?: Record<string, unknown> }) =>
     request<ResourceWithSync>(`/api/resources/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

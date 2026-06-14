@@ -137,15 +137,15 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: { title: string; url: string | null; description: string | null; category_id: number | null } }) => api.updateResource(id, payload),
-    onSuccess: async () => {
+    mutationFn: ({ id, payload }: { id: number; payload: { type: string; title: string; url: string | null; description: string | null; category_id: number | null } }) => api.updateResource(id, payload),
+    onSuccess: async (resource, variables) => {
       await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['resources'] }),
         queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
       ]);
       onNotify?.('success', 'Kaynak güncellendi');
-      onSuccess?.(type);
+      onSuccess?.(resource.type ?? variables.payload.type);
     },
     onError: (error) => {
       const message = error instanceof ApiError ? error.message : 'Kaynak güncellenemedi.';
@@ -191,6 +191,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         await updateMutation.mutateAsync({
           id: initialResource.id,
           payload: {
+            type: effectiveType,
             title,
             url: candidateUrl,
             description: description || null,
@@ -236,7 +237,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="resource-type">Tip</Label>
-            <Select value={effectiveType} onValueChange={handleTypeChange} disabled={isEditing}>
+            <Select value={effectiveType} onValueChange={handleTypeChange}>
               <SelectTrigger id="resource-type">
                 <SelectValue />
               </SelectTrigger>
