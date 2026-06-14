@@ -50,6 +50,44 @@ const ResourceTypeManager = lazy(() =>
   })),
 );
 const GithubIcon = getIcon("Github");
+const VIEW_STATE_STORAGE_KEY = "link-manager:view-state";
+
+type PersistedViewState = {
+  selectedType: string | null;
+  selectedCategory: number | null;
+  searchQuery: string;
+  resourceFilterMode: ResourceFilterMode;
+};
+
+const getPersistedViewState = (): PersistedViewState => {
+  const fallback: PersistedViewState = {
+    selectedType: null,
+    selectedCategory: null,
+    searchQuery: "",
+    resourceFilterMode: "all",
+  };
+
+  try {
+    const rawValue = window.localStorage.getItem(VIEW_STATE_STORAGE_KEY);
+    if (!rawValue) {
+      return fallback;
+    }
+
+    const parsed = JSON.parse(rawValue) as Partial<PersistedViewState>;
+    return {
+      selectedType:
+        typeof parsed.selectedType === "string" ? parsed.selectedType : null,
+      selectedCategory:
+        typeof parsed.selectedCategory === "number" ? parsed.selectedCategory : null,
+      searchQuery:
+        typeof parsed.searchQuery === "string" ? parsed.searchQuery : "",
+      resourceFilterMode:
+        parsed.resourceFilterMode === "favorites" ? "favorites" : "all",
+    };
+  } catch {
+    return fallback;
+  }
+};
 
 const LazyPanelFallback = () => (
   <div className="rounded-sm border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -73,15 +111,20 @@ function useDebouncedValue(value: string, delayMs: number) {
 
 function App() {
   const queryClient = useQueryClient();
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [persistedViewState] = useState(getPersistedViewState);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(
+    persistedViewState.selectedCategory,
+  );
+  const [selectedType, setSelectedType] = useState<string | null>(
+    persistedViewState.selectedType,
+  );
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showResourceTypeManager, setShowResourceTypeManager] = useState(false);
   const [showAddResource, setShowAddResource] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(persistedViewState.searchQuery);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [resourceFilterMode, setResourceFilterMode] =
-    useState<ResourceFilterMode>("all");
+    useState<ResourceFilterMode>(persistedViewState.resourceFilterMode);
   const [visibleResources, setVisibleResources] = useState<ResourceWithSync[]>(
     [],
   );
@@ -93,6 +136,18 @@ function App() {
   );
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      VIEW_STATE_STORAGE_KEY,
+      JSON.stringify({
+        selectedType,
+        selectedCategory,
+        searchQuery,
+        resourceFilterMode,
+      } satisfies PersistedViewState),
+    );
+  }, [resourceFilterMode, searchQuery, selectedCategory, selectedType]);
 
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories(),
