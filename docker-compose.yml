@@ -31,7 +31,7 @@ services:
     container_name: link-manager-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/linkmanager
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@link-manager-postgres:5432/linkmanager
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       NODE_ENV: production
       PORT: 3000
