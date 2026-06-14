@@ -176,6 +176,26 @@ test('PATCH /api/resources/:id can move a resource between types', async (t) => 
     assert.equal(rows[1]?.sort_order, 5);
   });
 
+  await t.test('bulk move accepts numeric ids serialized as strings', async () => {
+    await query(
+      `INSERT INTO resources (id, type, title, url, metadata, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [9110, 'website', 'String Id Move', 'https://string-id-move.test', '{}', 6],
+    );
+
+    const response = await app.inject({
+      method: 'PATCH',
+      url: '/api/resources/bulk-move',
+      payload: { ids: ['9110'], type: 'github', category_id: null },
+    });
+
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.json(), { success: true, moved: 1 });
+
+    const verify = await query('SELECT type, sort_order FROM resources WHERE id = ?', [9110]);
+    assert.deepEqual(verify.rows[0], { type: 'github', sort_order: 6 });
+  });
+
   await t.test('bulk move rolls back when any destination URL conflicts', async () => {
     await query(
       `INSERT INTO resources (id, type, title, url, metadata, sort_order)

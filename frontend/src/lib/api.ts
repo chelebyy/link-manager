@@ -131,7 +131,7 @@ export const api = {
     request<{ success: boolean; moved: number }>('/api/resources/bulk-move', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, ids: payload.ids.map(Number) }),
     }),
 
   exportData: () => request<ExportPayload>('/api/data/export'),

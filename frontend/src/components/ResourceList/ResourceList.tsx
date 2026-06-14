@@ -295,7 +295,7 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     }
 
     await bulkMoveMutation.mutateAsync({
-      ids: [...selectedIds],
+      ids: [...selectedIds].map(Number),
       type: bulkTargetType,
       category_id: bulkTargetCategoryId === AUTO_CATEGORY_VALUE ? null : Number(bulkTargetCategoryId),
     });

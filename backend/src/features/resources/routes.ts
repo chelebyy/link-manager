@@ -60,9 +60,9 @@ const reorderSchema = z
 
 const bulkMoveSchema = z
   .object({
-    ids: z.array(z.number().int().positive()).min(1),
+    ids: z.array(z.coerce.number().int().positive()).min(1),
     type: z.string().min(1),
-    category_id: z.number().int().nullable().optional(),
+    category_id: z.coerce.number().int().nullable().optional(),
   })
   .strict();
 
