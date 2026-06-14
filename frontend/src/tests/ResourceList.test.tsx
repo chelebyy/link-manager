@@ -27,6 +27,7 @@ vi.mock('../lib/api', () => {
       toggleFavorite: vi.fn().mockResolvedValue(undefined),
       deleteResource: vi.fn().mockResolvedValue(undefined),
       reorderResources: vi.fn().mockResolvedValue({ success: true }),
+      bulkMoveResources: vi.fn().mockResolvedValue({ success: true, moved: 1 }),
     },
     ApiError,
   };
@@ -278,6 +279,46 @@ describe('ResourceList F4/F5/F6/UX-1/UX-2', () => {
       // no exception is thrown and the onClick handler is not called twice per keypress
       // (verified indirectly by not throwing).
       expect(onVisibleResourcesChange.mock.calls.length).toBeGreaterThanOrEqual(initialCalls);
+    });
+  });
+
+  describe('bulk move', () => {
+    it('moves selected resources to another type with automatic category mapping', async () => {
+      const r1 = makeResource({ id: 1, title: 'Move selected', type: 'github' });
+      mockedApi.getResources.mockResolvedValueOnce([r1]);
+      mockedApi.getResourceTypes.mockResolvedValue([
+        { id: 'github', name: 'GitHub', icon: 'Github', color: '#333', description: '', is_builtin: true, sort_order: 1, created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+        { id: 'website', name: 'Website', icon: 'Globe', color: '#10b981', description: '', is_builtin: true, sort_order: 2, created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+      ]);
+      mockedApi.getCategories.mockResolvedValue([]);
+
+      const onToggleSelectionMode = vi.fn();
+      render(
+        <ResourceList
+          categoryId={null}
+          type="github"
+          searchQuery=""
+          resourceFilterMode="all"
+          isSelectionMode
+          onToggleSelectionMode={onToggleSelectionMode}
+        />,
+        { wrapper: makeWrapper().Wrapper },
+      );
+
+      fireEvent.click(await screen.findByText('Move selected'));
+      fireEvent.click(screen.getByRole('button', { name: /^Taşı$/ }));
+      await screen.findByText('Seçili Kaynakları Taşı');
+      const moveButtons = screen.getAllByRole('button', { name: /^Taşı$/ });
+      fireEvent.click(moveButtons.at(-1)!);
+
+      await waitFor(() => {
+        expect(mockedApi.bulkMoveResources).toHaveBeenCalledWith({
+          ids: [1],
+          type: 'website',
+          category_id: null,
+        });
+      });
+      expect(onToggleSelectionMode).toHaveBeenCalled();
     });
   });
 });

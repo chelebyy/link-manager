@@ -58,9 +58,18 @@ const reorderSchema = z
   })
   .strict();
 
+const bulkMoveSchema = z
+  .object({
+    ids: z.array(z.number().int().positive()).min(1),
+    type: z.string().min(1),
+    category_id: z.number().int().nullable().optional(),
+  })
+  .strict();
+
 type ResourcesListQuery = z.infer<typeof resourcesListQuerySchema>;
 type ResourceCreateBody = z.infer<typeof resourceCreateSchema>;
 type ResourceUpdateBody = z.infer<typeof resourceUpdateSchema>;
+type BulkMoveBody = z.infer<typeof bulkMoveSchema>;
 
 type ResourceParams = {
   id: string;
@@ -217,6 +226,87 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return result.rows[0];
     } catch (error) {
       if (isResourceUrlConflictError(error)) {
+        reply.status(409);
+        return { error: DUPLICATE_RESOURCE_URL_ERROR };
+      }
+
+      throw error;
+    }
+  });
+
+  app.patch('/bulk-move', {
+    ...securedRouteRateLimit,
+    preHandler: [app.rateLimit(), validate(bulkMoveSchema, 'body')],
+  }, async (request, reply) => {
+    const { ids, type, category_id } = (request as FastifyRequest & { validated: { body: BulkMoveBody } }).validated.body;
+    const uniqueIds = [...new Set(ids)];
+
+    try {
+      const moved = await withTransaction(async (txQuery) => {
+        const sortResult = await txQuery(
+          `SELECT MAX(sort_order) as max_order FROM resources WHERE type = ${param(0)}`,
+          [type]
+        );
+        let nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
+
+        for (const resourceId of uniqueIds) {
+          const identityResult = await txQuery(
+            `SELECT id, type, url FROM resources WHERE id = ${param(0)}`,
+            [resourceId]
+          );
+          const resource = identityResult.rows[0] as { id: number; type: string; url: string | null } | undefined;
+          if (!resource) {
+            throw Object.assign(new Error('Resource not found'), { statusCode: 404 });
+          }
+
+          const isTypeMove = resource.type !== type;
+          if (
+            resource.url &&
+            isTypeMove &&
+            await hasResourceUrlConflict(type, resource.url, resource.id, txQuery)
+          ) {
+            throw Object.assign(new Error(DUPLICATE_RESOURCE_URL_ERROR), { statusCode: 409 });
+          }
+
+          const shouldAutoMapMovedCategory = isTypeMove && (category_id === undefined || category_id === null);
+          const categoryIdToSet = shouldAutoMapMovedCategory
+            ? await findOrCreateMovedCategoryId(String(resource.id), type, category_id, txQuery)
+            : category_id;
+
+          const fields: string[] = [`type = ${param(0)}`];
+          const values: unknown[] = [type];
+          let paramIndex = 1;
+
+          if (categoryIdToSet !== undefined) {
+            fields.push(`category_id = ${param(paramIndex++)}`);
+            values.push(categoryIdToSet);
+          }
+
+          if (isTypeMove) {
+            fields.push(`sort_order = ${param(paramIndex++)}`);
+            values.push(nextOrder++);
+          }
+
+          values.push(resource.id);
+          await txQuery(
+            `UPDATE resources SET ${fields.join(', ')}, updated_at = ${now()} WHERE id = ${param(paramIndex)}`,
+            values
+          );
+        }
+
+        return uniqueIds.length;
+      });
+
+      return { success: true, moved };
+    } catch (error) {
+      const statusCode = typeof (error as { statusCode?: unknown }).statusCode === 'number'
+        ? (error as { statusCode: number }).statusCode
+        : undefined;
+      if (statusCode === 404) {
+        reply.status(404);
+        return { error: 'Resource not found' };
+      }
+      if (statusCode === 409 || isResourceUrlConflictError(error)) {
         reply.status(409);
         return { error: DUPLICATE_RESOURCE_URL_ERROR };
       }
