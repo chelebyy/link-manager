@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { z, ZodSchema } from 'zod';
-import { db, query, withTransaction } from '../../shared/db/index.js';
+import { db, query, withTransaction, type TxQuery } from '../../shared/db/index.js';
 import {
   DUPLICATE_RESOURCE_URL_ERROR,
   getResourceIdentity,
@@ -64,6 +64,59 @@ type ResourceUpdateBody = z.infer<typeof resourceUpdateSchema>;
 
 type ResourceParams = {
   id: string;
+};
+
+const findOrCreateMovedCategoryId = async (
+  resourceId: string,
+  targetType: string,
+  requestedCategoryId: number | null | undefined,
+  txQuery: TxQuery,
+) => {
+  if (requestedCategoryId !== undefined && requestedCategoryId !== null) {
+    return requestedCategoryId;
+  }
+
+  const sourceCategoryResult = await txQuery(
+    `SELECT c.name, c.color, c.icon
+     FROM resources r
+     LEFT JOIN categories c ON r.category_id = c.id
+     WHERE r.id = ${param(0)}`,
+    [resourceId]
+  );
+  const sourceCategory = sourceCategoryResult.rows[0] as { name: string | null; color: string | null; icon: string | null } | undefined;
+
+  if (!sourceCategory?.name) {
+    return requestedCategoryId;
+  }
+
+  const existingCategoryResult = await txQuery(
+    `SELECT id FROM categories WHERE name = ${param(0)} AND type = ${param(1)} LIMIT 1`,
+    [sourceCategory.name, targetType]
+  );
+  const existingCategory = existingCategoryResult.rows[0] as { id: number } | undefined;
+  if (existingCategory) {
+    return existingCategory.id;
+  }
+
+  const sortResult = await txQuery(
+    `SELECT MAX(sort_order) as max_order FROM categories WHERE type = ${param(0)}`,
+    [targetType]
+  );
+  const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
+  const insertResult = await txQuery(
+    `INSERT INTO categories (name, type, color, icon, sort_order)
+     VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)})
+     RETURNING id`,
+    [
+      sourceCategory.name,
+      targetType,
+      sourceCategory.color ?? '#6366f1',
+      sourceCategory.icon ?? 'Folder',
+      nextOrder,
+    ]
+  );
+
+  return (insertResult.rows[0] as { id: number }).id;
 };
 
 const securedRouteRateLimit = {
@@ -179,10 +232,6 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
     const { id } = request.params as ResourceParams;
     const { category_id, type, title, url, description, metadata } = (request as FastifyRequest & { validated: { body: ResourceUpdateBody } }).validated.body;
 
-    const fields: string[] = [];
-    const values: unknown[] = [];
-    let paramIndex = 0;
-
     const needsExistingResource = type !== undefined || url !== undefined;
     const existingResource = needsExistingResource ? await getResourceIdentity(id) : undefined;
     if (needsExistingResource && !existingResource) {
@@ -190,42 +239,14 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       return { error: 'Resource not found' };
     }
 
-    if (type !== undefined) {
-      fields.push(`type = ${param(paramIndex++)}`);
-      values.push(type);
-
-      if (existingResource && type !== existingResource.type) {
-        const sortResult = await query(
-          `SELECT MAX(sort_order) as max_order FROM resources WHERE type = ${param(0)}`,
-          [type]
-        );
-        const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
-        fields.push(`sort_order = ${param(paramIndex++)}`);
-        values.push(nextOrder);
-      }
-    }
-    if (category_id !== undefined) {
-      fields.push(`category_id = ${param(paramIndex++)}`);
-      values.push(category_id);
-    }
-    if (title !== undefined) {
-      fields.push(`title = ${param(paramIndex++)}`);
-      values.push(title);
-    }
-    if (url !== undefined) {
-      fields.push(`url = ${param(paramIndex++)}`);
-      values.push(normalizeOptionalText(url));
-    }
-    if (description !== undefined) {
-      fields.push(`description = ${param(paramIndex++)}`);
-      values.push(normalizeOptionalText(description));
-    }
-    if (metadata !== undefined) {
-      fields.push(`metadata = ${param(paramIndex++)}`);
-      values.push(JSON.stringify(metadata));
-    }
-
-    if (fields.length === 0) {
+    if (
+      category_id === undefined &&
+      type === undefined &&
+      title === undefined &&
+      url === undefined &&
+      description === undefined &&
+      metadata === undefined
+    ) {
       reply.status(400);
       return { error: 'No fields to update' };
     }
@@ -240,13 +261,59 @@ export async function resourcesRoutes(app: FastifyInstance, options: FastifyPlug
       }
     }
 
-    values.push(id);
-
     try {
-      const result = await query(
-        `UPDATE resources SET ${fields.join(', ')}, updated_at = ${now()} WHERE id = ${param(paramIndex)} RETURNING *`,
-        values
-      );
+      const result = await withTransaction(async (txQuery) => {
+        const fields: string[] = [];
+        const values: unknown[] = [];
+        let paramIndex = 0;
+        const isTypeMove = Boolean(existingResource && type !== undefined && type !== existingResource.type);
+
+        if (type !== undefined) {
+          fields.push(`type = ${param(paramIndex++)}`);
+          values.push(type);
+
+          if (isTypeMove) {
+            const sortResult = await txQuery(
+              `SELECT MAX(sort_order) as max_order FROM resources WHERE type = ${param(0)}`,
+              [type]
+            );
+            const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
+            fields.push(`sort_order = ${param(paramIndex++)}`);
+            values.push(nextOrder);
+          }
+        }
+
+        const shouldAutoMapMovedCategory = isTypeMove && (category_id === undefined || category_id === null);
+        const categoryIdToSet = shouldAutoMapMovedCategory
+          ? await findOrCreateMovedCategoryId(id, type as string, category_id, txQuery)
+          : category_id;
+        if (categoryIdToSet !== undefined) {
+          fields.push(`category_id = ${param(paramIndex++)}`);
+          values.push(categoryIdToSet);
+        }
+        if (title !== undefined) {
+          fields.push(`title = ${param(paramIndex++)}`);
+          values.push(title);
+        }
+        if (url !== undefined) {
+          fields.push(`url = ${param(paramIndex++)}`);
+          values.push(normalizeOptionalText(url));
+        }
+        if (description !== undefined) {
+          fields.push(`description = ${param(paramIndex++)}`);
+          values.push(normalizeOptionalText(description));
+        }
+        if (metadata !== undefined) {
+          fields.push(`metadata = ${param(paramIndex++)}`);
+          values.push(JSON.stringify(metadata));
+        }
+
+        values.push(id);
+        return txQuery(
+          `UPDATE resources SET ${fields.join(', ')}, updated_at = ${now()} WHERE id = ${param(paramIndex)} RETURNING *`,
+          values
+        );
+      });
 
       const isSuccess = result.rows.length > 0 || (!db.isPostgres && (result.rowCount ?? 0) > 0);
       if (!isSuccess) {
