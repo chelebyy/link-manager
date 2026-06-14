@@ -82,7 +82,7 @@ const getPersistedViewState = (): PersistedViewState => {
       searchQuery:
         typeof parsed.searchQuery === "string" ? parsed.searchQuery : "",
       resourceFilterMode:
-        parsed.resourceFilterMode === "favorites" ? "favorites" : "all",
+        parsed.resourceFilterMode === "important" ? "important" : "all",
     };
   } catch {
     return fallback;
