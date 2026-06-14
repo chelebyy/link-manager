@@ -128,4 +128,50 @@ test('PATCH /api/resources/:id can move a resource between types', async (t) => 
     assert.equal(response.statusCode, 409);
     assert.equal((response.json() as { error: string }).error, 'URL zaten mevcut');
   });
+
+  await t.test('bulk moves selected resources and preserves matching categories', async () => {
+    await query(
+      `INSERT INTO categories (id, name, type, color, icon, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [9204, 'Tools', 'skill', '#444444', 'Hammer', 2],
+    );
+    await query(
+      `INSERT INTO resources (id, category_id, type, title, url, metadata, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [9106, 9201, 'website', 'Bulk Docs', 'https://bulk-docs.test', '{}', 3],
+    );
+    await query(
+      `INSERT INTO resources (id, category_id, type, title, url, metadata, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [9107, 9204, 'skill', 'Bulk Tools', 'https://bulk-tools.test', '{}', 2],
+    );
+
+    const response = await app.inject({
+      method: 'PATCH',
+      url: '/api/resources/bulk-move',
+      payload: { ids: [9106, 9107], type: 'github', category_id: null },
+    });
+
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.json(), { success: true, moved: 2 });
+
+    const toolsCategory = await query(
+      'SELECT id, name, type, color, icon FROM categories WHERE name = ? AND type = ?',
+      ['Tools', 'github'],
+    );
+    assert.equal(toolsCategory.rows.length, 1);
+    assert.equal((toolsCategory.rows[0] as { color: string }).color, '#444444');
+
+    const moved = await query(
+      'SELECT id, type, category_id, sort_order FROM resources WHERE id IN (?, ?) ORDER BY id',
+      [9106, 9107],
+    );
+    const rows = moved.rows as Array<{ id: number; type: string; category_id: number; sort_order: number }>;
+    assert.equal(rows[0]?.type, 'github');
+    assert.equal(rows[0]?.category_id, 9202);
+    assert.equal(rows[0]?.sort_order, 4);
+    assert.equal(rows[1]?.type, 'github');
+    assert.equal(rows[1]?.category_id, (toolsCategory.rows[0] as { id: number }).id);
+    assert.equal(rows[1]?.sort_order, 5);
+  });
 });

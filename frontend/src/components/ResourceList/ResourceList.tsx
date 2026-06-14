@@ -1,8 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy, Download, Square, CheckSquare, ArrowUp, ArrowDown } from 'lucide-react';
+import { Trash2, ExternalLink, Star, GripVertical, Edit2, ChevronRight, Copy, Download, Square, CheckSquare, ArrowUp, ArrowDown, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
+import { Label } from '../ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import type { ResourceWithSync } from '../../types';
+import type { Category, ResourceWithSync } from '../../types';
 import { api, ApiError } from '../../lib/api';
 import { getIcon } from '../../lib/icon-map';
 import { queryKeys } from '../../lib/query-keys';
@@ -28,6 +43,7 @@ import {
 } from '../../lib/resource-view';
 
 const EMPTY_SELECTED_IDS = new Set<number>();
+const AUTO_CATEGORY_VALUE = '__auto__';
 
 interface ResourceListProps {
   categoryId: number | null;
@@ -48,6 +64,9 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
   const [editingResource, setEditingResource] = useState<ResourceWithSync | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
+  const [bulkTargetType, setBulkTargetType] = useState('');
+  const [bulkTargetCategoryId, setBulkTargetCategoryId] = useState(AUTO_CATEGORY_VALUE);
   const lastVisibleResourcesSignatureRef = useRef<string | null>(null);
 
   const isSelectionMode = externalIsSelectionMode ?? false;
@@ -99,6 +118,14 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     onToggleSelectionMode?.();
   };
 
+  const openBulkMoveDialog = () => {
+    const resourceTypes = resourceTypesQuery.data ?? [];
+    const nextType = resourceTypes.find((resourceType) => resourceType.id !== type)?.id ?? resourceTypes[0]?.id ?? type ?? '';
+    setBulkTargetType(nextType);
+    setBulkTargetCategoryId(AUTO_CATEGORY_VALUE);
+    setBulkMoveOpen(true);
+  };
+
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories(type ?? undefined),
     queryFn: () => api.getCategories(type ?? undefined),
@@ -108,6 +135,24 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
   const resourceTypesQuery = useQuery({
     queryKey: queryKeys.resourceTypes(),
     queryFn: api.getResourceTypes,
+  });
+
+  useEffect(() => {
+    if (!bulkMoveOpen || bulkTargetType) {
+      return;
+    }
+
+    const resourceTypes = resourceTypesQuery.data ?? [];
+    const nextType = resourceTypes.find((resourceType) => resourceType.id !== type)?.id ?? resourceTypes[0]?.id ?? '';
+    if (nextType) {
+      setBulkTargetType(nextType);
+    }
+  }, [bulkMoveOpen, bulkTargetType, resourceTypesQuery.data, type]);
+
+  const allCategoriesQuery = useQuery({
+    queryKey: queryKeys.categories(),
+    queryFn: () => api.getCategories(),
+    enabled: bulkMoveOpen,
   });
 
   const resourcesQuery = useQuery({
@@ -172,6 +217,24 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     },
   });
 
+  const bulkMoveMutation = useMutation({
+    mutationFn: (payload: { ids: number[]; type: string; category_id: number | null }) => api.bulkMoveResources(payload),
+    onSuccess: async (result) => {
+      await Promise.allSettled([
+        queryClient.invalidateQueries({ queryKey: ['resources'] }),
+        queryClient.invalidateQueries({ queryKey: ['categories'] }),
+      ]);
+      onNotify?.('success', `${result.moved} kaynak taşındı`);
+      setInternalSelectedIds(new Set());
+      setBulkMoveOpen(false);
+      onToggleSelectionMode?.();
+    },
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'Seçili kaynaklar taşınamadı.';
+      onNotify?.('error', 'Seçili kaynaklar taşınamadı', message);
+    },
+  });
+
   const toggleFavorite = (id: number, current: boolean) => {
     favoriteMutation.mutate({ id, next: !current });
   };
@@ -224,6 +287,18 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     next.splice(fromIndex, 1);
     next.splice(toIndex, 0, current);
     await reorderResources(next);
+  };
+
+  const confirmBulkMove = async () => {
+    if (!bulkTargetType || selectedIds.size === 0) {
+      return;
+    }
+
+    await bulkMoveMutation.mutateAsync({
+      ids: [...selectedIds],
+      type: bulkTargetType,
+      category_id: bulkTargetCategoryId === AUTO_CATEGORY_VALUE ? null : Number(bulkTargetCategoryId),
+    });
   };
 
   const handleDrop = async (targetId: number) => {
@@ -289,6 +364,8 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     );
   }
 
+  const targetCategories = ((allCategoriesQuery.data ?? []) as Category[]).filter((category) => category.type === bulkTargetType);
+
   return (
     <>
       {isSelectionMode && (
@@ -314,6 +391,10 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
             <Button size="sm" onClick={downloadSelected} disabled={selectedIds.size === 0}>
               <Download className="h-4 w-4 mr-1" />
               İndir
+            </Button>
+            <Button size="sm" onClick={openBulkMoveDialog} disabled={selectedIds.size === 0}>
+              <ArrowRight className="h-4 w-4 mr-1" />
+              Taşı
             </Button>
           </div>
         </div>
@@ -479,6 +560,67 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
           );
         })}
       </div>
+
+      <Dialog open={bulkMoveOpen} onOpenChange={setBulkMoveOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Seçili Kaynakları Taşı</DialogTitle>
+            <DialogDescription>
+              {selectedIds.size} kaynak için hedef kartı ve isteğe bağlı kategoriyi seçin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="bulk-target-type">Hedef kart</Label>
+              <Select
+                value={bulkTargetType}
+                onValueChange={(nextType) => {
+                  setBulkTargetType(nextType);
+                  setBulkTargetCategoryId(AUTO_CATEGORY_VALUE);
+                }}
+              >
+                <SelectTrigger id="bulk-target-type">
+                  <SelectValue placeholder="Kart seç..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(resourceTypesQuery.data ?? []).map((resourceType) => (
+                    <SelectItem key={resourceType.id} value={resourceType.id}>
+                      {resourceType.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bulk-target-category">Hedef kategori</Label>
+              <Select value={bulkTargetCategoryId} onValueChange={setBulkTargetCategoryId}>
+                <SelectTrigger id="bulk-target-category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={AUTO_CATEGORY_VALUE}>Otomatik kategori</SelectItem>
+                  {targetCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setBulkMoveOpen(false)}>
+              İptal
+            </Button>
+            <Button type="button" onClick={() => void confirmBulkMove()} disabled={!bulkTargetType || selectedIds.size === 0 || bulkMoveMutation.isPending}>
+              {bulkMoveMutation.isPending ? 'Taşınıyor...' : 'Taşı'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>

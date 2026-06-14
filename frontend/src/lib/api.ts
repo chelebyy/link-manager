@@ -127,6 +127,12 @@ export const api = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids }),
   }),
+  bulkMoveResources: (payload: { ids: number[]; type: string; category_id?: number | null }) =>
+    request<{ success: boolean; moved: number }>('/api/resources/bulk-move', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
 
   exportData: () => request<ExportPayload>('/api/data/export'),
   importData: (payload: ExportPayload) => request<{ success: boolean }>('/api/data/import', {
