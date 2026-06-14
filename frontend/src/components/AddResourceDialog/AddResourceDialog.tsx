@@ -116,7 +116,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const createMutation = useMutation({
     mutationFn: (payload: { type: string; title: string; url: string | null; description: string | null; category_id: number | null }) => api.createResource(payload),
     onSuccess: async (_, payload) => {
-      await Promise.all([
+      await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['resources'] }),
         queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
@@ -139,7 +139,7 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: { title: string; url: string | null; description: string | null; category_id: number | null } }) => api.updateResource(id, payload),
     onSuccess: async () => {
-      await Promise.all([
+      await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['resources'] }),
         queryClient.invalidateQueries({ queryKey: queryKeys.resourceTypes() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.categories() }),
