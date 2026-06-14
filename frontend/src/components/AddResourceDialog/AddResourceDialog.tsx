@@ -235,27 +235,29 @@ export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categori
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="resource-type">Tip</Label>
-            <Select value={effectiveType} onValueChange={handleTypeChange}>
-              <SelectTrigger id="resource-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {resourceTypes.map((rt) => {
-                  const IconComponent = getIcon(rt.icon);
-                  return (
-                    <SelectItem key={rt.id} value={rt.id}>
-                      <div className="flex items-center gap-2">
-                        <IconComponent className="h-4 w-4" />
-                        {rt.name}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isEditing ? (
+            <div className="space-y-2">
+              <Label htmlFor="resource-type">Tip</Label>
+              <Select value={effectiveType} onValueChange={handleTypeChange}>
+                <SelectTrigger id="resource-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {resourceTypes.map((rt) => {
+                    const IconComponent = getIcon(rt.icon);
+                    return (
+                      <SelectItem key={rt.id} value={rt.id}>
+                        <div className="flex items-center gap-2">
+                          <IconComponent className="h-4 w-4" />
+                          {rt.name}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="resource-title">Başlık *</Label>

@@ -173,48 +173,33 @@ describe('AddResourceDialog F9 — submit disabled while duplicate check is fetc
   });
 });
 
-describe('AddResourceDialog resource type changes while editing', () => {
+describe('AddResourceDialog editing', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedApi.getResources.mockResolvedValue([]);
-    mockedApi.updateResource.mockResolvedValue({
-      id: 42,
-      category_id: null,
-      type: 'github',
-      title: 'React Docs',
-      url: 'https://react.dev',
-      description: null,
-      metadata: {},
-      is_favorite: false,
-      sort_order: 3,
-      created_at: '2026-01-01T00:00:00.000Z',
-      updated_at: '2026-01-01T00:00:00.000Z',
-    });
+    Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it('allows moving an existing resource to another resource type', async () => {
-    const onSuccess = vi.fn();
-
+  it('hides type selection while editing and keeps categories scoped to the current type', async () => {
     renderDialog({
-      onSuccess,
+      categories: [
+        { id: 101, name: 'Current Category', type: 'skill', color: '#111', icon: 'Folder', sort_order: 1, created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+        { id: 102, name: 'Other Category', type: 'website', color: '#222', icon: 'Folder', sort_order: 2, created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+      ],
+      selectedType: 'website',
       initialResource: {
-        id: 42,
-        type: 'website',
-        title: 'React Docs',
-        url: 'https://react.dev',
-        description: null,
-        category_id: null,
+        id: 55,
+        category_id: 101,
+        type: 'skill',
+        title: 'Editable Resource',
+        url: 'https://example.com/editable',
+        description: 'Existing description',
       },
     });
 
-    fireEvent.pointerDown(await screen.findByRole('combobox', { name: /Tip/i }));
-    fireEvent.click(await screen.findByRole('option', { name: /GitHub/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Kaydet/i }));
-
-    await waitFor(() => {
-      expect(mockedApi.updateResource).toHaveBeenCalledWith(42, expect.objectContaining({ type: 'github' }));
-    });
-    expect(onSuccess).toHaveBeenCalledWith('github');
+    expect(screen.queryByLabelText('Tip')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Current Category').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Other Category')).not.toBeInTheDocument();
   });
 });
 
