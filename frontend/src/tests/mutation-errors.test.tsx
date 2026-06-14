@@ -21,9 +21,6 @@ vi.mock('../lib/api', () => {
       createResource: vi.fn(),
       updateResource: vi.fn(),
       deleteResource: vi.fn(),
-      toggleFavorite: vi.fn(),
-      reorderResources: vi.fn(),
-      bulkMoveResources: vi.fn(),
     },
     ApiError,
   };
