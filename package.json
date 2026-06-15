@@ -16,7 +16,7 @@
     "knip": "knip --workspace backend && npm --prefix frontend run knip"
   },
   "devDependencies": {
-    "@types/node": "^25.9.2",
+    "@types/node": "^25.9.3",
     "concurrently": "^10.0.3",
     "knip": "^6.16.1",
     "typescript": "^6.0.3"
