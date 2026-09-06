@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "DNS Enumeration & Resolution",
-  "title": "massdns",
-  "url": "https://github.com/blechschmidt/massdns",
-  "description": "Yüksek hacimli DNS sorgularını çok hızlı gerçekleştiren; toplu çözümleme, subdomain enumeration ve reconnaissance süreçlerinde kullanılan yüksek performanslı DNS resolver aracı.",
+  "category": "Attack Surface Mapping",
+  "title": "uncover",
+  "url": "https://github.com/projectdiscovery/uncover",
+  "description": "Birden fazla internet arama motorunu kullanarak internete açık hostları keşfeden; ASM, OSINT ve reconnaissance süreçlerinde saldırı yüzeyinin görünürlüğünü artıran ProjectDiscovery aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 17
+  "trigger": 18
 }
