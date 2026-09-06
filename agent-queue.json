@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
   "category": "Web Crawling & Spidering",
-  "title": "hakrawler",
-  "url": "https://github.com/hakluke/hakrawler",
-  "description": "Web uygulamalarındaki endpoint, bağlantı ve assetleri hızlı şekilde keşfetmeye odaklanan; bug bounty, pentest ve reconnaissance akışlarında kullanılan hafif Go tabanlı web crawler aracı.",
+  "title": "gospider",
+  "url": "https://github.com/jaeles-project/gospider",
+  "description": "Web uygulamalarındaki URL ve endpointleri hızlı şekilde keşfetmeye yardımcı olan; bug bounty ve reconnaissance akışlarında kullanılan Go tabanlı web spider/crawler aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 20
+  "trigger": 21
 }
