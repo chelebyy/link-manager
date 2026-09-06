@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Subdomain Enumeration",
-  "title": "assetfinder",
-  "url": "https://github.com/tomnomnom/assetfinder",
-  "description": "Belirli bir alan adıyla ilişkili domain ve subdomain'leri farklı kaynaklardan bularak keşif sürecini hızlandıran hafif bir CLI aracı.",
+  "category": "Attack Surface Mapping",
+  "title": "OWASP Amass",
+  "url": "https://github.com/owasp-amass/amass",
+  "description": "OWASP'ın saldırı yüzeyi haritalama ve varlık keşfi aracı; DNS/alt alan adı keşfi, OSINT ve veri ilişkilendirme ile dış varlıkların görünürlüğünü artırır.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 3
+  "trigger": 4
 }
