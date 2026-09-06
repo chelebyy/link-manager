@@ -1,10 +1,10 @@
 {
-  "type": "Skills",
-  "category": "AI Coding & Design Skills",
-  "title": "MengTo Skills",
-  "url": "https://github.com/MengTo/Skills",
-  "description": "Codex, Claude, Cursor ve diğer AI coding agent'ları için tasarım ve geliştirme odaklı yeniden kullanılabilir agent skill koleksiyonu.",
+  "type": "AKINCI",
+  "category": "Security AI Skills",
+  "title": "Claude-OSINT",
+  "url": "https://github.com/elementalsouls/Claude-OSINT",
+  "description": "Claude için yetkili red-team ve bug bounty çalışmalarına yönelik OSINT, external recon, secret tarama, dorking, credential validation ve attack-path odaklı SKILL.md paketleri sunan güvenlik skill koleksiyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 24
+  "trigger": 25
 }
