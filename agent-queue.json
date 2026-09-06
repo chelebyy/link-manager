@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Attack Surface Mapping",
-  "title": "uncover",
-  "url": "https://github.com/projectdiscovery/uncover",
-  "description": "Birden fazla internet arama motorunu kullanarak internete açık hostları keşfeden; ASM, OSINT ve reconnaissance süreçlerinde saldırı yüzeyinin görünürlüğünü artıran ProjectDiscovery aracı.",
+  "category": "DNS Enumeration & Resolution",
+  "title": "puredns",
+  "url": "https://github.com/d3mondev/puredns",
+  "description": "Hızlı domain çözümleme ve subdomain bruteforce yapan; wildcard subdomain ve DNS poisoning kaynaklı yanlış sonuçları filtreleyerek recon doğruluğunu artıran DNS aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 18
+  "trigger": 19
 }
