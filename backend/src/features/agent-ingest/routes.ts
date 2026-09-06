@@ -51,18 +51,23 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
     const item = parsed.data;
 
     const result = await withTransaction(async (txQuery) => {
-      const duplicate = await txQuery(
-        `SELECT id, title, category_id, type, url, description FROM resources WHERE url = ${param(0)} LIMIT 1`,
-        [item.url],
+      const typeResult = await txQuery(
+        `SELECT id, name FROM resource_types
+         WHERE LOWER(id) = LOWER(${param(0)}) OR LOWER(name) = LOWER(${param(1)})
+         LIMIT 1`,
+        [item.type, item.type],
       );
 
-      if (duplicate.rows[0]) {
-        return { created: false, duplicate: true, resource: duplicate.rows[0] };
+      const resolvedType = typeResult.rows[0]?.id ? String(typeResult.rows[0].id) : null;
+      if (!resolvedType) {
+        throw new Error(`Agent ingest resource type not found: ${item.type}`);
       }
 
       let categoryResult = await txQuery(
-        `SELECT id, name FROM categories WHERE type = ${param(0)} AND name = ${param(1)} LIMIT 1`,
-        [item.type, item.category],
+        `SELECT id, name FROM categories
+         WHERE type = ${param(0)} AND LOWER(name) = LOWER(${param(1)})
+         LIMIT 1`,
+        [resolvedType, item.category],
       );
 
       let categoryId = categoryResult.rows[0]?.id as number | string | undefined;
@@ -70,7 +75,7 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
       if (!categoryId) {
         const sortResult = await txQuery(
           `SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM categories WHERE type = ${param(0)}`,
-          [item.type],
+          [resolvedType],
         );
         const nextCategoryOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
 
@@ -78,14 +83,45 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
           `INSERT INTO categories (name, type, color, icon, sort_order)
            VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)})
            RETURNING id, name`,
-          [item.category, item.type, item.categoryColor, item.categoryIcon, nextCategoryOrder],
+          [item.category, resolvedType, item.categoryColor, item.categoryIcon, nextCategoryOrder],
         );
         categoryId = categoryResult.rows[0]?.id;
       }
 
+      const duplicate = await txQuery(
+        `SELECT id, title, category_id, type, url, description
+         FROM resources WHERE url = ${param(0)} LIMIT 1`,
+        [item.url],
+      );
+
+      if (duplicate.rows[0]) {
+        const current = duplicate.rows[0];
+        const needsRepair = String(current.type) !== resolvedType || String(current.category_id ?? '') !== String(categoryId ?? '');
+        const needsDescription = !current.description && item.description;
+
+        if (needsRepair || needsDescription) {
+          const updated = await txQuery(
+            `UPDATE resources
+             SET type = ${param(0)},
+                 category_id = ${param(1)},
+                 description = CASE
+                   WHEN description IS NULL OR description = '' THEN ${param(2)}
+                   ELSE description
+                 END
+             WHERE id = ${param(3)}
+             RETURNING id, category_id, type, title, url, description`,
+            [resolvedType, categoryId ?? null, item.description ?? null, current.id],
+          );
+
+          return { created: false, duplicate: true, repaired: true, resource: updated.rows[0] };
+        }
+
+        return { created: false, duplicate: true, repaired: false, resource: current };
+      }
+
       const sortResult = await txQuery(
         `SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM resources WHERE type = ${param(0)}`,
-        [item.type],
+        [resolvedType],
       );
       const nextResourceOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
 
@@ -93,10 +129,10 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
         `INSERT INTO resources (category_id, type, title, url, description, metadata, sort_order)
          VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}, ${param(6)})
          RETURNING id, category_id, type, title, url, description`,
-        [categoryId ?? null, item.type, item.title, item.url, item.description ?? null, '{}', nextResourceOrder],
+        [categoryId ?? null, resolvedType, item.title, item.url, item.description ?? null, '{}', nextResourceOrder],
       );
 
-      return { created: true, duplicate: false, resource: inserted.rows[0] };
+      return { created: true, duplicate: false, repaired: false, resource: inserted.rows[0] };
     });
 
     return reply.code(result.created ? 201 : 200).send(result);
