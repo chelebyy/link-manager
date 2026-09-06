@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
   "category": "URL & Historical Endpoint Discovery",
-  "title": "gau",
-  "url": "https://github.com/lc/gau",
-  "description": "Hedef domain için AlienVault OTX, Wayback Machine ve Common Crawl gibi kaynaklardan geçmişte görülen ve bilinen URL'leri toplayarak eski endpoint ve saldırı yüzeyi keşfini hızlandıran recon aracı.",
+  "title": "waybackurls",
+  "url": "https://github.com/tomnomnom/waybackurls",
+  "description": "Wayback Machine'in bir domain için arşivlediği geçmiş URL'leri toplayarak eski endpoint'leri ve unutulmuş saldırı yüzeylerini keşfetmeye yardımcı olan hafif recon aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 12
+  "trigger": 13
 }
