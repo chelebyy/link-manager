@@ -1,0 +1,95 @@
+name: Agent Ingest
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: Resource type/card
+        required: true
+        type: string
+      category:
+        description: Category
+        required: true
+        type: string
+      title:
+        description: Resource title
+        required: true
+        type: string
+      url:
+        description: Resource URL
+        required: true
+        type: string
+      description:
+        description: Resource description
+        required: false
+        type: string
+      category_color:
+        description: Category color (hex)
+        required: false
+        default: '#6366f1'
+        type: string
+      category_icon:
+        description: Category icon
+        required: false
+        default: 'Folder'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send resource to Link Manager
+        env:
+          AGENT_INGEST_KEY: ${{ secrets.AGENT_INGEST_KEY }}
+          INPUT_TYPE: ${{ inputs.type }}
+          INPUT_CATEGORY: ${{ inputs.category }}
+          INPUT_TITLE: ${{ inputs.title }}
+          INPUT_URL: ${{ inputs.url }}
+          INPUT_DESCRIPTION: ${{ inputs.description }}
+          INPUT_CATEGORY_COLOR: ${{ inputs.category_color }}
+          INPUT_CATEGORY_ICON: ${{ inputs.category_icon }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AGENT_INGEST_KEY:-}" ]; then
+            echo "AGENT_INGEST_KEY secret is not configured."
+            exit 1
+          fi
+
+          payload=$(jq -n \
+            --arg type "$INPUT_TYPE" \
+            --arg category "$INPUT_CATEGORY" \
+            --arg title "$INPUT_TITLE" \
+            --arg url "$INPUT_URL" \
+            --arg description "$INPUT_DESCRIPTION" \
+            --arg categoryColor "$INPUT_CATEGORY_COLOR" \
+            --arg categoryIcon "$INPUT_CATEGORY_ICON" \
+            '{
+              type: $type,
+              category: $category,
+              title: $title,
+              url: $url,
+              description: (if $description == "" then null else $description end),
+              categoryColor: $categoryColor,
+              categoryIcon: $categoryIcon
+            }')
+
+          response_file=$(mktemp)
+          status=$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "X-Agent-Key: $AGENT_INGEST_KEY" \
+            --data "$payload" \
+            https://link.cheleby.qzz.io/agent/ingest/)
+
+          cat "$response_file"
+          echo
+
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "Ingest failed with HTTP $status"
+            exit 1
+          fi
