@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Parameter Discovery & API Fuzzing",
-  "title": "Arjun",
-  "url": "https://github.com/s0md3v/Arjun",
-  "description": "Web uygulamaları ve API'lerde gizli HTTP parametrelerini keşfetmeye odaklanan; GET/POST parametreleri üzerinde recon ve API fuzzing süreçlerini hızlandıran Python tabanlı araç.",
+  "category": "DNS Enumeration & Resolution",
+  "title": "dnsx",
+  "url": "https://github.com/projectdiscovery/dnsx",
+  "description": "DNS çözümleme, kayıt sorguları, brute-force ve wildcard filtering gibi keşif işlemlerini hızlı ve esnek şekilde gerçekleştiren ProjectDiscovery DNS toolkit'i.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 15
+  "trigger": 16
 }
