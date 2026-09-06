@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "URL & Historical Endpoint Discovery",
-  "title": "waybackurls",
-  "url": "https://github.com/tomnomnom/waybackurls",
-  "description": "Wayback Machine'in bir domain için arşivlediği geçmiş URL'leri toplayarak eski endpoint'leri ve unutulmuş saldırı yüzeylerini keşfetmeye yardımcı olan hafif recon aracı.",
+  "category": "Web Fuzzing & Content Discovery",
+  "title": "ffuf",
+  "url": "https://github.com/ffuf/ffuf",
+  "description": "Web uygulamalarında içerik ve endpoint keşfi, parametre ve sanal host fuzzing gibi işlemleri yüksek hızda gerçekleştiren Go tabanlı web fuzzer aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 13
+  "trigger": 14
 }
