@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Web Recon & Fingerprinting",
-  "title": "httpx",
-  "url": "https://github.com/projectdiscovery/httpx",
-  "description": "HTTP servislerini hızlı şekilde probe ederek canlı hostları, durum kodlarını, başlıkları, teknolojileri ve diğer web fingerprint verilerini toplayan ProjectDiscovery aracı.",
+  "category": "Port Scanning & Enumeration",
+  "title": "naabu",
+  "url": "https://github.com/projectdiscovery/naabu",
+  "description": "Ağ hedeflerinde açık portları hızlı ve güvenilir şekilde tespit eden; bug bounty ve pentest süreçlerinde attack surface discovery için diğer keşif araçlarıyla birlikte kullanılabilen ProjectDiscovery port tarayıcısı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 9
+  "trigger": 10
 }
