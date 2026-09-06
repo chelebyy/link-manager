@@ -5,5 +5,6 @@
   "url": "https://github.com/owasp-amass/amass",
   "description": "OWASP'ın saldırı yüzeyi haritalama ve varlık keşfi aracı; DNS/alt alan adı keşfi, OSINT ve veri ilişkilendirme ile dış varlıkların görünürlüğünü artırır.",
   "categoryColor": "#6366f1",
-  "categoryIcon": "Folder"
+  "categoryIcon": "Folder",
+  "trigger": 2
 }
