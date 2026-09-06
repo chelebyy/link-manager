@@ -7,7 +7,7 @@ ENV VITE_API_KEY=${VITE_API_KEY}
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 RUN npm run build
