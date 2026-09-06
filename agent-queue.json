@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Port Scanning & Enumeration",
-  "title": "naabu",
-  "url": "https://github.com/projectdiscovery/naabu",
-  "description": "Ağ hedeflerinde açık portları hızlı ve güvenilir şekilde tespit eden; bug bounty ve pentest süreçlerinde attack surface discovery için diğer keşif araçlarıyla birlikte kullanılabilen ProjectDiscovery port tarayıcısı.",
+  "category": "Web Crawling & Spidering",
+  "title": "katana",
+  "url": "https://github.com/projectdiscovery/katana",
+  "description": "Web uygulamalarındaki URL, endpoint ve bağlantıları keşfetmek için hızlı crawling/spidering yapan; headless tarama desteğiyle attack surface keşfini derinleştiren ProjectDiscovery aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 10
+  "trigger": 11
 }
