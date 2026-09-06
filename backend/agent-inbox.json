@@ -6,7 +6,7 @@
     "url": "https://github.com/vulnersCom/nmap-vulners",
     "description": "Nmap servis tespitlerini Vulners veritabanıyla eşleyerek CVE, CVSS ve bilinen exploit bilgilerini tarama çıktısına ekleyen NSE scripti.",
     "categoryColor": "#ef4444",
-    "categoryIcon": "ScanSearch"
+    "categoryIcon": "Zap"
   },
   {
     "type": "AKINCI",
@@ -15,6 +15,6 @@
     "url": "https://github.com/scrapfly/Antibot-Detector",
     "description": "Web sitelerinde kullanılan anti-bot sistemleri, CAPTCHA servisleri ve fingerprinting tekniklerini tespit etmeye yarayan analiz aracı.",
     "categoryColor": "#f97316",
-    "categoryIcon": "Radar"
+    "categoryIcon": "Globe"
   }
 ]
