@@ -52,8 +52,8 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
 
     const result = await withTransaction(async (txQuery) => {
       const duplicate = await txQuery(
-        `SELECT id, title, category_id FROM resources WHERE type = ${param(0)} AND url = ${param(1)} LIMIT 1`,
-        [item.type, item.url],
+        `SELECT id, title, category_id, type, url, description FROM resources WHERE url = ${param(0)} LIMIT 1`,
+        [item.url],
       );
 
       if (duplicate.rows[0]) {
