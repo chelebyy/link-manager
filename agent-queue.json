@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "DNS Enumeration & Resolution",
-  "title": "puredns",
-  "url": "https://github.com/d3mondev/puredns",
-  "description": "Hızlı domain çözümleme ve subdomain bruteforce yapan; wildcard subdomain ve DNS poisoning kaynaklı yanlış sonuçları filtreleyerek recon doğruluğunu artıran DNS aracı.",
+  "category": "Web Crawling & Spidering",
+  "title": "hakrawler",
+  "url": "https://github.com/hakluke/hakrawler",
+  "description": "Web uygulamalarındaki endpoint, bağlantı ve assetleri hızlı şekilde keşfetmeye odaklanan; bug bounty, pentest ve reconnaissance akışlarında kullanılan hafif Go tabanlı web crawler aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 19
+  "trigger": 20
 }
