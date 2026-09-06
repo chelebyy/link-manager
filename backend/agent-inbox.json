@@ -16,5 +16,14 @@
     "description": "Web sitelerinde kullanılan anti-bot sistemleri, CAPTCHA servisleri ve fingerprinting tekniklerini tespit etmeye yarayan analiz aracı.",
     "categoryColor": "#f97316",
     "categoryIcon": "Globe"
+  },
+  {
+    "type": "AKINCI",
+    "category": "Subdomain Enumeration",
+    "title": "subfinder",
+    "url": "https://github.com/projectdiscovery/subfinder",
+    "description": "Pasif kaynakları kullanarak hedef alan adlarına ait subdomainleri hızlı ve güvenilir şekilde keşfetmeye yarayan ProjectDiscovery aracı.",
+    "categoryColor": "#3b82f6",
+    "categoryIcon": "Search"
   }
 ]
