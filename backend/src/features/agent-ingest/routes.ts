@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { z } from 'zod';
-import { db, query, withTransaction } from '../../shared/db/index.js';
+import { db, withTransaction } from '../../shared/db/index.js';
 
 const AGENT_KEY_SHA256 = '91f48f24a2562dc0da86f7c8fefea1ea72966a4aab17b88214fcca4cbc47757c';
 const param = (index: number) => db.isPostgres ? `$${index + 1}` : '?';
@@ -65,7 +65,7 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
         [item.type, item.category],
       );
 
-      let categoryId = categoryResult.rows[0]?.id as number | undefined;
+      let categoryId = categoryResult.rows[0]?.id as number | string | undefined;
 
       if (!categoryId) {
         const sortResult = await txQuery(
