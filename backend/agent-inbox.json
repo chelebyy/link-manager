@@ -1,0 +1,20 @@
+[
+  {
+    "type": "AKINCI",
+    "category": "Vulnerability Scanning",
+    "title": "nmap-vulners",
+    "url": "https://github.com/vulnersCom/nmap-vulners",
+    "description": "Nmap servis tespitlerini Vulners veritabanıyla eşleyerek CVE, CVSS ve bilinen exploit bilgilerini tarama çıktısına ekleyen NSE scripti.",
+    "categoryColor": "#ef4444",
+    "categoryIcon": "ScanSearch"
+  },
+  {
+    "type": "AKINCI",
+    "category": "Web Recon & Fingerprinting",
+    "title": "Antibot-Detector",
+    "url": "https://github.com/scrapfly/Antibot-Detector",
+    "description": "Web sitelerinde kullanılan anti-bot sistemleri, CAPTCHA servisleri ve fingerprinting tekniklerini tespit etmeye yarayan analiz aracı.",
+    "categoryColor": "#f97316",
+    "categoryIcon": "Radar"
+  }
+]
