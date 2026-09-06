@@ -6,6 +6,7 @@ import helmet from '@fastify/helmet';
 import dotenv from 'dotenv';
 import { closeDb, initDb } from './shared/db/index.js';
 import { apiKey } from './shared/config/index.js';
+import { processAgentInbox } from './shared/agent-inbox.js';
 import { categoriesRoutes } from './features/categories/routes.js';
 import { resourcesRoutes } from './features/resources/routes.js';
 import { syncRoutes } from './features/sync/routes.js';
@@ -123,6 +124,12 @@ app.setErrorHandler((error: any, request, reply) => {
 const start = async () => {
   try {
     await initDb();
+
+    try {
+      await processAgentInbox();
+    } catch (error) {
+      app.log.error({ err: error }, 'Agent inbox processing failed');
+    }
 
     const port = parseInt(process.env.PORT || '3000', 10);
     // Bind to 0.0.0.0 (all interfaces) intentionally: this server runs inside
