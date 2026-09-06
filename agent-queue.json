@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
   "category": "DNS Enumeration & Resolution",
-  "title": "dnsx",
-  "url": "https://github.com/projectdiscovery/dnsx",
-  "description": "DNS çözümleme, kayıt sorguları, brute-force ve wildcard filtering gibi keşif işlemlerini hızlı ve esnek şekilde gerçekleştiren ProjectDiscovery DNS toolkit'i.",
+  "title": "massdns",
+  "url": "https://github.com/blechschmidt/massdns",
+  "description": "Yüksek hacimli DNS sorgularını çok hızlı gerçekleştiren; toplu çözümleme, subdomain enumeration ve reconnaissance süreçlerinde kullanılan yüksek performanslı DNS resolver aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 16
+  "trigger": 17
 }
