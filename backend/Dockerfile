@@ -21,6 +21,7 @@ COPY --from=builder /app/node_modules ./node_modules
 RUN npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/agent-inbox.json ./agent-inbox.json
 
 ENV NODE_ENV=production
 ENV PORT=3000
