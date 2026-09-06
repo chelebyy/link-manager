@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "Analytics & User Behavior",
-  "title": "Microsoft Clarity",
-  "url": "https://clarity.microsoft.com",
-  "description": "Web sitesi ve uygulamalardaki kullanıcı davranışını heatmap, session recording ve AI destekli içgörülerle analiz etmeye yardımcı olan ücretsiz Microsoft analitik aracı.",
+  "type": "Skills",
+  "category": "AI Coding & Design Skills",
+  "title": "MengTo Skills",
+  "url": "https://github.com/MengTo/Skills",
+  "description": "Codex, Claude, Cursor ve diğer AI coding agent'ları için tasarım ve geliştirme odaklı yeniden kullanılabilir agent skill koleksiyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 23
+  "trigger": 24
 }
