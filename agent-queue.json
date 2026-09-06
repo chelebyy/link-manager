@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "Port Scanning & Enumeration",
-  "title": "RustScan",
-  "url": "https://github.com/bee-san/RustScan",
-  "description": "Açık portları çok hızlı şekilde tespit eden; Nmap ile birlikte kullanılabilen ve pentest/recon süreçlerinde port keşfini hızlandıran Rust tabanlı modern port tarayıcısı.",
+  "type": "website",
+  "category": "Analytics & User Behavior",
+  "title": "Microsoft Clarity",
+  "url": "https://clarity.microsoft.com",
+  "description": "Web sitesi ve uygulamalardaki kullanıcı davranışını heatmap, session recording ve AI destekli içgörülerle analiz etmeye yardımcı olan ücretsiz Microsoft analitik aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 22
+  "trigger": 23
 }
