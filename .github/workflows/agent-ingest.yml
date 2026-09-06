@@ -33,6 +33,11 @@ on:
         required: false
         default: 'Folder'
         type: string
+  push:
+    branches:
+      - agent-queue
+    paths:
+      - agent-queue.json
 
 permissions:
   contents: read
@@ -41,9 +46,14 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout queue payload
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
+
       - name: Send resource to Link Manager
         env:
           AGENT_INGEST_KEY: ${{ secrets.AGENT_INGEST_KEY }}
+          EVENT_NAME: ${{ github.event_name }}
           INPUT_TYPE: ${{ inputs.type }}
           INPUT_CATEGORY: ${{ inputs.category }}
           INPUT_TITLE: ${{ inputs.title }}
@@ -58,14 +68,24 @@ jobs:
             exit 1
           fi
 
+          if [ "$EVENT_NAME" = "push" ]; then
+            INPUT_TYPE=$(jq -r '.type' agent-queue.json)
+            INPUT_CATEGORY=$(jq -r '.category' agent-queue.json)
+            INPUT_TITLE=$(jq -r '.title' agent-queue.json)
+            INPUT_URL=$(jq -r '.url' agent-queue.json)
+            INPUT_DESCRIPTION=$(jq -r '.description // ""' agent-queue.json)
+            INPUT_CATEGORY_COLOR=$(jq -r '.categoryColor // "#6366f1"' agent-queue.json)
+            INPUT_CATEGORY_ICON=$(jq -r '.categoryIcon // "Folder"' agent-queue.json)
+          fi
+
           payload=$(jq -n \
             --arg type "$INPUT_TYPE" \
             --arg category "$INPUT_CATEGORY" \
             --arg title "$INPUT_TITLE" \
             --arg url "$INPUT_URL" \
             --arg description "$INPUT_DESCRIPTION" \
-            --arg categoryColor "$INPUT_CATEGORY_COLOR" \
-            --arg categoryIcon "$INPUT_CATEGORY_ICON" \
+            --arg categoryColor "${INPUT_CATEGORY_COLOR:-#6366f1}" \
+            --arg categoryIcon "${INPUT_CATEGORY_ICON:-Folder}" \
             '{
               type: $type,
               category: $category,
