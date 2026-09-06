@@ -1,10 +1,10 @@
 {
-  "type": "Skills",
-  "category": "Skill Evaluation & Improvement",
-  "title": "Warp Skill Doctor",
-  "url": "https://www.warp.dev/skill-doctor",
-  "description": "Claude Code, Codex ve Warp agent geçmişlerini analiz ederek agent skill'lerini verimlilik, kod kalitesi ve skill kapsamı açısından puanlayan; SKILL.md dosyaları için iyileştirme önerileri üreten araç.",
+  "type": "GitHub Repos",
+  "category": "Mobile AI Agents & Automation",
+  "title": "MobileRun",
+  "url": "https://github.com/droidrun/mobilerun",
+  "description": "Doğal dil komutlarıyla Android ve mobil cihazları otomatikleştiren; farklı LLM'lerle çalışabilen açık kaynak mobil AI agent ve otomasyon framework'ü.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 26
+  "trigger": 27
 }
