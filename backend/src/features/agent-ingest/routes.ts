@@ -88,18 +88,20 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
         categoryId = categoryResult.rows[0]?.id;
       }
 
-      const duplicate = await txQuery(
+      const duplicates = await txQuery(
         `SELECT id, title, category_id, type, url, description
-         FROM resources WHERE url = ${param(0)} LIMIT 1`,
+         FROM resources WHERE url = ${param(0)} ORDER BY id ASC`,
         [item.url],
       );
 
-      if (duplicate.rows[0]) {
-        const current = duplicate.rows[0];
-        const needsRepair = String(current.type) !== resolvedType || String(current.category_id ?? '') !== String(categoryId ?? '');
+      if (duplicates.rows.length > 0) {
+        const exactType = duplicates.rows.find((row: any) => String(row.type) === resolvedType);
+        const current = exactType ?? duplicates.rows[0];
+        const needsTypeRepair = String(current.type) !== resolvedType;
+        const needsCategoryRepair = String(current.category_id ?? '') !== String(categoryId ?? '');
         const needsDescription = !current.description && item.description;
 
-        if (needsRepair || needsDescription) {
+        if (needsTypeRepair || needsCategoryRepair || needsDescription) {
           const updated = await txQuery(
             `UPDATE resources
              SET type = ${param(0)},
@@ -113,10 +115,22 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
             [resolvedType, categoryId ?? null, item.description ?? null, current.id],
           );
 
-          return { created: false, duplicate: true, repaired: true, resource: updated.rows[0] };
+          return {
+            created: false,
+            duplicate: true,
+            repaired: true,
+            duplicateCount: duplicates.rows.length,
+            resource: updated.rows[0],
+          };
         }
 
-        return { created: false, duplicate: true, repaired: false, resource: current };
+        return {
+          created: false,
+          duplicate: true,
+          repaired: false,
+          duplicateCount: duplicates.rows.length,
+          resource: current,
+        };
       }
 
       const sortResult = await txQuery(
@@ -132,7 +146,7 @@ export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPlug
         [categoryId ?? null, resolvedType, item.title, item.url, item.description ?? null, '{}', nextResourceOrder],
       );
 
-      return { created: true, duplicate: false, repaired: false, resource: inserted.rows[0] };
+      return { created: true, duplicate: false, repaired: false, duplicateCount: 0, resource: inserted.rows[0] };
     });
 
     return reply.code(result.created ? 201 : 200).send(result);
