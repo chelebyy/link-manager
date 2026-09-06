@@ -3,7 +3,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { z } from 'zod';
 import { db, withTransaction } from '../../shared/db/index.js';
 
-const AGENT_KEY_SHA256 = '91f48f24a2562dc0da86f7c8fefea1ea72966a4aab17b88214fcca4cbc47757c';
+const AGENT_KEY_SHA256 = 'd19ee4b135d3ebec5a77892d7d18e8c0f508668d5251c88b99c38fc08de6b4fd';
 const param = (index: number) => db.isPostgres ? `$${index + 1}` : '?';
 
 const ingestSchema = z.object({
