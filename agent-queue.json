@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "Codebase Understanding & Knowledge Graphs",
-  "title": "Understand Anything",
-  "url": "https://github.com/Egonex-AI/Understand-Anything",
-  "description": "Kod tabanlarını, dokümantasyonu ve knowledge base'leri multi-agent analizle interaktif knowledge graph'a dönüştüren; mimari, bağımlılıklar, business logic, semantic search, diff impact ve onboarding içgörüleri sunan AI developer aracı.",
+  "type": "AKINCI",
+  "category": "Vulnerability Intelligence & CVE Triage",
+  "title": "CVE MCP Server",
+  "url": "https://github.com/mukul975/cve-mcp-server",
+  "description": "NVD, EPSS, CISA KEV, GitHub advisories, Shodan, VirusTotal, GreyNoise ve diğer güvenlik kaynaklarını MCP üzerinden birleştirerek CVE triage, risk skorlaması, exploit/PoC kontrolü ve önceliklendirme yapan security intelligence sunucusu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 41
+  "trigger": 42
 }
