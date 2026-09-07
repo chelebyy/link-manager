@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "Vulnerability Intelligence & CVE Triage",
-  "title": "CVE MCP Server",
-  "url": "https://github.com/mukul975/cve-mcp-server",
-  "description": "NVD, EPSS, CISA KEV, GitHub advisories, Shodan, VirusTotal, GreyNoise ve diğer güvenlik kaynaklarını MCP üzerinden birleştirerek CVE triage, risk skorlaması, exploit/PoC kontrolü ve önceliklendirme yapan security intelligence sunucusu.",
+  "type": "website",
+  "category": "AI Coding CLI Management",
+  "title": "CC Switch",
+  "url": "https://ccswitch.io/en/",
+  "description": "Claude Code, Codex, Gemini CLI, OpenCode, OpenClaw ve Hermes Agent gibi AI coding araçlarını tek arayüzden yönetmeye yarayan; provider/config switching, Skills ve MCP yönetimi, kullanım istatistikleri ile yerel proxy/routing özellikleri sunan açık kaynak masaüstü uygulaması.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 42
+  "trigger": 43
 }
