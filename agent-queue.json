@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Security AI Skills",
-  "title": "Claude-OSINT",
-  "url": "https://github.com/elementalsouls/Claude-OSINT",
-  "description": "Claude için yetkili red-team ve bug bounty çalışmalarına yönelik OSINT, external recon, secret tarama, dorking, credential validation ve attack-path odaklı SKILL.md paketleri sunan güvenlik skill koleksiyonu.",
+  "category": "AI Pentest Agents",
+  "title": "T3MP3ST",
+  "url": "https://github.com/elder-plinius/T3MP3ST",
+  "description": "Otonom red-team ve offensive-security operasyonlarını çoklu AI ajanlarıyla koordine eden; keşif, saldırı zinciri planlama ve güvenlik test akışlarını meta-harness yaklaşımıyla yöneten açık kaynak platform.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 30
+  "trigger": 31
 }
