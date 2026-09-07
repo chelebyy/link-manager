@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "AI Search & LLM Visibility",
-  "title": "GeoDaddy",
-  "url": "https://geodaddy.dev",
-  "description": "ChatGPT, Perplexity, Gemini ve Claude için web sitesinin AI search görünürlüğünü; teknik SEO, içerik yapısı, AI bot erişimi, llms.txt ve Core Web Vitals dahil 22 kontrol üzerinden puanlayıp uygulanabilir düzeltme önerileri sunan açık kaynak GEO analiz aracı.",
+  "type": "AKINCI",
+  "category": "AI Red Team & GenAI Security",
+  "title": "PyRIT",
+  "url": "https://github.com/microsoft/PyRIT",
+  "description": "Generative AI sistemlerindeki güvenlik ve güvenilirlik risklerini proaktif olarak keşfetmek, test senaryoları orkestre etmek ve AI red-team değerlendirmelerini otomatikleştirmek için Microsoft tarafından geliştirilen açık kaynak Python framework'ü.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 35
+  "trigger": 36
 }
