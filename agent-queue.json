@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "AI Office & Document Automation",
-  "title": "OfficeCLI",
-  "url": "https://github.com/iOfficeAI/OfficeCLI",
-  "description": "AI agent'ların Word, Excel ve PowerPoint belgelerini oluşturmasını, okumasını, düzenlemesini ve render ederek görsel olarak kontrol etmesini sağlayan; Office kurulumu gerektirmeyen açık kaynak tek-binary CLI aracı.",
+  "category": "React Code Quality & AI Developer Tools",
+  "title": "React Doctor",
+  "url": "https://www.react.doctor",
+  "description": "React projelerini correctness, performance, security, accessibility ve maintainability açısından tarayan; AI coding agent'ların yazdığı koddaki anti-pattern ve regresyonları yakalayan, CLI ve CI entegrasyonu sunan kod kalitesi aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 39
+  "trigger": 40
 }
