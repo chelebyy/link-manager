@@ -1,10 +1,10 @@
 {
-  "type": "Skills",
-  "category": "Marketing & Growth Skills",
-  "title": "Marketing Skills",
-  "url": "https://marketing-skills.com/",
-  "description": "Claude Code, Codex, Cursor ve diğer AI coding agent'ları için SEO, copywriting, CRO, analytics, reklam, lifecycle ve growth odaklı 50 açık kaynak marketing skill'i sunan kapsamlı agent skill kütüphanesi.",
+  "type": "website",
+  "category": "AI Agent Readiness & Web Standards",
+  "title": "Is Your Site Agent-Ready?",
+  "url": "https://isitagentready.com/",
+  "description": "Cloudflare tarafından sunulan; web sitelerini robots.txt, sitemap, Markdown negotiation, MCP, Agent Skills, WebMCP, API Catalog, OAuth ve agentic commerce standartları açısından tarayıp AI agent hazırlık seviyesini ölçen ücretsiz analiz aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 33
+  "trigger": 34
 }
