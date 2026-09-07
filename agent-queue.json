@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "Mobile AI Agents & Automation",
-  "title": "MobileRun",
-  "url": "https://github.com/droidrun/mobilerun",
-  "description": "Doğal dil komutlarıyla Android ve mobil cihazları otomatikleştiren; farklı LLM'lerle çalışabilen açık kaynak mobil AI agent ve otomasyon framework'ü.",
+  "type": "AKINCI",
+  "category": "AI Pentest Agents",
+  "title": "PentesterFlow",
+  "url": "https://github.com/PentesterFlow/agent",
+  "description": "Recon, enumeration, doğrulama, kanıt toplama ve raporlama süreçlerini insan onayıyla yöneten; gerçek pentest araçları, Burp, MCP ve yerel/hosted LLM entegrasyonlarını kullanan açık kaynak agentic pentest CLI aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 27
+  "trigger": 28
 }
