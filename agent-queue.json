@@ -1,10 +1,10 @@
 {
-  "type": "MCP",
-  "category": "Context & Memory Optimization",
-  "title": "Context Mode",
-  "url": "https://github.com/mksglu/context-mode",
-  "description": "AI agent'ların context window kullanımını optimize eden; büyük tool çıktılarını sandbox'ta tutan, session continuity için FTS5/BM25 kullanan ve kod tabanlı analizle context tüketimini azaltan MCP sunucusu ve agent altyapısı.",
+  "type": "GitHub Repos",
+  "category": "Mobile App Testing & Agent Automation",
+  "title": "agent-device",
+  "url": "https://github.com/callstack/agent-device",
+  "description": "AI coding agent'ların iOS, Android ve diğer platformlardaki uygulamaları inspect, control, debug ve verify etmesini sağlayan; CLI, MCP server ve Node.js API üzerinden screenshot, log, trace, replay ve CI kanıtları üreten açık kaynak mobil uygulama otomasyon aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 45
+  "trigger": 46
 }
