@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "AI Pentest Agents",
-  "title": "T3MP3ST",
-  "url": "https://github.com/elder-plinius/T3MP3ST",
-  "description": "Otonom red-team ve offensive-security operasyonlarını çoklu AI ajanlarıyla koordine eden; keşif, saldırı zinciri planlama ve güvenlik test akışlarını meta-harness yaklaşımıyla yöneten açık kaynak platform.",
+  "type": "Skills",
+  "category": "Reasoning & Decision-Making Skills",
+  "title": "CC Thinking Skills",
+  "url": "https://www.skills.sh/tjboudreaux/cc-thinking-skills",
+  "description": "First principles, Socratic questioning, red-team thinking, pre-mortem, systems thinking, Bayesian reasoning ve benzeri düşünme modellerini agent'lara kazandıran kapsamlı reasoning ve decision-making skill paketi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 31
+  "trigger": 32
 }
