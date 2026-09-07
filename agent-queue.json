@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "React Code Quality & AI Developer Tools",
-  "title": "React Doctor",
-  "url": "https://www.react.doctor",
-  "description": "React projelerini correctness, performance, security, accessibility ve maintainability açısından tarayan; AI coding agent'ların yazdığı koddaki anti-pattern ve regresyonları yakalayan, CLI ve CI entegrasyonu sunan kod kalitesi aracı.",
+  "category": "Codebase Understanding & Knowledge Graphs",
+  "title": "Understand Anything",
+  "url": "https://github.com/Egonex-AI/Understand-Anything",
+  "description": "Kod tabanlarını, dokümantasyonu ve knowledge base'leri multi-agent analizle interaktif knowledge graph'a dönüştüren; mimari, bağımlılıklar, business logic, semantic search, diff impact ve onboarding içgörüleri sunan AI developer aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 40
+  "trigger": 41
 }
