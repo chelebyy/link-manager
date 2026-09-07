@@ -1,10 +1,10 @@
 {
-  "type": "Skills",
-  "category": "AI Coding & Design Skills",
-  "title": "Emil Kowalski Skills",
-  "url": "https://github.com/emilkowalski/skills",
-  "description": "Designer ve engineer'lar için hazırlanmış; AI coding agent'larında tasarım, arayüz, ürün ve mühendislik iş akışlarını iyileştirmeye yönelik yeniden kullanılabilir skill koleksiyonu.",
+  "type": "AKINCI",
+  "category": "AI Pentest Research & Benchmarks",
+  "title": "LLM4Pentest",
+  "url": "https://github.com/simon-p-j-r/LLM4Pentest",
+  "description": "LLM tabanlı otomatik pentest alanındaki akademik makaleleri, teknik blogları, açık kaynak kodları, pratik araçları, MCP araçlarını ve değerlendirme benchmark'larını bir araya getiren küratörlü araştırma ve kaynak deposu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 37
+  "trigger": 38
 }
