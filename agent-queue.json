@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "AI Coding CLI Management",
-  "title": "CC Switch",
-  "url": "https://ccswitch.io/en/",
-  "description": "Claude Code, Codex, Gemini CLI, OpenCode, OpenClaw ve Hermes Agent gibi AI coding araçlarını tek arayüzden yönetmeye yarayan; provider/config switching, Skills ve MCP yönetimi, kullanım istatistikleri ile yerel proxy/routing özellikleri sunan açık kaynak masaüstü uygulaması.",
+  "type": "AKINCI",
+  "category": "AI Pentest Agents",
+  "title": "HOCSec",
+  "url": "https://hackersonlineclub.com/hocsec",
+  "description": "Hackers Online Club tarafından sunulan, siber güvenlik ve penetrasyon testi çalışmalarında AI destekli güvenlik analizi ve pentest iş akışlarına odaklanan araç/platform.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 43
+  "trigger": 44
 }
