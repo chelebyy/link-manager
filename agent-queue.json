@@ -1,10 +1,10 @@
 {
   "type": "website",
-  "category": "AI Agent Readiness & Web Standards",
-  "title": "Is Your Site Agent-Ready?",
-  "url": "https://isitagentready.com/",
-  "description": "Cloudflare tarafından sunulan; web sitelerini robots.txt, sitemap, Markdown negotiation, MCP, Agent Skills, WebMCP, API Catalog, OAuth ve agentic commerce standartları açısından tarayıp AI agent hazırlık seviyesini ölçen ücretsiz analiz aracı.",
+  "category": "AI Search & LLM Visibility",
+  "title": "GeoDaddy",
+  "url": "https://geodaddy.dev",
+  "description": "ChatGPT, Perplexity, Gemini ve Claude için web sitesinin AI search görünürlüğünü; teknik SEO, içerik yapısı, AI bot erişimi, llms.txt ve Core Web Vitals dahil 22 kontrol üzerinden puanlayıp uygulanabilir düzeltme önerileri sunan açık kaynak GEO analiz aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 34
+  "trigger": 35
 }
