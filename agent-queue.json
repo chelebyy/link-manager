@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "AI Red Team & GenAI Security",
-  "title": "PyRIT",
-  "url": "https://github.com/microsoft/PyRIT",
-  "description": "Generative AI sistemlerindeki güvenlik ve güvenilirlik risklerini proaktif olarak keşfetmek, test senaryoları orkestre etmek ve AI red-team değerlendirmelerini otomatikleştirmek için Microsoft tarafından geliştirilen açık kaynak Python framework'ü.",
+  "type": "Skills",
+  "category": "AI Coding & Design Skills",
+  "title": "Emil Kowalski Skills",
+  "url": "https://github.com/emilkowalski/skills",
+  "description": "Designer ve engineer'lar için hazırlanmış; AI coding agent'larında tasarım, arayüz, ürün ve mühendislik iş akışlarını iyileştirmeye yönelik yeniden kullanılabilir skill koleksiyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 36
+  "trigger": 37
 }
