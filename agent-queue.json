@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Bug Bounty Frameworks",
-  "title": "Ars0n Framework v2",
-  "url": "https://github.com/R-s0n/ars0n-framework-v2",
-  "description": "50+ yaygın bug bounty aracını Docker tabanlı tek framework ve merkezi UI altında birleştiren; recon, attack surface mapping, vulnerability assessment ve metodoloji odaklı avcılık akışlarını otomatikleştiren açık kaynak bug bounty platformu.",
+  "category": "AI Pentest Agents",
+  "title": "REDCELL",
+  "url": "https://github.com/martian56/redcell",
+  "description": "LLM ajanlarından oluşan bir ekip ile uçtan uca pentest planlama, gerçek güvenlik araçlarını Kali container içinde çalıştırma, tarayıcı ve reverse shell etkileşimi, finding triage, kod güvenlik taraması ve PDF/JSON/SARIF raporlama sunan self-hosted AI pentest platformu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 62
+  "trigger": 63
 }
