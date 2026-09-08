@@ -1,10 +1,10 @@
 {
-  "type": "Self Hosted",
-  "category": "File Conversion & Media Tools",
-  "title": "ConvertX",
-  "url": "https://github.com/C4illin/ConvertX",
-  "description": "Docker ile self-host edilebilen; belge, görsel, video, e-kitap, 3D varlık ve diğer dosyaları 1000+ format arasında dönüştüren, toplu işlem, kullanıcı hesabı ve parola koruması sunan web tabanlı dosya dönüştürme platformu.",
+  "type": "GitHub Repos",
+  "category": "React Native UI & App Experience",
+  "title": "react-native-bootsplash",
+  "url": "https://github.com/zoontek/react-native-bootsplash",
+  "description": "React Native uygulamalarında Android ve iOS native splash/launch screen'lerini yönetmeyi; CLI ile asset, drawable ve storyboard üretmeyi, Expo entegrasyonunu, fade/custom hide animation ve dark mode desteğini sağlayan kütüphane.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 48
+  "trigger": 49
 }
