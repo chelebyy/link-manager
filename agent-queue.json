@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "Mobile App Testing & Agent Automation",
-  "title": "Appium",
-  "url": "https://github.com/appium/appium",
-  "description": "Native, hybrid, mobile web ve desktop uygulamalarını WebDriver tabanlı olarak otomatik test etmeye yarayan; Android, iOS, macOS ve Windows gibi platformları driver ve plugin mimarisiyle destekleyen açık kaynak çapraz platform test otomasyon framework'ü.",
+  "type": "website",
+  "category": "UI",
+  "title": "Square UI",
+  "url": "https://square.lndevui.com/",
+  "description": "shadcn/ui tabanlı açık kaynak ve premium UI layout/template koleksiyonu; dashboard, CRM, habit tracker, rentals, calendar, chat, file manager ve benzeri hazır arayüzleri canlı demo ve kaynak kod bağlantılarıyla sunar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 53
+  "trigger": 54
 }
