@@ -65,7 +65,7 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<number>>(new Set());
   const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
-  const [bulkTargetType, setBulkTargetType] = useState('');
+  const [chosenBulkTargetType, setBulkTargetType] = useState('');
   const [bulkTargetCategoryId, setBulkTargetCategoryId] = useState(AUTO_CATEGORY_VALUE);
   const lastVisibleResourcesSignatureRef = useRef<string | null>(null);
 
@@ -137,17 +137,7 @@ export function ResourceList({ categoryId, type, searchQuery, resourceFilterMode
     queryFn: api.getResourceTypes,
   });
 
-  useEffect(() => {
-    if (!bulkMoveOpen || bulkTargetType) {
-      return;
-    }
-
-    const resourceTypes = resourceTypesQuery.data ?? [];
-    const nextType = resourceTypes.find((resourceType) => resourceType.id !== type)?.id ?? resourceTypes[0]?.id ?? '';
-    if (nextType) {
-      setBulkTargetType(nextType);
-    }
-  }, [bulkMoveOpen, bulkTargetType, resourceTypesQuery.data, type]);
+  const bulkTargetType = chosenBulkTargetType || resourceTypesQuery.data?.find((resourceType) => resourceType.id !== type)?.id || resourceTypesQuery.data?.[0]?.id || '';
 
   const allCategoriesQuery = useQuery({
     queryKey: queryKeys.categories(),

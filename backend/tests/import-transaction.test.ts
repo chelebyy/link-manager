@@ -45,6 +45,9 @@ const setupAppWithTempDb = async (t: any) => {
   return { app, query, logged };
 };
 
+const revision = async (app: Awaited<ReturnType<typeof setupAppWithTempDb>>['app']) =>
+  (await app.inject({ method: 'GET', url: '/api/data/export' })).json().revision;
+
 test('POST /import: valid payload persists all rows in resources, categories, resource_types', async (t) => {
   const { app, query } = await setupAppWithTempDb(t);
 
@@ -52,6 +55,7 @@ test('POST /import: valid payload persists all rows in resources, categories, re
     method: 'POST',
     url: '/api/data/import',
     payload: {
+      expected_revision: await revision(app),
       resourceTypes: [
         { id: 'custom-1', name: 'Custom Type', icon: 'Star', color: '#123456', is_builtin: false, sort_order: 99 },
       ],
@@ -105,6 +109,7 @@ test('POST /import: row violating unique URL constraint rolls back ALL writes', 
     method: 'POST',
     url: '/api/data/import',
     payload: {
+      expected_revision: await revision(app),
       resourceTypes: [
         { id: 'rollback-type', name: 'Rollback Type', icon: 'Star', color: '#111111', is_builtin: false, sort_order: 50 },
       ],
@@ -150,6 +155,7 @@ test('POST /import: failure during categories upsert rolls back resource_types w
     method: 'POST',
     url: '/api/data/import',
     payload: {
+      expected_revision: await revision(app),
       resourceTypes: [
         { id: 'tx-rollback-rt', name: 'TX Rollback RT', icon: 'Star', color: '#abcabc', is_builtin: false, sort_order: 42 },
       ],
@@ -175,6 +181,7 @@ test('POST /import: failure during categories upsert rolls back resource_types w
       method: 'POST',
       url: '/api/data/import',
       payload: {
+        expected_revision: await revision(app),
         resourceTypes: [
           { id: 'tx-rollback-rt-2', name: 'TX Rollback RT 2', icon: 'Star', color: '#abcabc', is_builtin: false, sort_order: 42 },
         ],
@@ -214,4 +221,56 @@ test('POST /import: invalid payload returns 400 (no DB writes)', async (t) => {
   const res = await query('SELECT COUNT(*) AS c FROM resources');
   // Baseline tables exist but should hold zero rows from this call.
   assert.equal(Number((res.rows[0] as any).c), 0);
+});
+
+test('POST /import: updating a category preserves links absent from the import', async (t) => {
+  const { app, query } = await setupAppWithTempDb(t);
+  await query("INSERT INTO categories (id, name, type) VALUES (800, 'Before', 'website')");
+  await query("INSERT INTO resources (id, category_id, type, title, url) VALUES (8001, 800, 'website', 'Keep', 'https://keep.test')");
+  const response = await app.inject({ method: 'POST', url: '/api/data/import', payload: {
+    expected_revision: await revision(app),
+    categories: [{ id: 800, name: 'After', type: 'website' }], resources: [], resourceTypes: [],
+  } });
+  assert.equal(response.statusCode, 200);
+  const result = await query('SELECT category_id FROM resources WHERE id = 8001');
+  assert.equal(result.rows[0]?.category_id, 800, 'upsert must not delete/reinsert the category and detach existing links');
+});
+
+test('POST /import: a conflicting category name cannot replace a different category', async (t) => {
+  const { app, query } = await setupAppWithTempDb(t);
+  await query("INSERT INTO categories (id, name, type) VALUES (810, 'Retain', 'website')");
+  const response = await app.inject({ method: 'POST', url: '/api/data/import', payload: {
+    expected_revision: await revision(app),
+    categories: [{ id: 811, name: 'Retain', type: 'website' }], resources: [], resourceTypes: [],
+  } });
+  assert.notEqual(response.statusCode, 200);
+  const result = await query('SELECT id FROM categories WHERE id IN (810, 811)');
+  assert.deepEqual(result.rows.map(row => row.id), [810]);
+});
+
+test('POST /import: missing revision is rejected and stale preview preserves other client edits', async (t) => {
+  const { app, query } = await setupAppWithTempDb(t);
+  const missing = await app.inject({ method: 'POST', url: '/api/data/import', payload: { categories: [] } });
+  assert.equal(missing.statusCode, 428);
+  await query("INSERT INTO categories (id, name, type) VALUES (820, 'Before', 'website')");
+  const expected_revision = await revision(app);
+  await query("UPDATE categories SET name = 'Other client' WHERE id = 820");
+  const stale = await app.inject({ method: 'POST', url: '/api/data/import', payload: {
+    expected_revision, categories: [{ id: 820, name: 'Overwrite', type: 'website' }],
+    resourceTypes: [{ id: 'must-not-exist', name: 'Rollback' }],
+  } });
+  assert.equal(stale.statusCode, 409);
+  assert.equal((await query('SELECT name FROM categories WHERE id = 820')).rows[0].name, 'Other client');
+  assert.equal((await query("SELECT id FROM resource_types WHERE id = 'must-not-exist'")).rows.length, 0);
+});
+
+test('POST /import: concurrent requests with one revision cannot both commit', async (t) => {
+  const { app, query } = await setupAppWithTempDb(t);
+  const expected_revision = await revision(app);
+  const responses = await Promise.all(['First', 'Second'].map(name => app.inject({
+    method: 'POST', url: '/api/data/import', payload: { expected_revision, categories: [{ id: 830, name, type: 'website' }] },
+  })));
+  assert.deepEqual(responses.map(r => r.statusCode).sort(), [200, 409]);
+  const winner = responses[0].statusCode === 200 ? 'First' : 'Second';
+  assert.equal((await query('SELECT name FROM categories WHERE id = 830')).rows[0].name, winner);
 });

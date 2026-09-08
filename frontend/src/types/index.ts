@@ -63,6 +63,7 @@ export interface ResourceWithSync extends Resource {
 }
 
 export interface ExportPayload {
+  revision?: string;
   exported_at: string;
   resourceTypes: ResourceTypeDefinition[];
   categories: Category[];

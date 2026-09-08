@@ -1,7 +1,7 @@
 # link-manager frontend — VITE_API_KEY is build-time; must come in via ARG
 # (Dokploy compose-mode injects secrets into runtime env, not into build args;
 # we explicitly pass it through the build stage so Vite bakes it into the bundle)
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 ARG VITE_API_KEY
 ENV VITE_API_KEY=${VITE_API_KEY}
 WORKDIR /app

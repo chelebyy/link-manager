@@ -1,6 +1,6 @@
 # link-manager backend — invalidates build cache on 2026-06-02 deploy fix
 # (LINK_MANAGER_API_KEY env now injected from Dokploy project-level secrets)
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
 RUN apk add --no-cache python3 make g++
@@ -11,7 +11,7 @@ RUN npm ci
 COPY . .
 RUN npm run build && npm prune --omit=dev
 
-FROM node:20-alpine
+FROM node:24-alpine
 WORKDIR /app
 
 RUN apk add --no-cache curl

@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { db, query, withTransaction, type TxQuery } from '../../shared/db/index.js';
+import { db, withTransaction, type TxQuery } from '../../shared/db/index.js';
+import { lockImportData, readDataSnapshot } from './snapshot.js';
 import {
   DUPLICATE_RESOURCE_URL_ERROR,
   getResourceIdentity,
@@ -9,6 +10,7 @@ import {
 } from '../resources/url-conflicts.js';
 
 type ImportPayload = {
+  expected_revision?: string;
   resourceTypes?: Array<Record<string, unknown>>;
   categories?: Array<Record<string, unknown>>;
   resources?: Array<Record<string, unknown>>;
@@ -45,8 +47,12 @@ const upsertResourceType = async (txQuery: TxQuery, item: Record<string, unknown
   }
 
   await txQuery(
-    `INSERT OR REPLACE INTO resource_types (id, name, icon, color, description, is_builtin, sort_order, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+    `INSERT INTO resource_types (id, name, icon, color, description, is_builtin, sort_order, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(id) DO UPDATE SET
+       name = excluded.name, icon = excluded.icon, color = excluded.color,
+       description = excluded.description, sort_order = excluded.sort_order,
+       updated_at = datetime('now')`,
     [
       String(item.id),
       String(item.name),
@@ -84,8 +90,12 @@ const upsertCategory = async (txQuery: TxQuery, item: Record<string, unknown>) =
   }
 
   await txQuery(
-    `INSERT OR REPLACE INTO categories (id, name, type, color, icon, sort_order, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+    `INSERT INTO categories (id, name, type, color, icon, sort_order, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(id) DO UPDATE SET
+       name = excluded.name, type = excluded.type, color = excluded.color,
+       icon = excluded.icon, sort_order = excluded.sort_order,
+       updated_at = datetime('now')`,
     [
       toNumber(item.id),
       String(item.name),
@@ -120,6 +130,8 @@ const upsertResource = async (txQuery: TxQuery, item: Record<string, unknown>) =
 
   if (db.isPostgres) {
     await txQuery(
+      existingResource ? `UPDATE resources SET category_id = $2, type = $3, title = $4, url = $5,
+        description = $6, metadata = $7, is_favorite = $8, sort_order = $9, updated_at = NOW() WHERE id = $1` :
       `INSERT INTO resources (id, category_id, type, title, url, description, metadata, is_favorite, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (id) DO UPDATE SET
@@ -183,17 +195,14 @@ export async function dataRoutes(app: FastifyInstance, options: FastifyPluginOpt
       },
     },
   }, async () => {
-    const [resourceTypes, categories, resources] = await Promise.all([
-      query('SELECT * FROM resource_types ORDER BY sort_order ASC, name ASC', []),
-      query('SELECT * FROM categories ORDER BY sort_order ASC, name ASC', []),
-      query('SELECT * FROM resources ORDER BY sort_order ASC, created_at ASC', []),
-    ]);
+    const snapshot = await withTransaction(async (txQuery) => {
+      await lockImportData(txQuery, false);
+      return readDataSnapshot(txQuery);
+    });
 
     return {
       exported_at: new Date().toISOString(),
-      resourceTypes: resourceTypes.rows,
-      categories: categories.rows,
-      resources: resources.rows,
+      ...snapshot,
     };
   });
 
@@ -216,8 +225,17 @@ export async function dataRoutes(app: FastifyInstance, options: FastifyPluginOpt
     const categories = Array.isArray(body.categories) ? body.categories : [];
     const resources = Array.isArray(body.resources) ? body.resources : [];
 
+    if (typeof body.expected_revision !== 'string' || !/^[a-f0-9]{64}$/.test(body.expected_revision)) {
+      return reply.code(428).send({ error: 'Güncel veri sürümü gerekli. Verileri yeniden okuyup içe aktarmayı tekrar başlatın.' });
+    }
+
     try {
       await withTransaction(async (txQuery) => {
+        await lockImportData(txQuery, true);
+        const current = await readDataSnapshot(txQuery);
+        if (current.revision !== body.expected_revision) {
+          throw Object.assign(new Error('Veriler önizlemeden sonra değişti. Yeni bir önizleme ile tekrar onaylayın.'), { code: 'STALE_IMPORT' });
+        }
         for (const item of resourceTypes) {
           try {
             await upsertResourceType(txQuery, item);
@@ -244,8 +262,20 @@ export async function dataRoutes(app: FastifyInstance, options: FastifyPluginOpt
             throw err;
           }
         }
+        if (db.isPostgres) {
+          // Explicit imported IDs do not advance BIGSERIAL sequences.
+          for (const table of ['categories', 'resources'] as const) {
+            if (!body[table]?.length) continue;
+            await txQuery(`SELECT setval(pg_get_serial_sequence('${table}', 'id'),
+              GREATEST((SELECT last_value FROM ${table}_id_seq), COALESCE((SELECT MAX(id) FROM ${table}), 1)),
+              (SELECT is_called FROM ${table}_id_seq) OR EXISTS (SELECT 1 FROM ${table}))`);
+          }
+        }
       });
     } catch (error) {
+      if ((error as { code?: string })?.code === 'STALE_IMPORT') {
+        return reply.code(409).send({ error: (error as Error).message });
+      }
       if (isResourceUrlConflictError(error) || (error as { statusCode?: number })?.statusCode === 409) {
         reply.status(409);
         return { error: DUPLICATE_RESOURCE_URL_ERROR };

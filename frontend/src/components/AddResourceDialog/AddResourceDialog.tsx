@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
@@ -43,47 +43,24 @@ interface AddResourceDialogProps {
   } | null;
 }
 
-export function AddResourceDialog({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes, initialResource = null }: AddResourceDialogProps) {
+export function AddResourceDialog(props: AddResourceDialogProps) {
+  if (!props.open) return null;
+  const formKey = props.initialResource ? `edit-${props.initialResource.id}` : `new-${props.selectedType ?? props.resourceTypes[0]?.id ?? 'website'}`;
+  return <ResourceForm key={formKey} {...props} />;
+}
+
+function ResourceForm({ open, onClose, onSuccess, onNotify, categories, selectedType, resourceTypes, initialResource = null }: AddResourceDialogProps) {
   const queryClient = useQueryClient();
   const defaultType = selectedType ?? (resourceTypes[0]?.id || 'website');
   const [type, setType] = useState<string>(initialResource?.type ?? defaultType);
-  const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [description, setDescription] = useState('');
-  const [categoryId, setCategoryId] = useState<string>('');
+  const [title, setTitle] = useState(initialResource?.title ?? '');
+  const [url, setUrl] = useState(initialResource?.url ?? '');
+  const [description, setDescription] = useState(initialResource?.description ?? '');
+  const [categoryId, setCategoryId] = useState(initialResource?.category_id?.toString() ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const isEditing = initialResource !== null;
-  const effectiveType = initialResource
-    ? type
-    : type === 'website' && !selectedType && resourceTypes[0]?.id
-      ? resourceTypes[0].id
-      : type;
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    if (initialResource) {
-      setType(initialResource.type);
-      setTitle(initialResource.title);
-      setUrl(initialResource.url ?? '');
-      setDescription(initialResource.description ?? '');
-      setCategoryId(initialResource.category_id ? initialResource.category_id.toString() : '');
-      setError('');
-      setLoading(false);
-      return;
-    }
-
-    setType(defaultType);
-    setTitle('');
-    setUrl('');
-    setDescription('');
-    setCategoryId('');
-    setError('');
-    setLoading(false);
-  }, [open, initialResource, defaultType]);
+  const effectiveType = type;
 
   const filteredCategories = sortCategoriesAlphabetically(categories.filter((category) => category.type === effectiveType));
   const typeResourcesQuery = useQuery({

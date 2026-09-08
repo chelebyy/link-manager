@@ -3,7 +3,7 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 import { cn } from "../../lib/utils"
 import { buttonVariants } from "./button"
 
-const AlertDialog = AlertDialogPrimitive.Root
+export { Root as AlertDialog } from "@radix-ui/react-alert-dialog"
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
@@ -122,7 +122,6 @@ const AlertDialogCancel = React.forwardRef<
 AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName
 
 export {
-  AlertDialog,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogFooter,

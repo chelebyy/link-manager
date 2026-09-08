@@ -35,6 +35,8 @@ export function MobileMenu({ items, trigger }: MobileMenuProps) {
 
   useEffect(() => {
     if (!open) return;
+    const trigger = triggerRef.current;
+    let focusFrame: number | undefined;
 
     // Focus the first focusable element inside the menu.
     const menu = menuRef.current;
@@ -42,7 +44,7 @@ export function MobileMenu({ items, trigger }: MobileMenuProps) {
       const focusables = menu.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
       const first = focusables[0];
       // Defer to the next frame so the dialog exists in the DOM before we focus.
-      requestAnimationFrame(() => {
+      focusFrame = requestAnimationFrame(() => {
         first?.focus();
       });
     }
@@ -80,8 +82,9 @@ export function MobileMenu({ items, trigger }: MobileMenuProps) {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      if (focusFrame !== undefined) cancelAnimationFrame(focusFrame);
       // Return focus to the trigger that opened the menu.
-      triggerRef.current?.focus();
+      trigger?.focus();
     };
   }, [open]);
 
