@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "UI",
-  "title": "Square UI",
-  "url": "https://github.com/zerostaticthemes/square-ui",
-  "description": "Next.js, TypeScript, shadcn/ui ve Tailwind CSS ile hazırlanmış; dashboard, CRM, habit tracker, rentals, bookmarks, maps, files, calendar, chat, email ve task management gibi hazır açık kaynak arayüz/layout şablonları sunan UI koleksiyonu.",
+  "type": "GitHub Repos",
+  "category": "Mobile App Testing & Agent Automation",
+  "title": "Appium",
+  "url": "https://github.com/appium/appium",
+  "description": "Native, hybrid, mobile web ve desktop uygulamalarını WebDriver tabanlı olarak otomatik test etmeye yarayan; Android, iOS, macOS ve Windows gibi platformları driver ve plugin mimarisiyle destekleyen açık kaynak çapraz platform test otomasyon framework'ü.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 52
+  "trigger": 53
 }
