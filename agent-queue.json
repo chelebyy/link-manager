@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "Android App Assets & Icon Tools",
-  "title": "LogoForAPK",
-  "url": "https://logoforapk.com/",
-  "description": "Android uygulama geliştiricileri için bir logo dosyasından mdpi, hdpi, xhdpi, xxhdpi ve xxxhdpi launcher icon boyutlarını üreten; çıktıları Android Studio'ya uygun klasör yapısıyla hazırlayan web tabanlı ikon oluşturma aracı.",
+  "type": "GitHub Repos",
+  "category": "UI Templates & Component Libraries",
+  "title": "Square UI",
+  "url": "https://github.com/zerostaticthemes/square-ui",
+  "description": "Next.js, TypeScript, shadcn/ui ve Tailwind CSS ile hazırlanmış; dashboard, CRM, habit tracker, rentals, bookmarks, maps, files, calendar, chat, email ve task management gibi hazır açık kaynak arayüz/layout şablonları sunan UI koleksiyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 50
+  "trigger": 51
 }
