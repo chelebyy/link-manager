@@ -3,7 +3,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 import { cn } from "../../lib/utils"
 
-const Dialog = DialogPrimitive.Root
+export { Root as Dialog } from "@radix-ui/react-dialog"
 
 const DialogPortal = DialogPrimitive.Portal
 
@@ -90,7 +90,6 @@ const DialogDescription = React.forwardRef<
 DialogDescription.displayName = DialogPrimitive.Description.displayName
 
 export {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,

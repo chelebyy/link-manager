@@ -3,9 +3,7 @@ import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { cn } from "../../lib/utils"
 
-const Select = SelectPrimitive.Root
-
-const SelectValue = SelectPrimitive.Value
+export { Root as Select, Value as SelectValue } from "@radix-ui/react-select"
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
@@ -80,8 +78,6 @@ const SelectItem = React.forwardRef<
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
 export {
-  Select,
-  SelectValue,
   SelectTrigger,
   SelectContent,
   SelectItem,

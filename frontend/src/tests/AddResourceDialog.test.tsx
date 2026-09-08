@@ -128,7 +128,7 @@ describe('AddResourceDialog F9 — submit disabled while duplicate check is fetc
     });
   });
 
-  it('keeps the submit button disabled when fetch completes with a conflict', async () => {
+  it('rejects duplicate submission after lookup completes and keeps the URL editable', async () => {
     renderDialog();
 
     const titleInput = (await screen.findByLabelText(/Başlık/i)) as HTMLInputElement;
@@ -163,13 +163,17 @@ describe('AddResourceDialog F9 — submit disabled while duplicate check is fetc
       ]);
     });
 
-    // Button stays disabled (URL field too) because the candidate URL collides
-    // with an existing one. The user is forced to change the URL before the
-    // submit can be attempted again.
+    // Wait for the query result, not the transient fetching render. The form
+    // must allow correcting the URL and reject duplicates at submission.
     await waitFor(() => {
-      expect(submit).toBeDisabled();
-      expect(urlInput).toBeDisabled();
+      expect(submit).not.toBeDisabled();
+      expect(urlInput).not.toBeDisabled();
     });
+    fireEvent.change(urlInput, { target: { value: 'https://example.com/dup' } });
+    fireEvent.click(submit);
+    await screen.findByText('URL zaten mevcut');
+    expect(mockedApi.createResource).not.toHaveBeenCalled();
+    expect(urlInput).not.toBeDisabled();
   });
 });
 
@@ -178,6 +182,26 @@ describe('AddResourceDialog editing', () => {
     vi.clearAllMocks();
     mockedApi.getResources.mockResolvedValue([]);
     Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('clears an abandoned draft when closed and reopened', () => {
+    const props = { open: true, onClose: vi.fn(), categories, selectedType: 'website', resourceTypes };
+    const view = render(<AddResourceDialog {...props} />, { wrapper: makeWrapper().Wrapper });
+    fireEvent.change(screen.getByLabelText(/Başlık/), { target: { value: 'Abandoned draft' } });
+    view.rerender(<AddResourceDialog {...props} open={false} />);
+    view.rerender(<AddResourceDialog {...props} />);
+    expect(screen.getByLabelText(/Başlık/)).toHaveValue('');
+  });
+
+  it('preserves a draft across refreshed props but resets when another resource is edited', () => {
+    const initialResource = { id: 1, type: 'website', title: 'First', url: null, description: null, category_id: null };
+    const props = { open: true, onClose: vi.fn(), categories, selectedType: 'website', resourceTypes, initialResource };
+    const view = render(<AddResourceDialog {...props} />, { wrapper: makeWrapper().Wrapper });
+    fireEvent.change(screen.getByLabelText(/Başlık/), { target: { value: 'My draft' } });
+    view.rerender(<AddResourceDialog {...props} initialResource={{ ...initialResource }} resourceTypes={[...resourceTypes]} />);
+    expect(screen.getByLabelText(/Başlık/)).toHaveValue('My draft');
+    view.rerender(<AddResourceDialog {...props} initialResource={{ ...initialResource, id: 2, title: 'Second' }} />);
+    expect(screen.getByLabelText(/Başlık/)).toHaveValue('Second');
   });
 
   it('hides type selection while editing and keeps categories scoped to the current type', async () => {

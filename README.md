@@ -4,6 +4,7 @@ Dokploy VPS üzerinde çalışan, API key ile korumalı kaynak yönetim uygulama
 
 ## Özellikler
 
+- **WebMCP**: Destekleyen tarayıcılarda arama, ekleme/düzenleme, favori, taşıma, sıralama ve onaylı JSON içe aktarma için 19 araç. Silme aracı yok. [Kurulum, kullanım ve doğrulama](docs/WEBMCP.md).
 - **API Key Auth**: Tüm `/api/*` endpoint'ler (sağlık kontrolü hariç) Bearer token ile korunur
 - **Kategoriler**: Dinamik kategori oluşturma ve yönetme
 - **Kaynak Tipleri**: GitHub repos, Skills, Websites, Notes
@@ -13,10 +14,12 @@ Dokploy VPS üzerinde çalışan, API key ile korumalı kaynak yönetim uygulama
 ## Tech Stack
 
 - **Backend**: Fastify + TypeScript + PostgreSQL (SQLite dev fallback)
-- **Frontend**: React 18 + Vite + TailwindCSS + shadcn/ui
+- **Frontend**: React 19 + Vite + TailwindCSS + shadcn/ui
 - **Deployment**: Docker + Dokploy
 
 ## Kurulum
+
+Node.js **24.15 veya daha yeni bir 24.x** sürümü kullanın; CI ve Docker da Node 24 kullanır. Node 20 mevcut bağımlılıklarla desteklenmez.
 
 ### 1. Bağımlılıkları Yükle
 
@@ -120,7 +123,7 @@ git push origin master
 - `POST /api/resources/reorder` — Toplu sıralama (Zod validated)
 
 ### Data
-- `POST /api/data/import` — Atomik import (üç tablo tek transaction'da)
+- `POST /api/data/import` — Atomik import; önce `/api/data/export` yanıtından alınan `revision`, `expected_revision` olarak gönderilmelidir. Eski sürüm 409, eksik sürüm 428 döndürür. Frontend/backend birlikte güncellenmelidir.
 - `GET /api/data/export` — Tüm verileri dışa aktar
 
 ### GitHub

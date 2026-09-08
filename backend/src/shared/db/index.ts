@@ -7,6 +7,15 @@ dotenv.config();
 const usePostgres = Boolean(process.env.DATABASE_URL?.includes('postgresql'));
 let postgresPool: Pool | null = null;
 
+// SQLite shares one connection. Keep unrelated queries out of an async
+// transaction, where they would otherwise join its commit or rollback.
+let sqliteQueue: Promise<unknown> = Promise.resolve();
+const serializeSqlite = <T>(work: () => T | Promise<T>): Promise<T> => {
+  const result = sqliteQueue.then(work);
+  sqliteQueue = result.catch(() => {});
+  return result;
+};
+
 const getPostgresPool = () => {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is required for PostgreSQL mode');
@@ -47,8 +56,10 @@ export const db = {
     if (usePostgres) {
       return getPostgresPool().query(text, params);
     } else {
-      const result = sqliteQuery(text, params);
-      return { rows: getSqliteRows(result), rowCount: getSqliteRowCount(result) };
+      return serializeSqlite(() => {
+        const result = sqliteQuery(text, params);
+        return { rows: getSqliteRows(result), rowCount: getSqliteRowCount(result) };
+      });
     }
   },
 
@@ -308,7 +319,7 @@ const runPostgresTransaction = async <T>(fn: (txQuery: TxQuery) => Promise<T>): 
 
 const runSqliteTransaction = async <T>(fn: (txQuery: TxQuery) => Promise<T>): Promise<T> => {
   const database = initSqliteDb();
-  database.exec('BEGIN');
+  database.exec('BEGIN IMMEDIATE');
   let committed = false;
   try {
     const txQuery: TxQuery = async (sql, params) => {
@@ -330,5 +341,5 @@ export async function withTransaction<T>(fn: (txQuery: TxQuery) => Promise<T>): 
   if (usePostgres) {
     return runPostgresTransaction(fn);
   }
-  return runSqliteTransaction(fn);
+  return serializeSqlite(() => runSqliteTransaction(fn));
 }

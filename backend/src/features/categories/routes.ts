@@ -75,18 +75,19 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
 
   app.put('/:id', async (request, reply) => {
     const { id } = request.params as CategoryParams;
-    const { name, color, icon } = request.body as CategoryUpdateBody;
-
-    if (!name || !color || !icon) {
+    const body = request.body as CategoryUpdateBody;
+    const allowedFields = new Set(['name', 'color', 'icon']);
+    const fields = body && typeof body === 'object' && !Array.isArray(body) ? Object.entries(body) : [];
+    if (!fields.length || fields.some(([key, value]) => !allowedFields.has(key) || typeof value !== 'string' || !value.trim())) {
       reply.status(400);
-      return { error: 'name, color and icon are required' };
+      return { error: 'Provide valid name, color or icon fields' };
     }
     
     const updateTime = db.isPostgres ? 'NOW()' : "datetime('now')";
     try {
       const result = await query(
-        `UPDATE categories SET name = ${param(0)}, color = ${param(1)}, icon = ${param(2)}, updated_at = ${updateTime} WHERE id = ${param(3)} RETURNING *`,
-        [name, color, icon, id]
+        `UPDATE categories SET ${fields.map(([key], index) => `${key} = ${param(index)}`).join(', ')}, updated_at = ${updateTime} WHERE id = ${param(fields.length)} RETURNING *`,
+        [...fields.map(([, value]) => value), id]
       );
       
       if (result.rows.length === 0) {
@@ -115,6 +116,11 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
     }
 
     const deletedRowCount = await withTransaction(async (txQuery) => {
+      if (db.isPostgres) {
+        // Match snapshot locking: acquire categories before touching resources.
+        // Otherwise an export/import can hold categories while waiting on our resources lock.
+        await txQuery('LOCK TABLE categories, resources IN ROW EXCLUSIVE MODE');
+      }
       await txQuery(`UPDATE resources SET category_id = NULL WHERE category_id = ${param(0)}`, [id]);
       const deleteResult = await txQuery(`DELETE FROM categories WHERE id = ${param(0)}`, [id]);
       return deleteResult.rowCount;

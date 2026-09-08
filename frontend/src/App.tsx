@@ -1,4 +1,6 @@
-import { lazy, Suspense, useMemo, useRef, useState, useEffect } from "react";
+import { lazy, Suspense, useMemo, useRef, useState, useEffect, useCallback } from "react";
+import { WebMCPBridge } from "./components/WebMCPBridge";
+import type { ViewInput } from "./lib/webmcp";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CategoryGrid } from "./components/CategoryGrid/CategoryGrid";
 import { TypeCategories } from "./components/TypeCategories/TypeCategories";
@@ -137,6 +139,16 @@ function App() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
+  const handleWebMCPNavigate = useCallback((view: ViewInput) => {
+    setSelectedType(view.type);
+    setSelectedCategory(view.category_id ?? null);
+    setSearchQuery(view.type ? view.search ?? "" : "");
+    setGlobalSearchQuery(view.type ? "" : view.search ?? "");
+    setResourceFilterMode(view.favorite ? "important" : "all");
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  }, []);
+
   useEffect(() => {
     window.localStorage.setItem(
       VIEW_STATE_STORAGE_KEY,
@@ -174,7 +186,7 @@ function App() {
 
   const isLoading = categoriesQuery.isLoading || resourceTypesQuery.isLoading;
 
-  const showToast = (
+  const showToast = useCallback((
     kind: ToastItem["kind"],
     title: string,
     description?: string,
@@ -184,7 +196,7 @@ function App() {
     window.setTimeout(() => {
       setToasts((current) => current.filter((toast) => toast.id !== id));
     }, 4000);
-  };
+  }, []);
 
   const dismissToast = (id: number) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
@@ -516,6 +528,7 @@ function App() {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-6 pb-24 sm:pb-6">
+        <WebMCPBridge onNavigate={handleWebMCPNavigate} />
         {queryLoadError ? (
           <div className="mb-6 rounded-sm border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <strong className="mr-2">Veri yüklenemedi:</strong>

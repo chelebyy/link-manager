@@ -63,7 +63,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  updateCategory: (id: number, payload: { name: string; color: string; icon: string }) =>
+  updateCategory: (id: number, payload: { name?: string; color?: string; icon?: string }) =>
     request<Category>(`/api/categories/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -83,7 +83,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  updateResourceType: (id: string, payload: { name: string; icon: string; color: string; description: string }) =>
+  updateResourceType: (id: string, payload: { name?: string; icon?: string; color?: string; description?: string }) =>
     request<ResourceTypeDefinition>(`/api/resource-types/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -109,7 +109,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  updateResource: (id: number, payload: { type?: string; title: string; url: string | null; description: string | null; category_id: number | null; metadata?: Record<string, unknown> }) =>
+  updateResource: (id: number, payload: { type?: string; title?: string; url?: string | null; description?: string | null; category_id?: number | null; metadata?: Record<string, unknown> }) =>
     request<ResourceWithSync>(`/api/resources/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -135,9 +135,15 @@ export const api = {
     }),
 
   exportData: () => request<ExportPayload>('/api/data/export'),
-  importData: (payload: ExportPayload) => request<{ success: boolean }>('/api/data/import', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }),
+  importData: async (payload: ExportPayload, expectedRevision?: string) => {
+    // A revision from a backup file is not the current destination revision.
+    // Preview callers supply theirs explicitly; direct file import reads now.
+    const revision = expectedRevision ?? (await api.exportData()).revision;
+    if (!revision) throw new ApiError('Sunucu veri sürümü sağlamadı. İçe aktarma başlatılamadı.', 428);
+    return request<{ success: boolean }>('/api/data/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, expected_revision: revision }),
+    });
+  },
 };
