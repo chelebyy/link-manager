@@ -1,6 +1,6 @@
 # Link Manager WebMCP
 
-Tarih: 8 Eylül 2026. Durum: yerel uygulama ve testler tamamlandı; commit, push, merge veya canlı dağıtım yapılmadı.
+Tarih: 8 Eylül 2026. Durum: uygulama ve testler tamamlandı; PR #102 master'a birleştirildi ve Dokploy tarafından dağıtıldı. Frontend sağlık kontrolü ile isteğe bağlı webhook akışının takip düzeltmesi PR #104'te hazırlandı. Canlı tarayıcı WebMCP kabulü henüz yapılmadı.
 
 ## Onaylanan kapsam
 
@@ -113,7 +113,7 @@ Sınırlar:
 | AI erişimini kapatma | Araç listesi boşaldı; sayfa yenilenince kapalı tercihi korundu. |
 | JSON/Markdown | Chrome 152.0.7977.76 üzerinde normal Export/MD düğmeleri ve yerel WebMCP `export_data` çağrıları gerçek download olayı üretti; dört dosyanın akışı okunup Türkçe karakterler doğrulandı, `download.failure()` null. İndirme kodunda değişiklik gerekmedi. |
 | PostgreSQL yerel uçtan uca | PostgreSQL 16 üzerinde gerçek Fastify yollarıyla altı senaryo + üst test (7/7) geçti: URL'li round-trip/ilişkiler/metadata/sayaçlar; eski/eksik sürüm; kilit beklerken başka istemcinin commit'i; aynı sürümlü iki importer; kategori silmeyle export/import kilit sırası; tam rollback. Test kendi veritabanını oluşturup kaldırır. |
-| Canlı site / Dokploy | Dağıtım ve canlı kabul yapılmadı. |
+| Canlı site / Dokploy | PR #102, `8c126f1` ile 8 Eylül 2026'da master'a birleştirildi; CI ve CodeQL geçti. Dokploy native Auto Deploy bu commit'i dağıttı; backend ve PostgreSQL healthy. Frontend sağlık kontrolünün IPv4 adresi ve isteğe bağlı GitHub webhook akışı takip düzeltmesinde ele alındı. Canlı tarayıcı üzerinden WebMCP kabulü henüz yapılmadı. |
 
 İlk kullanıcı-onayı-bekleyen araç denemesi istemcide zaman aşımına girdi. Son tasarım bu nedenle anlık bekleme sonucu + ayrı durum sorgulaması kullanır. Geliştirme sırasında WebMCP kodu değiştirildiğinde araç listesi için tam sayfa yenileme kullanılmalıdır.
 

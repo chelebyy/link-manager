@@ -1,9 +1,8 @@
-name: Deploy
+name: Manual Dokploy webhook
 
 on:
-  push:
-    branches:
-      - master
+  # Master pushes deploy through Dokploy's native GitHub Auto Deploy.
+  # This optional fallback requires DOKPLOY_WEBHOOK_URL to be configured.
   workflow_dispatch:
 
 concurrency:
@@ -18,6 +17,8 @@ jobs:
     name: Trigger Dokploy deploy
     runs-on: ubuntu-latest
     environment: production
+    env:
+      APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
     steps:
       - name: Ensure deploy webhook is configured
         env:
@@ -40,9 +41,7 @@ jobs:
             "$DOKPLOY_WEBHOOK_URL"
 
       - name: Optional health check
-        if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
-        env:
-          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
+        if: ${{ env.APP_HEALTHCHECK_URL != '' }}
         run: |
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             if curl --fail --show-error --silent "$APP_HEALTHCHECK_URL"; then
