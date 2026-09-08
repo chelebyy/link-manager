@@ -1,10 +1,10 @@
 {
   "type": "website",
-  "category": "AI Search & LLM Visibility",
-  "title": "geo.new",
-  "url": "https://geo.new/",
-  "description": "Web sitelerinin AI arama motorları ve LLM tabanlı keşif sistemlerindeki görünürlüğünü analiz etmeye ve Generative Engine Optimization (GEO) açısından iyileştirmeye yönelik web tabanlı araç.",
+  "category": "Developer Tools & Observability",
+  "title": "Evlog",
+  "url": "https://www.evlog.dev/",
+  "description": "Geliştiriciler için event/log takibi, debugging ve uygulama davranışını gözlemleme iş akışlarına odaklanan web tabanlı developer observability aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 58
+  "trigger": 59
 }
