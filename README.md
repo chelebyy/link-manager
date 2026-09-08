@@ -4,7 +4,7 @@ Dokploy VPS üzerinde çalışan, API key ile korumalı kaynak yönetim uygulama
 
 ## Özellikler
 
-- **WebMCP**: Destekleyen tarayıcılarda arama, ekleme/düzenleme, favori, taşıma, sıralama ve onaylı JSON içe aktarma için 19 araç. Silme aracı yok. [Kurulum, kullanım ve doğrulama](docs/WEBMCP.md).
+- **WebMCP**: Destekleyen tarayıcılarda listeleme, arama, detay, gezinme ve JSON/Markdown dışa aktarma için 6 salt okunur araç. AI erişimi isteğe bağlıdır; normal yönetim ekranları korunur. [Kurulum, kullanım ve doğrulama](docs/WEBMCP.md).
 - **API Key Auth**: Tüm `/api/*` endpoint'ler (sağlık kontrolü hariç) Bearer token ile korunur
 - **Kategoriler**: Dinamik kategori oluşturma ve yönetme
 - **Kaynak Tipleri**: GitHub repos, Skills, Websites, Notes

@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import auth from '@fastify/auth';
-import rateLimit from '@fastify/rate-limit';
+import { registerRateLimits } from './shared/rate-limit.js';
 import helmet from '@fastify/helmet';
 import dotenv from 'dotenv';
 import { closeDb, initDb } from './shared/db/index.js';
@@ -41,13 +41,7 @@ await app.register(helmet, {
 
 await app.register(auth);
 
-await app.register(rateLimit, {
-  global: true,
-  max: 60,
-  timeWindow: '15 minutes',
-  keyGenerator: (request: any) => request.ip,
-  skipOnError: true,
-});
+await registerRateLimits(app);
 
 app.decorate('verifyApiKey', async (request: any, reply: any) => {
   if (!apiKey) {
