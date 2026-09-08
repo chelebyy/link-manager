@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "React Native UI & App Experience",
-  "title": "react-native-bootsplash",
-  "url": "https://github.com/zoontek/react-native-bootsplash",
-  "description": "React Native uygulamalarında Android ve iOS native splash/launch screen'lerini yönetmeyi; CLI ile asset, drawable ve storyboard üretmeyi, Expo entegrasyonunu, fade/custom hide animation ve dark mode desteğini sağlayan kütüphane.",
+  "type": "website",
+  "category": "Android App Assets & Icon Tools",
+  "title": "LogoForAPK",
+  "url": "https://logoforapk.com/",
+  "description": "Android uygulama geliştiricileri için bir logo dosyasından mdpi, hdpi, xhdpi, xxhdpi ve xxxhdpi launcher icon boyutlarını üreten; çıktıları Android Studio'ya uygun klasör yapısıyla hazırlayan web tabanlı ikon oluşturma aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 49
+  "trigger": 50
 }
