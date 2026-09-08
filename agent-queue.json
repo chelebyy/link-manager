@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "Mobile App Testing & Agent Automation",
-  "title": "agent-device",
-  "url": "https://github.com/callstack/agent-device",
-  "description": "AI coding agent'ların iOS, Android ve diğer platformlardaki uygulamaları inspect, control, debug ve verify etmesini sağlayan; CLI, MCP server ve Node.js API üzerinden screenshot, log, trace, replay ve CI kanıtları üreten açık kaynak mobil uygulama otomasyon aracı.",
+  "type": "Skills",
+  "category": "Media & Video Production Skills",
+  "title": "FFmpeg Skill",
+  "url": "https://github.com/kajisho5/ffmpeg-skill",
+  "description": "Codex, Claude Code ve Cursor gibi AI coding agent'lara yerel FFmpeg/ffprobe üzerinden video ve ses düzenleme yeteneği kazandıran; kesme, birleştirme, altyazı, ses temizleme, senkronizasyon, renk/HDR işlemleri, export ve doğrulama dahil 28 yapılandırılmış araç sunan agent skill ve MCP paketi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 46
+  "trigger": 47
 }
