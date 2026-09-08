@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Burp Suite & AI Integration",
-  "title": "PortSwigger MCP Server",
-  "url": "https://github.com/portswigger/mcp-server",
-  "description": "Burp Suite'i Model Context Protocol üzerinden AI istemcilerine bağlayan; Burp içindeki işlemleri MCP araçları olarak kullanmayı ve Claude gibi istemcilerden Burp ile etkileşimi sağlayan resmi PortSwigger eklentisi.",
+  "category": "Burp Suite Extensions",
+  "title": "GhostJS Burp Extension",
+  "url": "https://github.com/trinetlayer/Ghost-Js-Burp-Extension",
+  "description": "Burp Suite içinde JavaScript, HTML ve JSON yanıtlarını pasif olarak tarayıp 150+ hardcoded secret türünü ve gizli API endpointlerini tespit eden; false-positive filtreleme, proxy highlighting ve Markdown rapor export desteği sunan güvenlik eklentisi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 60
+  "trigger": 61
 }
