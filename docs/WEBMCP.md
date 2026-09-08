@@ -104,7 +104,7 @@ Sınırlar:
 | Backend testleri | 98 test geçti; SQLite eski sürüm, eşzamanlı içe aktarma ve kısmi kategori düzenleme koruması dahil. PostgreSQL kabulü ayrı çalıştırıldı. |
 | Frontend üretim derlemesi | Geçti. |
 | Backend TypeScript derlemesi | Geçti. |
-| Docker Compose yapılandırması | `docker compose config -q` geçti; mevcut `version` alanı için eski kullanım uyarısı var. Docker imaj derlemesi çalıştırılmadı. |
+| Docker Compose ve imajlar | `docker compose config -q` geçti; mevcut `version` alanı için eski kullanım uyarısı var. Node 24 Alpine backend ve Nginx frontend üretim imajları derlendi. Frontend builder içinde 74 test ve sıfır uyarı toleranslı lint geçti. Geçici konteynerler başlatıldı; HTTP kabul kontrolü ortamın otomatik onay denetimince reddedildiği için çalışma kabulü doğrulanmadı. |
 | Değişen frontend dosyalarında ESLint | Geçti. |
 | Tüm frontend ESLint | `--max-warnings=0` ile geçti: sıfır hata ve sıfır uyarı. Form state'i anahtarla sıfırlanıyor; toplu taşıma varsayılanı render sırasında hesaplanıyor. Mobil menü odak temizliği sabitlendi; Radix bileşenleri doğrudan yeniden dışa aktarılıyor. |
 | Tarayıcı WebMCP keşfi | Yerel Codex tarayıcısı 19 aracı keşfetti. |
@@ -119,7 +119,7 @@ Sınırlar:
 
 Tarayıcı kontrolünde mevcut kaynak hata bildiriminin tekrar tekrar eklendiği bir render döngüsü de görüldü. `App` bildirim callback'i sabitlendi ve tek hata bildirimi regresyon testi eklendi. Mevcut duplicate-URL testinin geçici yüklenme ekranına dayanarak yanlış geçmesi giderildi; artık sorgu tamamlandıktan sonraki gerçek davranışı ve mükerrer gönderimin engellendiğini kontrol eder.
 
-Mevcut TypeScript 7 ile typescript-eslint uyumsuzluğu, [Microsoft'un yan yana kullanım düzeni](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0) uygulanarak çözüldü: derlemede TS7, lint için TS6 API uyumluluk paketi. Son test/lint/derleme doğrulaması Node 24.19.0 üzerinde yapıldı. CI ve Docker Node 20'den desteklenen Node 24'e alındı; CI'a backend/frontend testleri ve sıfır uyarı şartlı lint eklendi. Vite'ın mevcut büyük paket ve config-loader uyarıları devam ediyor. Docker servisi bu ortamda çalışmadığından imaj derlemesi ve GitHub üzerindeki CI henüz doğrulanmadı.
+Mevcut TypeScript 7 ile typescript-eslint uyumsuzluğu, [Microsoft'un yan yana kullanım düzeni](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0) uygulanarak çözüldü: derlemede TS7, lint için TS6 API uyumluluk paketi. Yerel doğrulama Node 24.19.0 üzerinde yapıldı. CI ve Docker Node 20'den desteklenen Node 24'e alındı; CI'a backend/frontend testleri ve sıfır uyarı şartlı lint eklendi. Güncel master bağımlılıklarıyla (Vitest 5 dahil) frontend Linux Docker testleri, lint ve derleme yeniden geçti. Docker'da gerekli test peer bağımlılıklarını atlayan `--legacy-peer-deps` kaldırıldı; kilit dosyası aynı Linux/npm ortamında tamamlandı. İki geliştirme bağımlılığı uyarısı hedefli güncellemeyle kapatıldı; temiz frontend kurulumunda npm audit sıfır açık bildirdi. Vite'ın mevcut büyük paket/config-loader ve Docker'ın mevcut `VITE_API_KEY` ARG/ENV uyarıları devam ediyor. GitHub CI sonucu PR kontrollerinden izlenmelidir; imaj derlemesi canlı dağıtım kabulü değildir.
 
 ## Son kod incelemesi
 
