@@ -101,6 +101,12 @@ git push origin master
 # Dokploy push'u algılar ve otomatik deploy başlatır
 ```
 
+Üretim dağıtımını Dokploy'un GitHub `master` / `push` Auto Deploy ayarı başlatır.
+`.github/workflows/deploy.yml` yalnızca elle çalıştırılan isteğe bağlı webhook
+yedeğidir; kullanmadan önce `DOKPLOY_WEBHOOK_URL` secret'ı tanımlanmalıdır.
+`APP_HEALTHCHECK_URL` bu yedek akışta isteğe bağlıdır. Frontend konteynerinin
+sağlık kontrolü, Nginx'in IPv4 dinleyicisiyle eşleşen `127.0.0.1` adresini kullanır.
+
 ## API Endpoints
 
 > 🔒 Tüm endpoint'ler `Authorization: Bearer <VITE_API_KEY>` header'ı gerektirir. `/api/health` istisna.
