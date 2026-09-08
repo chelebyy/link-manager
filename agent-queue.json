@@ -1,10 +1,10 @@
 {
   "type": "AKINCI",
-  "category": "Burp Suite Extensions",
-  "title": "GhostJS Burp Extension",
-  "url": "https://github.com/trinetlayer/Ghost-Js-Burp-Extension",
-  "description": "Burp Suite içinde JavaScript, HTML ve JSON yanıtlarını pasif olarak tarayıp 150+ hardcoded secret türünü ve gizli API endpointlerini tespit eden; false-positive filtreleme, proxy highlighting ve Markdown rapor export desteği sunan güvenlik eklentisi.",
+  "category": "Bug Bounty Frameworks",
+  "title": "Ars0n Framework v2",
+  "url": "https://github.com/R-s0n/ars0n-framework-v2",
+  "description": "50+ yaygın bug bounty aracını Docker tabanlı tek framework ve merkezi UI altında birleştiren; recon, attack surface mapping, vulnerability assessment ve metodoloji odaklı avcılık akışlarını otomatikleştiren açık kaynak bug bounty platformu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 61
+  "trigger": 62
 }
