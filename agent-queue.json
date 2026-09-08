@@ -1,10 +1,10 @@
 {
   "type": "website",
-  "category": "API & Developer Resources",
-  "title": "API Deposu",
-  "url": "https://apideposu.com/tr",
-  "description": "Türkiye odaklı herkese açık API kataloğu; kamu, finans, lojistik, iletişim, harita ve geliştirici araçları dahil yüzlerce API'yi resmi dokümantasyon bağlantıları, kategori filtreleri ve ücretsiz/ücretli erişim bilgileriyle tek yerde toplar.",
+  "category": "AI Agent & LLM Developer Tools",
+  "title": "markdown.new",
+  "url": "https://markdown.new/",
+  "description": "Public web sayfalarını AI agent ve LLM kullanımı için temiz, yapılandırılmış Markdown'a dönüştüren; Cloudflare text/markdown content negotiation, Workers AI ve headless browser fallback zinciri kullanan; RAG, web-agent browsing, knowledge base ve site crawl iş akışlarına uygun geliştirici aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 56
+  "trigger": 57
 }
