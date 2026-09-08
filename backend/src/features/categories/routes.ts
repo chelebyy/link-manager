@@ -116,6 +116,11 @@ export async function categoriesRoutes(app: FastifyInstance, options: FastifyPlu
     }
 
     const deletedRowCount = await withTransaction(async (txQuery) => {
+      if (db.isPostgres) {
+        // Match snapshot locking: acquire categories before touching resources.
+        // Otherwise an export/import can hold categories while waiting on our resources lock.
+        await txQuery('LOCK TABLE categories, resources IN ROW EXCLUSIVE MODE');
+      }
       await txQuery(`UPDATE resources SET category_id = NULL WHERE category_id = ${param(0)}`, [id]);
       const deleteResult = await txQuery(`DELETE FROM categories WHERE id = ${param(0)}`, [id]);
       return deleteResult.rowCount;

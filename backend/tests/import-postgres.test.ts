@@ -125,6 +125,44 @@ test('PostgreSQL import acceptance', { skip: !testUrl, timeout: 30000 }, async t
     assert.equal((await snapshot()).categories[0].name, results[0].statusCode === 200 ? 'First' : 'Second');
   });
 
+  await t.test('category deletion follows snapshot lock order during export and import', async () => {
+    for (const operation of ['export', 'import']) {
+      await reset();
+      await query("INSERT INTO categories (id, name, type) VALUES (10, 'Delete me', 'website')");
+      await query("INSERT INTO resources (type, title, category_id) VALUES ('website', 'Retain', 10)");
+      const before = await snapshot();
+      const blocker = await peer.connect();
+      let pendingSnapshot: Promise<Awaited<ReturnType<typeof submit>>> | undefined;
+      let pendingDelete: Promise<Awaited<ReturnType<typeof submit>>> | undefined;
+      try {
+        await blocker.query('BEGIN');
+        await blocker.query('LOCK TABLE resources IN ROW EXCLUSIVE MODE');
+        pendingSnapshot = (operation === 'export'
+          ? app.inject('/api/data/export')
+          : submit({ expected_revision: before.revision, categories: [] })).then(response => response);
+        await waitForBlockedImport();
+        pendingDelete = app.inject({ method: 'DELETE', url: '/api/categories/10' }).then(response => response);
+        const deadline = Date.now() + 4000;
+        let deleteWaiting = false;
+        while (Date.now() < deadline) {
+          const waiting = await peer.query("SELECT 1 FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND (query LIKE 'LOCK TABLE categories,%' OR query LIKE 'DELETE FROM categories%')");
+          if (waiting.rows.length) { deleteWaiting = true; break; }
+          await new Promise(resolve => setTimeout(resolve, 20));
+        }
+        assert.ok(deleteWaiting, 'Category deletion should wait behind the snapshot lock');
+        await blocker.query('COMMIT');
+        const [snapshotResult, deleted] = await Promise.all([pendingSnapshot, pendingDelete]);
+        assert.equal(snapshotResult.statusCode, 200, snapshotResult.body);
+        assert.equal(deleted.statusCode, 204, deleted.body);
+        assert.equal((await query('SELECT category_id FROM resources')).rows[0].category_id, null);
+      } finally {
+        await blocker.query('ROLLBACK');
+        blocker.release();
+        await Promise.allSettled([pendingSnapshot, pendingDelete]);
+      }
+    }
+  });
+
   await t.test('conflicting URL rolls back earlier card and category changes', async () => {
     await reset();
     await query("INSERT INTO resources (type, title, url) VALUES ('website', 'Retain', 'https://example.test/duplicate')");

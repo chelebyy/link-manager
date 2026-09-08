@@ -14,6 +14,7 @@ let registerTool: ReturnType<typeof vi.fn<(tool: WebMCPTool, options: { signal: 
 
 beforeEach(() => {
   localStorage.clear();
+  localStorage.setItem('link-manager:webmcp-enabled', 'true');
   registry = new Map(); signals = [];
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   registerTool = vi.fn(async (tool: WebMCPTool, { signal }: { signal: AbortSignal }) => {
@@ -37,6 +38,32 @@ const beginImport = async () => {
   await screen.findByRole('alertdialog');
   return { result };
 };
+
+it.each([null, 'false', 'invalid'])('requires explicit opt-in when the saved preference is %s', async preference => {
+  if (preference === null) localStorage.removeItem('link-manager:webmcp-enabled');
+  else localStorage.setItem('link-manager:webmcp-enabled', preference);
+  mount();
+  await screen.findByText('WebMCP: Kapalı');
+  expect(registerTool).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'AI erişimini aç' }));
+  await ready();
+  expect(localStorage.getItem('link-manager:webmcp-enabled')).toBe('true');
+});
+
+it('stays disabled when storage is unavailable and permits explicit tab-only consent', async () => {
+  vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('Storage unavailable'); });
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('Storage unavailable'); });
+  const rendered = mount();
+  await screen.findByText('WebMCP: Kapalı');
+  expect(registerTool).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'AI erişimini aç' }));
+  await ready();
+  await screen.findByText('Tercih kaydedilemedi; değişiklik yalnızca bu sekmede geçerli.');
+  rendered.unmount();
+  mount();
+  await screen.findByText('WebMCP: Kapalı');
+  expect(registry.size).toBe(0);
+});
 
 it('keeps native registration unique under StrictMode and unregisters on unmount', async () => {
   const rendered = mount(); await ready();

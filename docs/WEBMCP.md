@@ -51,10 +51,10 @@ Sayfanın üst kısmındaki durum:
 
 - **Hazır:** Araç kayıtları tamamlandı.
 - **Tarayıcı desteklemiyor:** Normal site kullanılabilir, WebMCP kaydı yapılmaz.
-- **Kapalı:** Kullanıcı AI erişimini kapattı.
+- **Kapalı:** İlk ziyarette varsayılandır; kullanıcı henüz AI erişimini açmadı veya sonradan kapattı.
 - **Bağlantı kurulamadı:** Kısmen eklenen araçlar da kaldırıldı.
 
-“AI erişimini kapat/aç” tercihi aynı site için tarayıcıda saklanır. Kapatma, o sekmedeki araçları kaldırır ve henüz onaylanmamış içe aktarmayı iptal eder. Önceden açılmış diğer sekmeler bu tercihi yeniden yüklenince okur. Zaten sunucuya gönderilmiş bir istek geri alınmış sayılmaz.
+“AI erişimini kapat/aç” tercihi aynı site için tarayıcıda saklanır. Yalnız açıkça kaydedilmiş `true` tercihi otomatik etkinleşir; eksik/geçersiz tercih veya depolama hatası kapalı başlatır. Tercih kaydedilemiyorsa kullanıcı o sekmede yine açıkça etkinleştirebilir; yeniden açılış kapalıdır. Kapatma, o sekmedeki araçları kaldırır ve henüz onaylanmamış içe aktarmayı iptal eder. Önceden açılmış diğer sekmeler bu tercihi yeniden yüklenince okur. Zaten sunucuya gönderilmiş bir istek geri alınmış sayılmaz.
 
 Siteye bu kodun dağıtılması tek başına her AI ürününü uyumlu hale getirmez. Kullanılan tarayıcı/istemci `document.modelContext` sözleşmesini desteklemelidir. Güncel deneysel destek koşulları için [Chrome WebMCP dokümanı](https://developer.chrome.com/docs/ai/webmcp/imperative-api) esas alınmalıdır.
 
@@ -100,11 +100,11 @@ Sınırlar:
 
 | Kontrol | Sonuç |
 | --- | --- |
-| Frontend testleri | 13 dosya, 74 test geçti. Önizleme sürümü, HTTP 409/428 ve form açma/kapatma/kayıt değiştirme regresyonları dahil. |
+| Frontend testleri | 13 dosya, 78 test geçti. İlk ziyaret/geçersiz tercih/depolama hatasında kapalı başlama, açık kullanıcı onayı, önizleme sürümü, HTTP 409/428 ve form regresyonları dahil. |
 | Backend testleri | 98 test geçti; SQLite eski sürüm, eşzamanlı içe aktarma ve kısmi kategori düzenleme koruması dahil. PostgreSQL kabulü ayrı çalıştırıldı. |
 | Frontend üretim derlemesi | Geçti. |
 | Backend TypeScript derlemesi | Geçti. |
-| Docker Compose ve imajlar | `docker compose config -q` geçti; mevcut `version` alanı için eski kullanım uyarısı var. Node 24 Alpine backend ve Nginx frontend üretim imajları derlendi. Frontend builder içinde 74 test ve sıfır uyarı toleranslı lint geçti. Geçici konteynerler başlatıldı; HTTP kabul kontrolü ortamın otomatik onay denetimince reddedildiği için çalışma kabulü doğrulanmadı. |
+| Docker Compose ve imajlar | `docker compose config -q` geçti; mevcut `version` alanı için eski kullanım uyarısı var. Node 24 Alpine backend ve Nginx frontend üretim imajları derlendi. Kullanıcının PowerShell testinde Nginx/backend health, frontend HTML ve yetkili JSON export/revision geçti; geçici ortam hatasız temizlendi. Bu HTTP kabulü son iki inceleme düzeltmesinden önceki imajlara aittir. Son düzeltmelerle frontend builder derlemesi, 78 test ve sıfır uyarı toleranslı lint yeniden geçti. |
 | Değişen frontend dosyalarında ESLint | Geçti. |
 | Tüm frontend ESLint | `--max-warnings=0` ile geçti: sıfır hata ve sıfır uyarı. Form state'i anahtarla sıfırlanıyor; toplu taşıma varsayılanı render sırasında hesaplanıyor. Mobil menü odak temizliği sabitlendi; Radix bileşenleri doğrudan yeniden dışa aktarılıyor. |
 | Tarayıcı WebMCP keşfi | Yerel Codex tarayıcısı 19 aracı keşfetti. |
@@ -112,7 +112,7 @@ Sınırlar:
 | İçe aktarma kullanıcı akışı | Bekleme sonucu anında döndü; iptalde kayıt oluşmadı; onaydan sonra yeni kart ekranda göründü ve durum `completed` oldu. |
 | AI erişimini kapatma | Araç listesi boşaldı; sayfa yenilenince kapalı tercihi korundu. |
 | JSON/Markdown | Chrome 152.0.7977.76 üzerinde normal Export/MD düğmeleri ve yerel WebMCP `export_data` çağrıları gerçek download olayı üretti; dört dosyanın akışı okunup Türkçe karakterler doğrulandı, `download.failure()` null. İndirme kodunda değişiklik gerekmedi. |
-| PostgreSQL yerel uçtan uca | PostgreSQL 16.14 üzerinde gerçek Fastify yollarıyla beş senaryo + üst test (6/6) geçti: URL'li round-trip/ilişkiler/metadata/sayaçlar; eski/eksik sürüm; kilit beklerken başka istemcinin commit'i; aynı sürümlü iki importer; tam rollback. Test kendi veritabanını oluşturup kaldırır. |
+| PostgreSQL yerel uçtan uca | PostgreSQL 16 üzerinde gerçek Fastify yollarıyla altı senaryo + üst test (7/7) geçti: URL'li round-trip/ilişkiler/metadata/sayaçlar; eski/eksik sürüm; kilit beklerken başka istemcinin commit'i; aynı sürümlü iki importer; kategori silmeyle export/import kilit sırası; tam rollback. Test kendi veritabanını oluşturup kaldırır. |
 | Canlı site / Dokploy | Dağıtım ve canlı kabul yapılmadı. |
 
 İlk kullanıcı-onayı-bekleyen araç denemesi istemcide zaman aşımına girdi. Son tasarım bu nedenle anlık bekleme sonucu + ayrı durum sorgulaması kullanır. Geliştirme sırasında WebMCP kodu değiştirildiğinde araç listesi için tam sayfa yenileme kullanılmalıdır.
@@ -122,6 +122,8 @@ Tarayıcı kontrolünde mevcut kaynak hata bildiriminin tekrar tekrar eklendiği
 Mevcut TypeScript 7 ile typescript-eslint uyumsuzluğu, [Microsoft'un yan yana kullanım düzeni](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0) uygulanarak çözüldü: derlemede TS7, lint için TS6 API uyumluluk paketi. Yerel doğrulama Node 24.19.0 üzerinde yapıldı. CI ve Docker Node 20'den desteklenen Node 24'e alındı; CI'a backend/frontend testleri ve sıfır uyarı şartlı lint eklendi. Güncel master bağımlılıklarıyla (Vitest 5 dahil) frontend Linux Docker testleri, lint ve derleme yeniden geçti. Docker'da gerekli test peer bağımlılıklarını atlayan `--legacy-peer-deps` kaldırıldı; kilit dosyası aynı Linux/npm ortamında tamamlandı. İki geliştirme bağımlılığı uyarısı hedefli güncellemeyle kapatıldı; temiz frontend kurulumunda npm audit sıfır açık bildirdi. Vite'ın mevcut büyük paket/config-loader ve Docker'ın mevcut `VITE_API_KEY` ARG/ENV uyarıları devam ediyor. GitHub CI sonucu PR kontrollerinden izlenmelidir; imaj derlemesi canlı dağıtım kabulü değildir.
 
 ## Son kod incelemesi
+
+Merge öncesi gelen iki ek bulgu kapatıldı: AI erişimi yalnız açık kullanıcı tercihiyle başlar; kategori silme PostgreSQL'de kaynakları güncellemeden önce `categories, resources` tablolarını bu sırada kilitleyerek snapshot işlemlerinin sırasıyla uyumlu çalışır. Her iki davranış için regresyon testleri geçti.
 
 Standart incelemesinde PostgreSQL kabul testinin hata halinde kaynak bırakabilen temizlik sırası düzeltildi: cleanup kaynak oluşturmadan önce kaydedilir, her adım diğerlerinden bağımsız tamamlanır ve önceki ortam değişkeni geri yüklenir. Yeni sert standart ihlali bulunmadı.
 

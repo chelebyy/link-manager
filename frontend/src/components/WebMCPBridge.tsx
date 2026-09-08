@@ -9,8 +9,8 @@ interface PendingImport extends ImportPreview { finish(approved: boolean): void 
 export function WebMCPBridge({ onNavigate }: { onNavigate(view: ViewInput): void }) {
   const queryClient = useQueryClient();
   const [enabled, setEnabled] = useState(() => {
-    try { return localStorage.getItem('link-manager:webmcp-enabled') !== 'false'; }
-    catch { return true; }
+    try { return localStorage.getItem('link-manager:webmcp-enabled') === 'true'; }
+    catch { return false; }
   });
   const [status, setStatus] = useState('Kontrol ediliyor');
   const [message, setMessage] = useState('');
