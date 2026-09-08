@@ -7,6 +7,7 @@ export async function registerRateLimits(app: FastifyInstance) {
   // Install before the plugin's onRoute hook so it sees the final policy.
   app.addHook('onRoute', route => {
     const methods = Array.isArray(route.method) ? route.method : [route.method];
+    // Fastify onRoute supplies the full prefixed URL; routePath is the local path.
     if (route.url.startsWith('/api/') && methods.every(method => method === 'GET' || method === 'HEAD')
       && route.config?.rateLimit !== false) {
       route.config = {

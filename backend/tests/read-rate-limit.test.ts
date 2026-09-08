@@ -22,6 +22,34 @@ async function buildApp() {
 }
 const headers = { authorization: 'Bearer test-key' };
 
+for (const request of [
+  { method: 'GET' as const, url: '/api/categories' },
+  { method: 'GET' as const, url: '/api/categories/' },
+  { method: 'GET' as const, url: '/api/data/export' },
+  { method: 'HEAD' as const, url: '/api/data/export' },
+]) {
+test(`registered API prefix applies read quota to ${request.method} ${request.url}`, async t => {
+  const app = Fastify();
+  t.after(() => app.close());
+  await registerRateLimits(app);
+  await app.register(async scoped => {
+    scoped.get('/', async () => []);
+  }, { prefix: '/api/categories' });
+  await app.register(async scoped => {
+    scoped.get('/export', { config: { rateLimit: { max: 60, timeWindow: '15 minutes' } } }, async () => ({ resources: [] }));
+  }, { prefix: '/api/data' });
+  await app.ready();
+
+    for (let index = 0; index < 120; index++) {
+      const response = await app.inject(request);
+      assert.equal(response.statusCode, 200, `${request.method} ${request.url} read ${index + 1}`);
+    }
+    const limited = await app.inject(request);
+    assert.equal(limited.statusCode, 429, `${request.method} ${request.url}`);
+    assert.ok(Number(limited.headers['retry-after']) <= 60);
+});
+}
+
 test('normal read traffic exceeds old 60-request ceiling but remains bounded at 120/minute', async t => {
   const app = await buildApp(); t.after(() => app.close());
   for (let index = 0; index < 120; index++) {
