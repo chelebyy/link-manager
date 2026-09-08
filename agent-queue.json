@@ -1,10 +1,10 @@
 {
   "type": "website",
   "category": "UI",
-  "title": "Square UI",
-  "url": "https://square.lndevui.com/",
-  "description": "shadcn/ui tabanlı açık kaynak ve premium UI layout/template koleksiyonu; dashboard, CRM, habit tracker, rentals, calendar, chat, file manager ve benzeri hazır arayüzleri canlı demo ve kaynak kod bağlantılarıyla sunar.",
+  "title": "tweakcn",
+  "url": "https://tweakcn.com/",
+  "description": "Tailwind CSS ve shadcn/ui için görsel tema editörü; hazır tema preset'leri üzerinden renk, tipografi, radius ve component görünümünü özelleştirerek daha özgün arayüzler oluşturmayı sağlar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 54
+  "trigger": 55
 }
