@@ -4,7 +4,7 @@ Dokploy VPS üzerinde çalışan, API key ile korumalı kaynak yönetim uygulama
 
 ## Özellikler
 
-- **WebMCP**: Destekleyen tarayıcılarda arama, ekleme/düzenleme, favori, taşıma, sıralama ve onaylı JSON içe aktarma için 19 araç. Silme aracı yok. [Kurulum, kullanım ve doğrulama](docs/WEBMCP.md).
+- **WebMCP**: Destekleyen tarayıcılarda listeleme, arama, detay, gezinme ve JSON/Markdown dışa aktarma için 6 salt okunur araç. AI erişimi isteğe bağlıdır; normal yönetim ekranları korunur. [Kurulum, kullanım ve doğrulama](docs/WEBMCP.md).
 - **API Key Auth**: Tüm `/api/*` endpoint'ler (sağlık kontrolü hariç) Bearer token ile korunur
 - **Kategoriler**: Dinamik kategori oluşturma ve yönetme
 - **Kaynak Tipleri**: GitHub repos, Skills, Websites, Notes
@@ -167,7 +167,9 @@ link-manager/
 |--------|----------|
 | **Authentication** | `@fastify/auth` Bearer token (env-based API key); `/api/health` ve CORS preflight muaf |
 | **SQL Injection** | Prepared statements (param()) + sort/order whitelist (BC-001) |
-| **Rate Limiting** | 60 req / 15 dakika / IP (`@fastify/rate-limit`) |
+| **Rate Limiting — okuma** | `/api/` GET/HEAD: her rota için ayrı sayaçla 120 istek / dakika / IP; `/api/health` muaf (`@fastify/rate-limit`) |
+| **Rate Limiting — yazma** | Varsayılan kota: 60 istek / 15 dakika / IP; rotaya özel kotalar ayrıca tanımlanır |
+| **Rate Limiting — içe aktarma** | JSON içe aktarma ve agent-ingest: her rota için ayrı sayaçla 20 istek / 15 dakika / IP |
 | **Security Headers** | `@fastify/helmet` (X-Frame-Options, HSTS, X-Content-Type-Options, vb.) |
 | **Error Sanitization** | Üretimde 5xx hata mesajları genelleştirilmiş "Internal Server Error" döner |
 | **Fail-Fast Config** | Üretimde `DATABASE_URL` yoksa uygulama başlamaz |

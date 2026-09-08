@@ -17,11 +17,10 @@ const { resourcesRoutes } = await import('../../src/features/resources/routes.js
 const { categoriesRoutes } = await import('../../src/features/categories/routes.js');
 const { resourceTypesRoutes } = await import('../../src/features/resource-types/routes.js');
 const { dataRoutes } = await import('../../src/features/data/routes.js');
+const { registerRateLimits } = await import('../../src/shared/rate-limit.js');
 await initDb();
 const app = Fastify({ logger: false });
-// Bulk acceptance exercises many scenarios rapidly. Production rate limits
-// remain unchanged; their behavior is covered by the backend test suite.
-app.decorate('rateLimit', () => async () => {});
+await registerRateLimits(app);
 app.addHook('preHandler', async (request, reply) => {
   if (request.headers.authorization !== 'Bearer webmcp-local-only') return reply.code(401).send({ error: 'Local test key required' });
 });

@@ -8,11 +8,13 @@ type RequestOptions = RequestInit & {
 
 export class ApiError extends Error {
   status: number;
+  retryAfterMs?: number;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, retryAfterMs?: number) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -35,7 +37,11 @@ async function request<T>(input: string, init?: RequestOptions): Promise<T> {
     } catch {
       // Response body may be empty or non-JSON.
     }
-    throw new ApiError(message, response.status);
+    const retryAfter = response.headers.get('retry-after');
+    const delay = retryAfter === null ? NaN : Number(retryAfter) * 1000;
+    const retryAfterMs = Number.isFinite(delay) && delay >= 0 ? delay : undefined;
+    if (response.status === 429) message = 'İstek sınırına ulaşıldı. Lütfen kısa bir süre bekleyin.';
+    throw new ApiError(message, response.status, retryAfterMs);
   }
 
   if (init?.skipJson || response.status === 204) {
