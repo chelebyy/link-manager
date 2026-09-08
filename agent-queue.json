@@ -1,10 +1,10 @@
 {
   "type": "website",
-  "category": "AI Agent & LLM Developer Tools",
-  "title": "markdown.new",
-  "url": "https://markdown.new/",
-  "description": "Public web sayfalarını AI agent ve LLM kullanımı için temiz, yapılandırılmış Markdown'a dönüştüren; Cloudflare text/markdown content negotiation, Workers AI ve headless browser fallback zinciri kullanan; RAG, web-agent browsing, knowledge base ve site crawl iş akışlarına uygun geliştirici aracı.",
+  "category": "AI Search & LLM Visibility",
+  "title": "geo.new",
+  "url": "https://geo.new/",
+  "description": "Web sitelerinin AI arama motorları ve LLM tabanlı keşif sistemlerindeki görünürlüğünü analiz etmeye ve Generative Engine Optimization (GEO) açısından iyileştirmeye yönelik web tabanlı araç.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 57
+  "trigger": 58
 }
