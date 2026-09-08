@@ -1,10 +1,10 @@
 {
   "type": "website",
-  "category": "UI",
-  "title": "tweakcn",
-  "url": "https://tweakcn.com/",
-  "description": "Tailwind CSS ve shadcn/ui için görsel tema editörü; hazır tema preset'leri üzerinden renk, tipografi, radius ve component görünümünü özelleştirerek daha özgün arayüzler oluşturmayı sağlar.",
+  "category": "API & Developer Resources",
+  "title": "API Deposu",
+  "url": "https://apideposu.com/tr",
+  "description": "Türkiye odaklı herkese açık API kataloğu; kamu, finans, lojistik, iletişim, harita ve geliştirici araçları dahil yüzlerce API'yi resmi dokümantasyon bağlantıları, kategori filtreleri ve ücretsiz/ücretli erişim bilgileriyle tek yerde toplar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 55
+  "trigger": 56
 }
