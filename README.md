@@ -96,6 +96,12 @@ openssl rand -hex 32
 
 ### 4. Deploy
 
+CI içindeki `Validate workflows` işi tüm GitHub Actions workflow dosyalarını
+actionlint `1.7.12` ile kontrol eder. Resmî Linux arşivi sabit SHA256 ile
+doğrulanmadan çalıştırılmaz; sürüm yükseltirken URL ve SHA256 birlikte
+güncellenmelidir. Kontrol yalnız actionlint kurallarını uygular; isteğe bağlı
+ShellCheck/Pyflakes entegrasyonları kapalıdır.
+
 ```bash
 git push origin master
 # Dokploy push'u algılar ve otomatik deploy başlatır

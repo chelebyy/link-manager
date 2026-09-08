@@ -16,6 +16,34 @@ permissions:
   contents: read
 
 jobs:
+  workflow-lint:
+    name: Validate workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install verified actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          tool_dir="$(mktemp -d "${RUNNER_TEMP}/actionlint.XXXXXX")"
+          archive="${tool_dir}/actionlint.tar.gz"
+          curl --fail --show-error --silent --location \
+            --proto '=https' --tlsv1.2 --retry 3 --max-time 60 \
+            --output "$archive" \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $archive" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$tool_dir" actionlint
+          echo "$tool_dir" >> "$GITHUB_PATH"
+
+      - name: Check all GitHub Actions workflows
+        # Keep the workflow checker deterministic without optional host tools.
+        run: actionlint -color -shellcheck= -pyflakes=
+
   compose-validate:
     name: Validate compose
     runs-on: ubuntu-latest
