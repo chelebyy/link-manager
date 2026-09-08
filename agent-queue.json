@@ -1,10 +1,10 @@
 {
-  "type": "Skills",
-  "category": "Media & Video Production Skills",
-  "title": "FFmpeg Skill",
-  "url": "https://github.com/kajisho5/ffmpeg-skill",
-  "description": "Codex, Claude Code ve Cursor gibi AI coding agent'lara yerel FFmpeg/ffprobe üzerinden video ve ses düzenleme yeteneği kazandıran; kesme, birleştirme, altyazı, ses temizleme, senkronizasyon, renk/HDR işlemleri, export ve doğrulama dahil 28 yapılandırılmış araç sunan agent skill ve MCP paketi.",
+  "type": "Self Hosted",
+  "category": "File Conversion & Media Tools",
+  "title": "ConvertX",
+  "url": "https://github.com/C4illin/ConvertX",
+  "description": "Docker ile self-host edilebilen; belge, görsel, video, e-kitap, 3D varlık ve diğer dosyaları 1000+ format arasında dönüştüren, toplu işlem, kullanıcı hesabı ve parola koruması sunan web tabanlı dosya dönüştürme platformu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 47
+  "trigger": 48
 }
