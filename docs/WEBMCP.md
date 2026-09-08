@@ -89,3 +89,17 @@ Normal JSON içe aktarma revision/transaction korumaları sürer. WebMCP içe ak
 tamamen kaldırıldığı için önceki AI onay önizlemesi ve ilişkili durum akışı yoktur.
 Canlı veride daha önce gözlenen ilişki doğrulama bulgusu otomatik veri düzeltmesi
 yapıldığı anlamına gelmez; bu çalışma canlı kayıtları değiştirmez.
+
+## Salt okunur sürümün yerel kabulü
+
+Yeni kod, geçici SQLite ve üretimdeki rate-limit politikası ile tarayıcıda denendi.
+Altı araç kaydedildi; AI erişimi kapanınca hepsi kaldırıldı. Normal kaynak ekleme
+formuyla bir not oluşturuldu ve `search_resources` bu notu okudu. Aynı not yeni
+`export_data` ile JSON (823 bayt) ve Markdown (172 bayt) olarak indirildi; iki
+indirme de `completed`, yerel dosyalardaki başlık ve `çğıöşü` metni doğruydu.
+
+Temiz Node 24 Alpine kurulumu/Vitest 5 ile 57 frontend testi, üretim frontend
+derlemesi ve sıfır uyarı toleranslı lint geçti. Backend derlemesi ve 101 test geçti;
+isteğe bağlı PostgreSQL testi bu değişiklikte çalıştırılmadı. Okuma eşiği,
+yazma/içe aktarma bütçeleri ve 429 sonrası retry/polling davranışı yeni regresyon
+testleriyle doğrulandı. Normal yönetim API/testleri korunmuştur.
