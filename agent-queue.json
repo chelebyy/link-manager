@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "Developer Tools & Observability",
-  "title": "Evlog",
-  "url": "https://www.evlog.dev/",
-  "description": "Geliştiriciler için event/log takibi, debugging ve uygulama davranışını gözlemleme iş akışlarına odaklanan web tabanlı developer observability aracı.",
+  "type": "AKINCI",
+  "category": "Burp Suite & AI Integration",
+  "title": "PortSwigger MCP Server",
+  "url": "https://github.com/portswigger/mcp-server",
+  "description": "Burp Suite'i Model Context Protocol üzerinden AI istemcilerine bağlayan; Burp içindeki işlemleri MCP araçları olarak kullanmayı ve Claude gibi istemcilerden Burp ile etkileşimi sağlayan resmi PortSwigger eklentisi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 59
+  "trigger": 60
 }
