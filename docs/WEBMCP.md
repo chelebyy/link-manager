@@ -1,6 +1,6 @@
 # Link Manager WebMCP
 
-Tarih: 8 Eylül 2026. Durum: yerel uygulama ve testler tamamlandı; commit, push, merge veya canlı dağıtım yapılmadı.
+Tarih: 8 Eylül 2026. Durum: uygulama ve testler tamamlandı; PR #102 master'a birleştirildi ve Dokploy tarafından dağıtıldı. Frontend sağlık kontrolü ile isteğe bağlı webhook akışının takip düzeltmesi PR #104'te hazırlandı. Canlı tarayıcı WebMCP kabulü henüz yapılmadı.
 
 ## Onaylanan kapsam
 
