@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "UI Templates & Component Libraries",
+  "type": "website",
+  "category": "UI",
   "title": "Square UI",
   "url": "https://github.com/zerostaticthemes/square-ui",
   "description": "Next.js, TypeScript, shadcn/ui ve Tailwind CSS ile hazırlanmış; dashboard, CRM, habit tracker, rentals, bookmarks, maps, files, calendar, chat, email ve task management gibi hazır açık kaynak arayüz/layout şablonları sunan UI koleksiyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 51
+  "trigger": 52
 }
