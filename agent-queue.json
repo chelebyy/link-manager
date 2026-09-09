@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI Agent Context & Memory Tools",
-  "title": "driftlint",
-  "url": "https://github.com/alifurkangokce/driftlint",
-  "description": "CLAUDE.md, AGENTS.md, skills, sub-agent dosyaları ve agent kurallarındaki kodla artık uyuşmayan bilgileri tespit eden; twin-drift, dead path/command/link/config kontrolleri, context load-budget analizi, Reviewed Memory, CI/SARIF ve MCP desteği sunan AI coding-agent context bakım aracı.",
+  "type": "AKINCI",
+  "category": "AI Pentest Agents",
+  "title": "HexStrike AI",
+  "url": "https://github.com/0x4m4/hexstrike-ai",
+  "description": "MCP üzerinden Claude, GPT, Copilot ve diğer AI istemcileriyle çalışan; 150+ güvenlik aracını ve 12+ otonom agent'ı recon, web uygulama testi, cloud security, binary analysis, OSINT, CTF ve vulnerability intelligence iş akışlarında koordine eden AI destekli pentest otomasyon platformu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 65
+  "trigger": 66
 }
