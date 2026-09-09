@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "AI Pentest Agents",
-  "title": "REDCELL",
-  "url": "https://github.com/martian56/redcell",
-  "description": "LLM ajanlarından oluşan bir ekip ile uçtan uca pentest planlama, gerçek güvenlik araçlarını Kali container içinde çalıştırma, tarayıcı ve reverse shell etkileşimi, finding triage, kod güvenlik taraması ve PDF/JSON/SARIF raporlama sunan self-hosted AI pentest platformu.",
+  "type": "GitHub Repos",
+  "category": "AI Agent Connectors & Integrations",
+  "title": "OpenConnector",
+  "url": "https://github.com/oomol-lab/open-connector",
+  "description": "AI agent'lar için açık kaynak connector gateway; GitHub, Gmail, Notion, Slack, Supabase ve benzeri 1.000+ provider ile 10.000+ hazır Action'ı MCP, HTTP/OpenAPI, SDK ve CLI üzerinden erişilebilir hale getirir; self-host, OAuth/credential yönetimi, scope/policy kontrolleri ve run log'ları sunar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 63
+  "trigger": 64
 }
