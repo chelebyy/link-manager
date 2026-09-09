@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "AI Agent Connectors & Integrations",
-  "title": "OpenConnector",
-  "url": "https://github.com/oomol-lab/open-connector",
-  "description": "AI agent'lar için açık kaynak connector gateway; GitHub, Gmail, Notion, Slack, Supabase ve benzeri 1.000+ provider ile 10.000+ hazır Action'ı MCP, HTTP/OpenAPI, SDK ve CLI üzerinden erişilebilir hale getirir; self-host, OAuth/credential yönetimi, scope/policy kontrolleri ve run log'ları sunar.",
+  "category": "AI Agent Context & Memory Tools",
+  "title": "driftlint",
+  "url": "https://github.com/alifurkangokce/driftlint",
+  "description": "CLAUDE.md, AGENTS.md, skills, sub-agent dosyaları ve agent kurallarındaki kodla artık uyuşmayan bilgileri tespit eden; twin-drift, dead path/command/link/config kontrolleri, context load-budget analizi, Reviewed Memory, CI/SARIF ve MCP desteği sunan AI coding-agent context bakım aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 64
+  "trigger": 65
 }
