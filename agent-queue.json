@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
   "category": "Media & Video Tools",
-  "title": "Shotcut",
-  "url": "https://github.com/mltframework/shotcut",
-  "description": "FFmpeg ve MLT tabanlı, Windows, macOS ve Linux üzerinde çalışan; çok formatlı timeline düzenleme, filtreler, geçişler, ses/video işleme ve profesyonel kurgu özellikleri sunan ücretsiz açık kaynak çapraz platform video editörü.",
+  "title": "Editly",
+  "url": "https://github.com/mifi/editly",
+  "description": "Node.js ve FFmpeg ile declarative non-linear video editing sunan; CLI veya JavaScript/JSON spec üzerinden clip, görsel, ses, başlık, transition, subtitle ve dinamik overlay'leri programatik olarak birleştirip otomatik video üretmeye yarayan açık kaynak framework ve araç.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 71
+  "trigger": 72
 }
