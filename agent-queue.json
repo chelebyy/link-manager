@@ -1,10 +1,10 @@
 {
-  "type": "Self Hosted",
-  "category": "Server Management & Deployment",
-  "title": "ServerKit",
-  "url": "https://github.com/jhd3197/ServerKit",
-  "description": "Web uygulamaları, veritabanları, Docker container'ları, domain/SSL, DNS, backup, monitoring, mail, cron, terminal ve güvenlik özelliklerini tek panelden yönetmeye yarayan; one-line install ve Docker seçenekleri sunan self-hosted sunucu kontrol paneli.",
+  "type": "GitHub Repos",
+  "category": "Media & Video Tools",
+  "title": "LosslessCut",
+  "url": "https://github.com/mifi/lossless-cut",
+  "description": "FFmpeg tabanlı, video ve ses dosyalarında yeniden encode etmeden çok hızlı ve kayıpsız kesme, birleştirme, remux, track düzenleme, metadata işlemleri, snapshot ve segment export özellikleri sunan çapraz platform açık kaynak medya düzenleme aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 69
+  "trigger": 70
 }
