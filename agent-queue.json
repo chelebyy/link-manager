@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "AI Pentest Agents",
-  "title": "HexStrike AI",
-  "url": "https://github.com/0x4m4/hexstrike-ai",
-  "description": "MCP üzerinden Claude, GPT, Copilot ve diğer AI istemcileriyle çalışan; 150+ güvenlik aracını ve 12+ otonom agent'ı recon, web uygulama testi, cloud security, binary analysis, OSINT, CTF ve vulnerability intelligence iş akışlarında koordine eden AI destekli pentest otomasyon platformu.",
+  "type": "GitHub Repos",
+  "category": "AI Video & Media Generation",
+  "title": "HyperFrames",
+  "url": "https://github.com/heygen-com/hyperframes",
+  "description": "HTML, CSS, medya ve seekable animasyonları deterministik MP4 videolara dönüştüren; Codex, Claude Code, Cursor ve Gemini CLI gibi AI coding agent'lar için skill tabanlı video üretim iş akışları, CLI preview/render ve ürün tanıtımı, PR-to-video, faceless explainer, motion graphics, slideshow ve talking-head düzenleme desteği sunan açık kaynak video framework'ü.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 66
+  "trigger": 67
 }
