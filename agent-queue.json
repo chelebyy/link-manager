@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI Video & Media Generation",
-  "title": "HyperFrames",
-  "url": "https://github.com/heygen-com/hyperframes",
-  "description": "HTML, CSS, medya ve seekable animasyonları deterministik MP4 videolara dönüştüren; Codex, Claude Code, Cursor ve Gemini CLI gibi AI coding agent'lar için skill tabanlı video üretim iş akışları, CLI preview/render ve ürün tanıtımı, PR-to-video, faceless explainer, motion graphics, slideshow ve talking-head düzenleme desteği sunan açık kaynak video framework'ü.",
+  "type": "website",
+  "category": "Online Tools & File Utilities",
+  "title": "Sticraft",
+  "url": "https://sticraft.com/",
+  "description": "Tarayıcı içinde çalışan 100+ ücretsiz araç sunan; görsel düzenleme ve optimizasyon, SVG/DXF/G-code dönüşümleri, PDF ve belge işlemleri, QR/barcode üretimi, developer araçları ve dosya dönüştürme özelliklerini çoğunlukla tamamen client-side ve kayıt gerektirmeden sağlayan çevrimiçi araç koleksiyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 67
+  "trigger": 68
 }
