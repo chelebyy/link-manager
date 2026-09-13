@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "3D Texturing & Material Tools",
-  "title": "ArmorPaint",
-  "url": "https://github.com/armory3d/armorpaint",
-  "description": "3D modeller üzerinde PBR texture painting yapmak için kullanılan açık kaynak araç; geliştirici odaklı repo yapısı ve çoklu platform build desteği sunar.",
+  "category": "Geospatial & Situational Awareness",
+  "title": "God's Eye View",
+  "url": "https://github.com/bilawalsidhu/gods-eye-view",
+  "description": "Gerçek zamanlı uçuş, gemi, uydu, deprem, trafik ve açık kamera verilerini 3D dünya üzerinde birleştiren; yapay zeka destekli sesli kontrol ve etkileşim özellikleri sunan açık kaynak görselleştirme platformu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 77
+  "trigger": 78
 }
