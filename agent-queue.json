@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
   "category": "Media & Video Tools",
-  "title": "LosslessCut",
-  "url": "https://github.com/mifi/lossless-cut",
-  "description": "FFmpeg tabanlı, video ve ses dosyalarında yeniden encode etmeden çok hızlı ve kayıpsız kesme, birleştirme, remux, track düzenleme, metadata işlemleri, snapshot ve segment export özellikleri sunan çapraz platform açık kaynak medya düzenleme aracı.",
+  "title": "Shotcut",
+  "url": "https://github.com/mltframework/shotcut",
+  "description": "FFmpeg ve MLT tabanlı, Windows, macOS ve Linux üzerinde çalışan; çok formatlı timeline düzenleme, filtreler, geçişler, ses/video işleme ve profesyonel kurgu özellikleri sunan ücretsiz açık kaynak çapraz platform video editörü.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 70
+  "trigger": 71
 }
