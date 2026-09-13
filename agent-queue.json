@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI 3D Generation & Mesh Tools",
-  "title": "3D Gen Studio",
-  "url": "https://github.com/visualbruno/3DGenStudio",
-  "description": "AI destekli 3D üretim pipeline'ı; text/image-to-mesh, image editing, UV unwrapping, texturing, mesh editing, Auto Retopo, Auto Rig, animation, optimize/LOD, game-ready kontrolleri ve export akışlarını ComfyUI ile harici API'leri tek görsel workspace içinde birleştirir.",
+  "type": "MCP",
+  "category": "CAD & 3D Design Automation",
+  "title": "FreeCAD MCP",
+  "url": "https://github.com/neka-nat/freecad-mcp",
+  "description": "Claude Desktop ve diğer MCP istemcilerinden FreeCAD'i kontrol etmeyi sağlayan; 3D model oluşturma ve düzenleme, Python script çalıştırma, doküman inceleme ve FEM analizi özellikleri sunan FreeCAD addon + MCP server entegrasyonu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 73
+  "trigger": 74
 }
