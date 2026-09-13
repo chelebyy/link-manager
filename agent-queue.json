@@ -1,10 +1,10 @@
 {
-  "type": "MCP",
-  "category": "CAD & 3D Design Automation",
-  "title": "FreeCAD MCP",
-  "url": "https://github.com/neka-nat/freecad-mcp",
-  "description": "Claude Desktop ve diğer MCP istemcilerinden FreeCAD'i kontrol etmeyi sağlayan; 3D model oluşturma ve düzenleme, Python script çalıştırma, doküman inceleme ve FEM analizi özellikleri sunan FreeCAD addon + MCP server entegrasyonu.",
+  "type": "Hermes",
+  "category": "Hermes Extensions & Workflow Layers",
+  "title": "Oh My Hermes",
+  "url": "https://github.com/rlaope/oh-my-hermes",
+  "description": "Hermes Agent'in üzerine kurulan; görev yönlendirme, model bazlı tuning, paralel çalışma, specialist skill'ler, coding handoff, uzun süreli proje memory'si, evidence gate'leri ve operasyonel workflow paketleri ekleyen gelişmiş operating layer ve plugin ekosistemi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 74
+  "trigger": 75
 }
