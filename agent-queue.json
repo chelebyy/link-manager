@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "Online Tools & File Utilities",
-  "title": "Sticraft",
-  "url": "https://sticraft.com/",
-  "description": "Tarayıcı içinde çalışan 100+ ücretsiz araç sunan; görsel düzenleme ve optimizasyon, SVG/DXF/G-code dönüşümleri, PDF ve belge işlemleri, QR/barcode üretimi, developer araçları ve dosya dönüştürme özelliklerini çoğunlukla tamamen client-side ve kayıt gerektirmeden sağlayan çevrimiçi araç koleksiyonu.",
+  "type": "Self Hosted",
+  "category": "Server Management & Deployment",
+  "title": "ServerKit",
+  "url": "https://github.com/jhd3197/ServerKit",
+  "description": "Web uygulamaları, veritabanları, Docker container'ları, domain/SSL, DNS, backup, monitoring, mail, cron, terminal ve güvenlik özelliklerini tek panelden yönetmeye yarayan; one-line install ve Docker seçenekleri sunan self-hosted sunucu kontrol paneli.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 68
+  "trigger": 69
 }
