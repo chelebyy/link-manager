@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "PostgreSQL & Database Intelligence",
-  "title": "pgBot",
-  "url": "https://pgbot.dev/",
-  "description": "PostgreSQL veritabanlarını read-only olarak analiz eden; sağlık, yavaş sorgular, lock ve blocking sorunları, index kullanımı, vacuum, replication ve büyüme sinyallerini inceleyip AI agent'lar için yapılandırılmış bulgular ve MCP entegrasyonu sunan açık kaynak veritabanı teşhis aracı.",
+  "type": "Skills",
+  "category": "3D Visualization & Three.js Skills",
+  "title": "3Dviz Pro Max",
+  "url": "https://github.com/viettranx/3dviz-pro-max",
+  "description": "Codex ve Claude gibi AI agent'lara fikirleri interaktif Three.js sahnelerine dönüştürmek için yapılandırılmış workflow, recipe, kit, template ve frame-capture doğrulaması sağlayan yaratıcı 3D visualization skill paketi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 85
+  "trigger": 86
 }
