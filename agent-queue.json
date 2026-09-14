@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI Video & Media Generation",
-  "title": "OpenMontage",
-  "url": "https://github.com/calesthio/OpenMontage",
-  "description": "AI coding assistantlarla araştırma, senaryo, medya üretimi, kurgu, seslendirme, altyazı ve render süreçlerini uçtan uca yöneten açık kaynak agentic video production sistemi.",
+  "type": "AKINCI",
+  "category": "Threat Intelligence & OSINT Resources",
+  "title": "Awesome Threat Intelligence",
+  "url": "https://github.com/hslatman/awesome-threat-intelligence",
+  "description": "Threat intelligence kaynakları, IOC/feed servisleri, formatlar, framework ve platformlar, araçlar ile araştırma ve standartları tek yerde toplayan kapsamlı curated kaynak listesi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 82
+  "trigger": 83
 }
