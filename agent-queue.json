@@ -1,10 +1,10 @@
 {
-  "type": "TRADING",
-  "category": "Autonomous Trading Agents",
-  "title": "AutoHedge",
-  "url": "https://github.com/The-Swarm-Corporation/AutoHedge",
-  "description": "Director, Quant, Risk Manager ve Execution agent'larından oluşan multi-agent trading pipeline'ı; piyasa analizi, trade thesis üretimi ve doğrulama, risk/pozisyon boyutlandırma ve emir üretimini otonom şekilde koordine eder. Şu anda Solana üzerinde tam otonom trading desteği sunar; Coinbase ve ek borsalar roadmap'tedir.",
+  "type": "GitHub Repos",
+  "category": "Open Source Games & Game Development Resources",
+  "title": "Open Source Games",
+  "url": "https://github.com/bobeff/open-source-games",
+  "description": "Action, adventure, city-building, FPS, platformer, puzzle, racing, RTS, roguelike, RPG, sandbox, tower defense ve diğer türlerde açık kaynak oyunları; ayrıca ticari oyunların açık kaynak remake, source port ve reimplementation projelerini kategorize eden geniş kaynak listesi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 80
+  "trigger": 81
 }
