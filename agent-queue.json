@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "AI Web Crawling & Data Extraction",
-  "title": "Crawl4AI",
-  "url": "https://github.com/unclecode/crawl4ai",
-  "description": "RAG, AI agent ve veri pipeline'ları için web sayfalarını temiz LLM-ready Markdown ve yapılandırılmış veriye dönüştüren; async browser crawling, deep crawl, CSS/XPath/LLM extraction, session/proxy/cookie yönetimi, dynamic JS sayfaları, CLI ve Docker/FastAPI deployment desteği sunan açık kaynak crawler/scraper.",
+  "category": "PostgreSQL & Database Intelligence",
+  "title": "pgBot",
+  "url": "https://pgbot.dev/",
+  "description": "PostgreSQL veritabanlarını read-only olarak analiz eden; sağlık, yavaş sorgular, lock ve blocking sorunları, index kullanımı, vacuum, replication ve büyüme sinyallerini inceleyip AI agent'lar için yapılandırılmış bulgular ve MCP entegrasyonu sunan açık kaynak veritabanı teşhis aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 84
+  "trigger": 85
 }
