@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI Agent Connectors & Integrations",
-  "title": "Agent Reach",
-  "url": "https://github.com/Panniantong/Agent-Reach",
-  "description": "AI agent'lara web, YouTube, RSS, GitHub, X/Twitter, Reddit, Bilibili, LinkedIn, Instagram ve diğer çevrimiçi platformlara erişim kazandıran; farklı backend'leri yöneten, kurulum ve tanılama akışları sunan açık kaynak internet capability katmanı.",
+  "type": "AKINCI",
+  "category": "Security AI Skills",
+  "title": "Cloudflare Security Audit Skill",
+  "url": "https://github.com/cloudflare/security-audit-skill",
+  "description": "Coding agent'ları yapılandırılmış bir security audit workflow'una dönüştüren; reconnaissance, coverage-led hunting, bağımsız candidate validation, structured findings, record verification ve raporlama aşamalarını yöneten Cloudflare security skill paketi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 87
+  "trigger": 88
 }
