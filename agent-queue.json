@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "Threat Intelligence & OSINT Resources",
-  "title": "Awesome Threat Intelligence",
-  "url": "https://github.com/hslatman/awesome-threat-intelligence",
-  "description": "Threat intelligence kaynakları, IOC/feed servisleri, formatlar, framework ve platformlar, araçlar ile araştırma ve standartları tek yerde toplayan kapsamlı curated kaynak listesi.",
+  "type": "GitHub Repos",
+  "category": "AI Web Crawling & Data Extraction",
+  "title": "Crawl4AI",
+  "url": "https://github.com/unclecode/crawl4ai",
+  "description": "RAG, AI agent ve veri pipeline'ları için web sayfalarını temiz LLM-ready Markdown ve yapılandırılmış veriye dönüştüren; async browser crawling, deep crawl, CSS/XPath/LLM extraction, session/proxy/cookie yönetimi, dynamic JS sayfaları, CLI ve Docker/FastAPI deployment desteği sunan açık kaynak crawler/scraper.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 83
+  "trigger": 84
 }
