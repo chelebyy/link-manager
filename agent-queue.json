@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI Coding Agent Orchestration",
-  "title": "Orca",
-  "url": "https://github.com/stablyai/orca",
-  "description": "Codex, Claude Code, OpenCode, Pi, Hermes ve diğer CLI coding agent'larını izole git worktree'lerinde paralel çalıştıran; mobile companion, SSH worktree, design mode, diff review, GitHub/Linear entegrasyonu ve CLI automation sunan masaüstü AI agent orchestrator.",
+  "type": "website",
+  "category": "Electronics & PCB Design Tools",
+  "title": "PCB Studio",
+  "url": "https://pcbstudio.app/",
+  "description": "macOS için native, AI destekli PCB tasarım ortamı; şematik, BOM, PCB layout/routing, 3D review ve üretim handoff süreçlerini tek workspace içinde birleştirir. KiCad PCB uyumluluğu ve elektronik geliştirme için ADE yaklaşımı sunar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 89
+  "trigger": 90
 }
