@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "Open Source Games & Game Development Resources",
-  "title": "Open Source Games",
-  "url": "https://github.com/bobeff/open-source-games",
-  "description": "Action, adventure, city-building, FPS, platformer, puzzle, racing, RTS, roguelike, RPG, sandbox, tower defense ve diğer türlerde açık kaynak oyunları; ayrıca ticari oyunların açık kaynak remake, source port ve reimplementation projelerini kategorize eden geniş kaynak listesi.",
+  "category": "AI Video & Media Generation",
+  "title": "OpenMontage",
+  "url": "https://github.com/calesthio/OpenMontage",
+  "description": "AI coding assistantlarla araştırma, senaryo, medya üretimi, kurgu, seslendirme, altyazı ve render süreçlerini uçtan uca yöneten açık kaynak agentic video production sistemi.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 81
+  "trigger": 82
 }
