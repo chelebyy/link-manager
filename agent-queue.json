@@ -1,10 +1,10 @@
 {
-  "type": "AKINCI",
-  "category": "Security AI Skills",
-  "title": "Cloudflare Security Audit Skill",
-  "url": "https://github.com/cloudflare/security-audit-skill",
-  "description": "Coding agent'ları yapılandırılmış bir security audit workflow'una dönüştüren; reconnaissance, coverage-led hunting, bağımsız candidate validation, structured findings, record verification ve raporlama aşamalarını yöneten Cloudflare security skill paketi.",
+  "type": "GitHub Repos",
+  "category": "AI Coding Agent Orchestration",
+  "title": "Orca",
+  "url": "https://github.com/stablyai/orca",
+  "description": "Codex, Claude Code, OpenCode, Pi, Hermes ve diğer CLI coding agent'larını izole git worktree'lerinde paralel çalıştıran; mobile companion, SSH worktree, design mode, diff review, GitHub/Linear entegrasyonu ve CLI automation sunan masaüstü AI agent orchestrator.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 88
+  "trigger": 89
 }
