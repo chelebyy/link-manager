@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "AI 3D Generation & Mesh Tools",
-  "title": "img2threejs",
-  "url": "https://github.com/img2threejs/img2threejs",
-  "description": "Referans görseldeki nesneleri fotogrametri veya hazır mesh kullanmadan procedural Three.js kodu olarak yeniden oluşturan; primitive, procedural shader ve generated geometry tabanlı, tarayıcıda çalışan ve animasyona hazır 3D modeller üreten reconstruction-by-code aracı.",
+  "type": "TRADING",
+  "category": "Autonomous Trading Agents",
+  "title": "AutoHedge",
+  "url": "https://github.com/The-Swarm-Corporation/AutoHedge",
+  "description": "Director, Quant, Risk Manager ve Execution agent'larından oluşan multi-agent trading pipeline'ı; piyasa analizi, trade thesis üretimi ve doğrulama, risk/pozisyon boyutlandırma ve emir üretimini otonom şekilde koordine eder. Şu anda Solana üzerinde tam otonom trading desteği sunar; Coinbase ve ek borsalar roadmap'tedir.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 79
+  "trigger": 80
 }
