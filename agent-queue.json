@@ -1,10 +1,10 @@
 {
   "type": "GitHub Repos",
-  "category": "Geospatial & Situational Awareness",
-  "title": "God's Eye View",
-  "url": "https://github.com/bilawalsidhu/gods-eye-view",
-  "description": "Gerçek zamanlı uçuş, gemi, uydu, deprem, trafik ve açık kamera verilerini 3D dünya üzerinde birleştiren; yapay zeka destekli sesli kontrol ve etkileşim özellikleri sunan açık kaynak görselleştirme platformu.",
+  "category": "AI 3D Generation & Mesh Tools",
+  "title": "img2threejs",
+  "url": "https://github.com/img2threejs/img2threejs",
+  "description": "Referans görseldeki nesneleri fotogrametri veya hazır mesh kullanmadan procedural Three.js kodu olarak yeniden oluşturan; primitive, procedural shader ve generated geometry tabanlı, tarayıcıda çalışan ve animasyona hazır 3D modeller üreten reconstruction-by-code aracı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 78
+  "trigger": 79
 }
