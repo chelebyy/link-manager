@@ -1,10 +1,10 @@
 {
-  "type": "Skills",
-  "category": "3D Visualization & Three.js Skills",
-  "title": "3Dviz Pro Max",
-  "url": "https://github.com/viettranx/3dviz-pro-max",
-  "description": "Codex ve Claude gibi AI agent'lara fikirleri interaktif Three.js sahnelerine dönüştürmek için yapılandırılmış workflow, recipe, kit, template ve frame-capture doğrulaması sağlayan yaratıcı 3D visualization skill paketi.",
+  "type": "GitHub Repos",
+  "category": "AI Agent Connectors & Integrations",
+  "title": "Agent Reach",
+  "url": "https://github.com/Panniantong/Agent-Reach",
+  "description": "AI agent'lara web, YouTube, RSS, GitHub, X/Twitter, Reddit, Bilibili, LinkedIn, Instagram ve diğer çevrimiçi platformlara erişim kazandıran; farklı backend'leri yöneten, kurulum ve tanılama akışları sunan açık kaynak internet capability katmanı.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 86
+  "trigger": 87
 }
