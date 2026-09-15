@@ -11,6 +11,7 @@ on:
         options:
           - ingest
           - inventory
+          - maintenance
       type:
         description: Resource type/card
         required: false
@@ -99,6 +100,20 @@ jobs:
               --request GET \
               --header "X-Agent-Key: $AGENT_INGEST_KEY" \
               https://link.cheleby.qzz.io/agent/ingest/inventory)
+          elif [ "$ACTION" = "maintenance" ]; then
+            if [ "$EVENT_NAME" != "push" ]; then
+              echo "maintenance is only supported from the reviewed queue payload."
+              exit 1
+            fi
+            payload=$(jq '{merges: .merges, dryRun: (.dryRun // false)}' agent-queue.json)
+            status=$(curl --silent --show-error \
+              --output "$response_file" \
+              --write-out '%{http_code}' \
+              --request POST \
+              --header "Content-Type: application/json" \
+              --header "X-Agent-Key: $AGENT_INGEST_KEY" \
+              --data "$payload" \
+              https://link.cheleby.qzz.io/agent/maintenance/categories)
           else
             if [ -z "${INPUT_TYPE:-}" ] || [ -z "${INPUT_CATEGORY:-}" ] || [ -z "${INPUT_TITLE:-}" ] || [ -z "${INPUT_URL:-}" ]; then
               echo "type, category, title and url are required for ingest."
