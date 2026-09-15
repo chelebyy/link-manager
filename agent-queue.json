@@ -1,9 +1,9 @@
 {
   "action": "ingest",
-  "trigger": 110,
+  "trigger": 111,
   "type": "AKINCI",
-  "category": "Bug Bounty Frameworks",
-  "title": "BugScanner",
-  "url": "https://github.com/eldarshiraliyev/BugScanner",
-  "description": "Bug bounty, red team ve pentest için modüler web reconnaissance ve vulnerability assessment frameworkü; subdomain/port/technology/endpoint keşfi, XSS, SQLi, CORS, SSRF, JWT, IDOR, sensitive data ve business-logic kontrolleri, Nuclei entegrasyonu, false-positive doğrulama, WAF-aware rate limiting ve HTML/JSON raporlama sunar."
+  "category": "Dökümanlar",
+  "title": "Malware Unicorn Workshops",
+  "url": "https://malwareunicorn.org/#/workshops",
+  "description": "Reverse engineering ve malware analysis konularında uygulamalı güvenlik eğitimleri ve workshop kaynakları."
 }
