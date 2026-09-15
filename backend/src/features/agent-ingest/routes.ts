@@ -28,6 +28,48 @@ const verifyAgentKey = (rawKey: unknown) => {
 };
 
 export async function agentIngestRoutes(app: FastifyInstance, _opts: FastifyPluginOptions) {
+  app.get('/inventory', {
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async (request, reply) => {
+    if (!verifyAgentKey(request.headers['x-agent-key'])) {
+      return reply.code(401).send({ error: 'Invalid agent key' });
+    }
+
+    const [typesResult, categoriesResult, resourcesResult] = await Promise.all([
+      db.query(
+        `SELECT id, name, color, icon, sort_order
+         FROM resource_types
+         ORDER BY sort_order ASC, name ASC`,
+      ),
+      db.query(
+        `SELECT id, name, type, color, icon, sort_order
+         FROM categories
+         ORDER BY type ASC, sort_order ASC, name ASC`,
+      ),
+      db.query(
+        `SELECT id, category_id, type, title, url, description, sort_order
+         FROM resources
+         ORDER BY type ASC, sort_order ASC, title ASC`,
+      ),
+    ]);
+
+    return reply.send({
+      resourceTypes: typesResult.rows,
+      categories: categoriesResult.rows,
+      resources: resourcesResult.rows,
+      counts: {
+        resourceTypes: typesResult.rows.length,
+        categories: categoriesResult.rows.length,
+        resources: resourcesResult.rows.length,
+      },
+    });
+  });
+
   app.post('/', {
     config: {
       rateLimit: {
