@@ -1,4 +1,25 @@
 {
-  "action": "inventory",
-  "trigger": 100
+  "action": "maintenance",
+  "dryRun": true,
+  "trigger": 101,
+  "merges": [
+    {"type":"mcp","from":"document","to":"Documentation & Learning"},
+    {"type":"loops","from":"documents","to":"Guides & Examples"},
+    {"type":"self-hosted","from":"Self Hosting","to":"General Self-Hosted"}
+  ],
+  "assignments": [
+    {"resourceId":213,"category":"Development & Integration"},
+    {"resourceId":313,"category":"Context & Memory Optimization"},
+    {"resourceId":336,"category":"MCP Directories & Discovery"},
+    {"resourceId":445,"category":"Development & Integration"},
+    {"resourceId":260,"category":"Agent Loops & Automation"},
+    {"resourceId":278,"category":"Agent Loops & Automation"},
+    {"resourceId":283,"category":"Agent Loops & Automation"},
+    {"resourceId":284,"category":"Agent Loops & Automation"},
+    {"resourceId":308,"category":"Local Model Optimization"},
+    {"resourceId":310,"category":"Local Model Optimization"},
+    {"resourceId":374,"category":"OpenCode Tools"},
+    {"resourceId":65,"category":"UI & Web Development"},
+    {"resourceId":176,"category":"Directories & Guides"}
+  ]
 }
