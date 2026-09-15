@@ -1,7 +1,7 @@
 {
   "action": "maintenance",
-  "dryRun": true,
-  "trigger": 95,
+  "dryRun": false,
+  "trigger": 96,
   "merges": [
     {"type":"github","from":"UI/UIX","to":"UI & Design"},
     {"type":"github","from":"Design","to":"UI & Design"},
@@ -65,7 +65,6 @@
     {"type":"skill","from":"GLM","to":"AI Model & Coding Assistants"},
     {"type":"skill","from":"Gemini","to":"AI Model & Coding Assistants"},
     {"type":"skill","from":"codex","to":"AI Model & Coding Assistants"},
-    {"type":"skill","from":"Security","to":"Security"},
     {"type":"skill","from":"Seo/Geo","to":"SEO & Marketing"},
     {"type":"skill","from":"Marketing","to":"SEO & Marketing"},
     {"type":"skill","from":"Marketing & Growth Skills","to":"SEO & Marketing"},
