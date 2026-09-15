@@ -1,7 +1,7 @@
 {
   "action": "maintenance",
   "dryRun": false,
-  "trigger": 107,
+  "trigger": 108,
   "merges": [
     {"type":"skill","from":"Product & Planning","to":"Agent Workflow & Productivity"},
     {"type":"website","from":"Marketing & Growth","to":"SEO, Analytics & AI Visibility"},
