@@ -1,9 +1,27 @@
 {
   "action": "maintenance",
-  "dryRun": false,
-  "trigger": 105,
+  "dryRun": true,
+  "trigger": 106,
   "merges": [
-    {"type":"website","from":"Hermes","to":"Developer & AI Tools"}
+    {"type":"tools-plugin","from":"Opencode","to":"OpenCode"},
+    {"type":"tools-plugin","from":"pi","to":"Pi"},
+    {"type":"skill","from":"Product & Planning","to":"Agent Workflow & Productivity"},
+    {"type":"website","from":"Marketing & Growth","to":"SEO, Analytics & AI Visibility"},
+    {"type":"website","from":"Automation & Workflows","to":"Developer & AI Tools"},
+    {"type":"note","from":"lazycodex","to":"Code Quality & Optimization"}
   ],
-  "deleteResourceIds": [190,289,305,341,349,503]
+  "assignments": [
+    {"resourceId":179,"category":"Security & Privacy"},
+    {"resourceId":183,"category":"Security & Privacy"},
+    {"resourceId":73,"category":"Skills & References"},
+    {"resourceId":127,"category":"Code Review & QA"},
+    {"resourceId":136,"category":"Reasoning & Feedback"},
+    {"resourceId":402,"category":"Goal Workflows"},
+    {"resourceId":403,"category":"Goal Workflows"},
+    {"resourceId":491,"category":"Skills & References"},
+    {"resourceId":492,"category":"Skills & References"},
+    {"resourceId":493,"category":"Skills & References"},
+    {"resourceId":496,"category":"Code Review & QA"},
+    {"resourceId":498,"category":"General Prompts"}
+  ]
 }
