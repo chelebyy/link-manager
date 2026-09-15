@@ -14,6 +14,7 @@ import { dashboardRoutes } from './features/dashboard/routes.js';
 import { resourceTypesRoutes } from './features/resource-types/routes.js';
 import { dataRoutes } from './features/data/routes.js';
 import { agentIngestRoutes } from './features/agent-ingest/routes.js';
+import { agentMaintenanceRoutes } from './features/agent-maintenance/routes.js';
 
 dotenv.config();
 
@@ -78,6 +79,7 @@ app.addHook('onClose', async () => {
 });
 
 await app.register(agentIngestRoutes, { prefix: '/agent/ingest' });
+await app.register(agentMaintenanceRoutes, { prefix: '/agent/maintenance' });
 await app.register(categoriesRoutes, { prefix: '/api/categories' });
 await app.register(resourcesRoutes, { prefix: '/api/resources' });
 await app.register(syncRoutes, { prefix: '/api' });
