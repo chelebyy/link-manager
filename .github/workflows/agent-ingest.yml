@@ -105,7 +105,12 @@ jobs:
               echo "maintenance is only supported from the reviewed queue payload."
               exit 1
             fi
-            payload=$(jq '{merges: .merges, dryRun: (.dryRun // false)}' agent-queue.json)
+            payload=$(jq '{
+              merges: (.merges // []),
+              assignments: (.assignments // []),
+              deleteResourceIds: (.deleteResourceIds // []),
+              dryRun: (.dryRun // false)
+            }' agent-queue.json)
             status=$(curl --silent --show-error \
               --output "$response_file" \
               --write-out '%{http_code}' \
