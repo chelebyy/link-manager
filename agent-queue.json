@@ -1,10 +1,10 @@
 {
   "type": "website",
-  "category": "3D Architecture & Spatial Design Tools",
-  "title": "Pascal Editor",
-  "url": "https://editor.pascal.app/",
-  "description": "Tarayıcıda çalışan açık kaynak 3D mimari ve bina tasarım editörü; floor plan, çok katlı yapı, terrain, malzeme, MEP, first-person walkthrough, AI destekli düzenleme, 3D üretim ve MCP/CLI üzerinden AI agent kontrolü sunar.",
+  "category": "AI Game Development Tools",
+  "title": "Sorceress",
+  "url": "https://sorceress.games/",
+  "description": "AI destekli oyun geliştirme paketi; coding agent, 2D sprite ve tileset üretimi, 3D model/rig/animation, voxel, PBR material, müzik, SFX, seslendirme ve oyun yayınlama araçlarını tek platformda birleştirir. WizardGenie ile prompttan oynanabilir oyun üretimi ve coding agent'lar için asset API desteği sunar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 92
+  "trigger": 93
 }
