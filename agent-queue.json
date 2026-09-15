@@ -1,7 +1,7 @@
 {
   "action": "maintenance",
-  "dryRun": true,
-  "trigger": 104,
+  "dryRun": false,
+  "trigger": 105,
   "merges": [
     {"type":"website","from":"Hermes","to":"Developer & AI Tools"}
   ],
