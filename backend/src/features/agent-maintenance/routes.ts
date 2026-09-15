@@ -15,10 +15,22 @@ const mergeSchema = z.object({
   icon: z.string().trim().min(1).max(64).optional().default('Folder'),
 });
 
-const requestSchema = z.object({
-  merges: z.array(mergeSchema).min(1).max(200),
-  dryRun: z.boolean().optional().default(false),
+const assignmentSchema = z.object({
+  resourceId: z.coerce.number().int().positive(),
+  category: z.string().trim().min(1).max(80),
+  color: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/).optional().default('#6366f1'),
+  icon: z.string().trim().min(1).max(64).optional().default('Folder'),
 });
+
+const requestSchema = z.object({
+  merges: z.array(mergeSchema).max(200).optional().default([]),
+  assignments: z.array(assignmentSchema).max(200).optional().default([]),
+  deleteResourceIds: z.array(z.coerce.number().int().positive()).max(200).optional().default([]),
+  dryRun: z.boolean().optional().default(false),
+}).refine(
+  value => value.merges.length > 0 || value.assignments.length > 0 || value.deleteResourceIds.length > 0,
+  { message: 'Provide at least one merge, assignment or resource deletion' },
+);
 
 const safeEqualHex = (a: string, b: string) => {
   if (a.length !== b.length) return false;
@@ -44,7 +56,7 @@ export async function agentMaintenanceRoutes(app: FastifyInstance, _opts: Fastif
       return reply.code(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
     }
 
-    const { merges, dryRun } = parsed.data;
+    const { merges, assignments, deleteResourceIds, dryRun } = parsed.data;
     const normalizedTypes = [...new Set(merges.map(item => item.type.toLowerCase()))];
     const forbidden = normalizedTypes.filter(type => LOCKED_TYPES.has(type));
     if (forbidden.length) {
@@ -63,14 +75,14 @@ export async function agentMaintenanceRoutes(app: FastifyInstance, _opts: Fastif
         );
         const typeId = typeResult.rows[0]?.id ? String(typeResult.rows[0].id) : null;
         if (!typeId) {
-          changes.push({ type: item.type, from: item.from, to: item.to, status: 'type_not_found' });
+          changes.push({ action: 'merge', type: item.type, from: item.from, to: item.to, status: 'type_not_found' });
           continue;
         }
         if (LOCKED_TYPES.has(typeId.toLowerCase())) {
           throw new Error(`Locked resource type cannot be modified: ${typeId}`);
         }
         if (item.from.toLowerCase() === item.to.toLowerCase()) {
-          changes.push({ type: typeId, from: item.from, to: item.to, status: 'same_category' });
+          changes.push({ action: 'merge', type: typeId, from: item.from, to: item.to, status: 'same_category' });
           continue;
         }
 
@@ -82,7 +94,7 @@ export async function agentMaintenanceRoutes(app: FastifyInstance, _opts: Fastif
         );
         const source = sourceResult.rows[0];
         if (!source?.id) {
-          changes.push({ type: typeId, from: item.from, to: item.to, status: 'source_not_found' });
+          changes.push({ action: 'merge', type: typeId, from: item.from, to: item.to, status: 'source_not_found' });
           continue;
         }
 
@@ -116,7 +128,7 @@ export async function agentMaintenanceRoutes(app: FastifyInstance, _opts: Fastif
         const resourceCount = Number(countResult.rows[0]?.count || 0);
 
         if (dryRun) {
-          changes.push({ type: typeId, from: item.from, to: item.to, status: target?.id ? 'would_merge' : 'would_create_and_merge', resources: resourceCount });
+          changes.push({ action: 'merge', type: typeId, from: item.from, to: item.to, status: target?.id ? 'would_merge' : 'would_create_and_merge', resources: resourceCount });
           continue;
         }
 
@@ -125,7 +137,83 @@ export async function agentMaintenanceRoutes(app: FastifyInstance, _opts: Fastif
           [target.id, source.id],
         );
         await txQuery(`DELETE FROM categories WHERE id = ${param(0)}`, [source.id]);
-        changes.push({ type: typeId, from: item.from, to: item.to, status: 'merged', resources: resourceCount });
+        changes.push({ action: 'merge', type: typeId, from: item.from, to: item.to, status: 'merged', resources: resourceCount });
+      }
+
+      for (const item of assignments) {
+        const resourceResult = await txQuery(
+          `SELECT id, title, type, category_id FROM resources WHERE id = ${param(0)} LIMIT 1`,
+          [item.resourceId],
+        );
+        const resource = resourceResult.rows[0];
+        if (!resource?.id) {
+          changes.push({ action: 'assign', resourceId: item.resourceId, category: item.category, status: 'resource_not_found' });
+          continue;
+        }
+
+        const typeId = String(resource.type);
+        if (LOCKED_TYPES.has(typeId.toLowerCase())) {
+          throw new Error(`Locked resource type cannot be modified: ${typeId}`);
+        }
+
+        let targetResult = await txQuery(
+          `SELECT id, name FROM categories
+           WHERE type = ${param(0)} AND LOWER(name) = LOWER(${param(1)})
+           LIMIT 1`,
+          [typeId, item.category],
+        );
+        let target = targetResult.rows[0];
+
+        if (!target?.id && !dryRun) {
+          const sortResult = await txQuery(
+            `SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM categories WHERE type = ${param(0)}`,
+            [typeId],
+          );
+          const nextOrder = Number(sortResult.rows[0]?.max_order || 0) + 1;
+          targetResult = await txQuery(
+            `INSERT INTO categories (name, type, color, icon, sort_order)
+             VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)})
+             RETURNING id, name`,
+            [item.category, typeId, item.color, item.icon, nextOrder],
+          );
+          target = targetResult.rows[0];
+        }
+
+        if (dryRun) {
+          changes.push({ action: 'assign', resourceId: item.resourceId, title: resource.title, type: typeId, category: item.category, status: target?.id ? 'would_assign' : 'would_create_and_assign' });
+          continue;
+        }
+
+        await txQuery(
+          `UPDATE resources SET category_id = ${param(0)} WHERE id = ${param(1)}`,
+          [target.id, item.resourceId],
+        );
+        changes.push({ action: 'assign', resourceId: item.resourceId, title: resource.title, type: typeId, category: item.category, status: 'assigned' });
+      }
+
+      for (const resourceId of [...new Set(deleteResourceIds)]) {
+        const resourceResult = await txQuery(
+          `SELECT id, title, type, url FROM resources WHERE id = ${param(0)} LIMIT 1`,
+          [resourceId],
+        );
+        const resource = resourceResult.rows[0];
+        if (!resource?.id) {
+          changes.push({ action: 'delete_resource', resourceId, status: 'resource_not_found' });
+          continue;
+        }
+
+        const typeId = String(resource.type);
+        if (LOCKED_TYPES.has(typeId.toLowerCase())) {
+          throw new Error(`Locked resource type cannot be modified: ${typeId}`);
+        }
+
+        if (dryRun) {
+          changes.push({ action: 'delete_resource', resourceId, title: resource.title, type: typeId, url: resource.url, status: 'would_delete' });
+          continue;
+        }
+
+        await txQuery(`DELETE FROM resources WHERE id = ${param(0)}`, [resourceId]);
+        changes.push({ action: 'delete_resource', resourceId, title: resource.title, type: typeId, url: resource.url, status: 'deleted' });
       }
 
       return changes;
