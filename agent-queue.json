@@ -1,4 +1,9 @@
 {
-  "action": "inventory",
-  "trigger": 103
+  "action": "maintenance",
+  "dryRun": true,
+  "trigger": 104,
+  "merges": [
+    {"type":"website","from":"Hermes","to":"Developer & AI Tools"}
+  ],
+  "deleteResourceIds": [190,289,305,341,349,503]
 }
