@@ -1,10 +1,8 @@
 {
   "action": "maintenance",
-  "dryRun": true,
-  "trigger": 106,
+  "dryRun": false,
+  "trigger": 107,
   "merges": [
-    {"type":"tools-plugin","from":"Opencode","to":"OpenCode"},
-    {"type":"tools-plugin","from":"pi","to":"Pi"},
     {"type":"skill","from":"Product & Planning","to":"Agent Workflow & Productivity"},
     {"type":"website","from":"Marketing & Growth","to":"SEO, Analytics & AI Visibility"},
     {"type":"website","from":"Automation & Workflows","to":"Developer & AI Tools"},
