@@ -1,9 +1,9 @@
 {
   "action": "ingest",
-  "trigger": 109,
+  "trigger": 110,
   "type": "AKINCI",
-  "category": "Security AI Skills",
-  "title": "Google Mantis",
-  "url": "https://github.com/google/mantis",
-  "description": "Güvenli yazılım geliştirme için AI tabanlı security review toolkit'i; kod geçmişi analizi, semantic indexing, threat modeling, hipotez tabanlı araştırma, finding triage/deduplication, vulnerability reproduction, exploit-chain analizi, patch üretimi ve adversarial fix verification akışlarını ADK referans harness'iyle birleştirir."
+  "category": "Bug Bounty Frameworks",
+  "title": "BugScanner",
+  "url": "https://github.com/eldarshiraliyev/BugScanner",
+  "description": "Bug bounty, red team ve pentest için modüler web reconnaissance ve vulnerability assessment frameworkü; subdomain/port/technology/endpoint keşfi, XSS, SQLi, CORS, SSRF, JWT, IDOR, sensitive data ve business-logic kontrolleri, Nuclei entegrasyonu, false-positive doğrulama, WAF-aware rate limiting ve HTML/JSON raporlama sunar."
 }
