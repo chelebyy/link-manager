@@ -1,10 +1,4 @@
 {
-  "type": "website",
-  "category": "AI Game Development Tools",
-  "title": "Sorceress",
-  "url": "https://sorceress.games/",
-  "description": "AI destekli oyun geliştirme paketi; coding agent, 2D sprite ve tileset üretimi, 3D model/rig/animation, voxel, PBR material, müzik, SFX, seslendirme ve oyun yayınlama araçlarını tek platformda birleştirir. WizardGenie ile prompttan oynanabilir oyun üretimi ve coding agent'lar için asset API desteği sunar.",
-  "categoryColor": "#6366f1",
-  "categoryIcon": "Folder",
-  "trigger": 93
+  "action": "inventory",
+  "trigger": 94
 }
