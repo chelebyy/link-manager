@@ -1,7 +1,7 @@
 {
   "action": "maintenance",
-  "dryRun": true,
-  "trigger": 101,
+  "dryRun": false,
+  "trigger": 102,
   "merges": [
     {"type":"mcp","from":"document","to":"Documentation & Learning"},
     {"type":"loops","from":"documents","to":"Guides & Examples"},
