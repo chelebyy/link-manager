@@ -1,10 +1,10 @@
 {
-  "type": "GitHub Repos",
-  "category": "Robotics, Drones & Embedded Systems",
-  "title": "Flix",
-  "url": "https://github.com/okalachev/flix",
-  "description": "ESP32 tabanlı açık kaynak DIY quadcopter; Arduino firmware, MAVLink üzerinden Wi-Fi/ESP-NOW iletişimi, gamepad/telefon/RC kontrolü, Gazebo simülasyonu, Python scripting kütüphanesi ve 3D baskı frame dosyalarıyla eğitim ve araştırma odaklı drone platformu.",
+  "type": "website",
+  "category": "3D Architecture & Spatial Design Tools",
+  "title": "Pascal Editor",
+  "url": "https://editor.pascal.app/",
+  "description": "Tarayıcıda çalışan açık kaynak 3D mimari ve bina tasarım editörü; floor plan, çok katlı yapı, terrain, malzeme, MEP, first-person walkthrough, AI destekli düzenleme, 3D üretim ve MCP/CLI üzerinden AI agent kontrolü sunar.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 91
+  "trigger": 92
 }
