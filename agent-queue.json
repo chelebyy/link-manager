@@ -1,20 +1,4 @@
 {
-  "action": "maintenance",
-  "dryRun": false,
-  "trigger": 99,
-  "assignments": [
-    {"resourceId":215,"category":"AI Agents & Orchestration"},
-    {"resourceId":314,"category":"Documents & Productivity"},
-    {"resourceId":31,"category":"SEO & Marketing"},
-    {"resourceId":8,"category":"Developer & AI Tools"},
-    {"resourceId":156,"category":"Developer & AI Tools"},
-    {"resourceId":249,"category":"Mobile Development Tools"},
-    {"resourceId":257,"category":"General Utilities"},
-    {"resourceId":342,"category":"AI Skill Marketplaces"},
-    {"resourceId":355,"category":"Developer & AI Tools"},
-    {"resourceId":362,"category":"GitHub & Open Source Resources"},
-    {"resourceId":377,"category":"General Utilities"},
-    {"resourceId":398,"category":"Developer & AI Tools"}
-  ],
-  "deleteResourceIds": [125,126,233,546]
+  "action": "inventory",
+  "trigger": 100
 }
