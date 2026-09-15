@@ -1,10 +1,10 @@
 {
-  "type": "website",
-  "category": "Electronics & PCB Design Tools",
-  "title": "PCB Studio",
-  "url": "https://pcbstudio.app/",
-  "description": "macOS için native, AI destekli PCB tasarım ortamı; şematik, BOM, PCB layout/routing, 3D review ve üretim handoff süreçlerini tek workspace içinde birleştirir. KiCad PCB uyumluluğu ve elektronik geliştirme için ADE yaklaşımı sunar.",
+  "type": "GitHub Repos",
+  "category": "Robotics, Drones & Embedded Systems",
+  "title": "Flix",
+  "url": "https://github.com/okalachev/flix",
+  "description": "ESP32 tabanlı açık kaynak DIY quadcopter; Arduino firmware, MAVLink üzerinden Wi-Fi/ESP-NOW iletişimi, gamepad/telefon/RC kontrolü, Gazebo simülasyonu, Python scripting kütüphanesi ve 3D baskı frame dosyalarıyla eğitim ve araştırma odaklı drone platformu.",
   "categoryColor": "#6366f1",
   "categoryIcon": "Folder",
-  "trigger": 90
+  "trigger": 91
 }
