@@ -1,7 +1,7 @@
 {
   "action": "maintenance",
-  "dryRun": true,
-  "trigger": 98,
+  "dryRun": false,
+  "trigger": 99,
   "assignments": [
     {"resourceId":215,"category":"AI Agents & Orchestration"},
     {"resourceId":314,"category":"Documents & Productivity"},
