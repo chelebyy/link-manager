@@ -1,9 +1,9 @@
 {
   "action": "ingest",
-  "trigger": 111,
-  "type": "AKINCI",
-  "category": "Dökümanlar",
-  "title": "Malware Unicorn Workshops",
-  "url": "https://malwareunicorn.org/#/workshops",
-  "description": "Reverse engineering ve malware analysis konularında uygulamalı güvenlik eğitimleri ve workshop kaynakları."
+  "trigger": 112,
+  "type": "website",
+  "category": "UI & Design Resources",
+  "title": "termcn",
+  "url": "https://www.termcn.dev/",
+  "description": "React terminal uygulamaları için Ink ve OpenTUI tabanlı, shadcn CLI ile kurulabilen açık kaynak terminal UI component registry; temalar, grafikler, navigation ve AI arayüz bileşenleri sunar."
 }
