@@ -1,9 +1,8 @@
 {
-  "action": "ingest",
-  "trigger": 119,
-  "type": "website",
-  "category": "Developer & AI Tools",
-  "title": "TypeSafe AI",
-  "url": "https://docs.typesafe.ai/introduction",
-  "description": "Metin üretmek yerine yazılımın doğrudan kullanabileceği hızlı ve yapılandırılmış kararlar veren System One yaklaşımı; Jev modeliyle Choice, Score ve Noul primitive'leri, olasılık dağılımları ve confidence tabanlı karar akışları sunar."
+"action":"ingest",
+"trigger":122,
+"type":"github",
+"category":"Mobile Development & Testing",
+"title":"Google Mobile Testing",
+"url":"https://github.com/google/artemis"
 }
