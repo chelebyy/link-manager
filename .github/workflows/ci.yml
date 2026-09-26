@@ -71,6 +71,18 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
+      - name: Refresh backend lockfile for Remote MCP branch
+        if: github.head_ref == 'remote-mcp'
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Upload refreshed backend lockfile
+        if: github.head_ref == 'remote-mcp'
+        uses: actions/upload-artifact@v6
+        with:
+          name: remote-mcp-package-lock
+          path: backend/package-lock.json
+          retention-days: 1
+
       - name: Install dependencies
         run: npm ci
 
