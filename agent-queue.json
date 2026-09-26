@@ -1,9 +1,9 @@
 {
   "action": "ingest",
-  "trigger": 118,
-  "type": "github",
-  "category": "Local AI & Model Runtime",
-  "title": "Ollaya",
-  "url": "https://github.com/ollaya-dev/ollaya",
-  "description": "Ollama benzeri şekilde açık decision modellerini yerelde çalıştıran runtime; hızlı sınıflandırma, scoring ve routing için CLI, local API, MCP, TypeSafe uyumluluğu, CPU/CUDA ve Docker desteği sunar."
+  "trigger": 119,
+  "type": "website",
+  "category": "Developer & AI Tools",
+  "title": "TypeSafe AI",
+  "url": "https://docs.typesafe.ai/introduction",
+  "description": "Metin üretmek yerine yazılımın doğrudan kullanabileceği hızlı ve yapılandırılmış kararlar veren System One yaklaşımı; Jev modeliyle Choice, Score ve Noul primitive'leri, olasılık dağılımları ve confidence tabanlı karar akışları sunar."
 }
