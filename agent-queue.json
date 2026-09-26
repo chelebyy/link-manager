@@ -1,9 +1,9 @@
 {
   "action": "ingest",
-  "trigger": 113,
-  "type": "website",
-  "category": "UI & Design Resources",
-  "title": "Shadcn Labs",
-  "url": "https://www.shadcn-labs.com/",
-  "description": "shadcn/ui ekosistemini genişleten proje koleksiyonu; terminal, video, AI agent, MCP app, email, PDF, rich-text editor, shader ve diğer React UI bileşenleri ile agent skills kaynaklarını bir araya getirir."
+  "trigger": 114,
+  "type": "github",
+  "category": "Video & Media",
+  "title": "video-use",
+  "url": "https://github.com/browser-use/video-use",
+  "description": "Claude Code, Codex, Hermes ve benzeri shell erişimli AI agent'larla ham videoları konuşarak düzenlemeye yarayan açık kaynak video editing skill/toolkit; transcript tabanlı kurgu, filler/dead-space temizleme, renk düzenleme, altyazı, animasyon overlay, ffmpeg render, self-eval ve proje hafızası akışları sunar."
 }
