@@ -1,9 +1,8 @@
 {
-  "action": "ingest",
-  "trigger": 114,
-  "type": "github",
-  "category": "Video & Media",
-  "title": "video-use",
-  "url": "https://github.com/browser-use/video-use",
-  "description": "Claude Code, Codex, Hermes ve benzeri shell erişimli AI agent'larla ham videoları konuşarak düzenlemeye yarayan açık kaynak video editing skill/toolkit; transcript tabanlı kurgu, filler/dead-space temizleme, renk düzenleme, altyazı, animasyon overlay, ffmpeg render, self-eval ve proje hafızası akışları sunar."
+"action":"ingest",
+"trigger":117,
+"type":"github",
+"category":"Video & Media",
+"title":"Motion Kit",
+"url":"https://github.com/tugrawork-creator/saas-motion-kit"
 }
