@@ -1,8 +1,9 @@
 {
-"action":"ingest",
-"trigger":117,
-"type":"github",
-"category":"Video & Media",
-"title":"Motion Kit",
-"url":"https://github.com/tugrawork-creator/saas-motion-kit"
+  "action": "ingest",
+  "trigger": 118,
+  "type": "github",
+  "category": "Local AI & Model Runtime",
+  "title": "Ollaya",
+  "url": "https://github.com/ollaya-dev/ollaya",
+  "description": "Ollama benzeri şekilde açık decision modellerini yerelde çalıştıran runtime; hızlı sınıflandırma, scoring ve routing için CLI, local API, MCP, TypeSafe uyumluluğu, CPU/CUDA ve Docker desteği sunar."
 }
