@@ -196,7 +196,10 @@ export async function remoteMcpRoutes(app: FastifyInstance, _opts: FastifyPlugin
   }, async (request, reply) => {
     const auth = request.headers.authorization;
     const bearer = typeof auth === 'string' && auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-    if (!verifyMcpKey(bearer)) return reply.code(401).send({ error: 'Invalid MCP key' });
+    const customHeader = request.headers['x-link-manager-mcp-key'];
+    const customKey = typeof customHeader === 'string' ? customHeader.trim() : '';
+    const presentedKey = customKey || bearer;
+    if (!verifyMcpKey(presentedKey)) return reply.code(401).send({ error: 'Invalid MCP key' });
 
     const body = request.body as { jsonrpc?: string; id?: unknown; method?: string; params?: any } | undefined;
     if (!body || body.jsonrpc !== '2.0' || typeof body.method !== 'string') {
