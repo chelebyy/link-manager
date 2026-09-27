@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   workflow-lint:
@@ -75,13 +75,20 @@ jobs:
         if: github.head_ref == 'remote-mcp'
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 
-      - name: Upload refreshed backend lockfile
+      - name: Commit refreshed backend lockfile
         if: github.head_ref == 'remote-mcp'
-        uses: actions/upload-artifact@v6
-        with:
-          name: remote-mcp-package-lock
-          path: backend/package-lock.json
-          retention-days: 1
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/package-lock.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: refresh backend lockfile"
+          git push origin HEAD:remote-mcp
 
       - name: Install dependencies
         run: npm ci
