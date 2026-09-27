@@ -94,16 +94,16 @@ async function callTool(name: string, rawArgs: unknown) {
 
   if (name === 'search_resources') {
     const { query, type, limit } = searchSchema.parse(rawArgs ?? {});
-    const needle = \`%\${query.toLowerCase()}%\`;
+    const needle = `%${query.toLowerCase()}%`;
     const values: unknown[] = [needle, needle, needle];
-    let sql = \`SELECT id, category_id, type, title, url, description
+    let sql = `SELECT id, category_id, type, title, url, description
       FROM resources
-      WHERE (LOWER(title) LIKE \${param(0)} OR LOWER(url) LIKE \${param(1)} OR LOWER(COALESCE(description, '')) LIKE \${param(2)})\`;
+      WHERE (LOWER(title) LIKE ${param(0)} OR LOWER(url) LIKE ${param(1)} OR LOWER(COALESCE(description, '')) LIKE ${param(2)})`;
     if (type) {
-      sql += \` AND LOWER(type) = LOWER(\${param(3)})\`;
+      sql += ` AND LOWER(type) = LOWER(${param(3)})`;
       values.push(type);
     }
-    sql += \` ORDER BY title ASC LIMIT \${Number(limit)}\`;
+    sql += ` ORDER BY title ASC LIMIT ${Number(limit)}`;
     const result = await db.query(sql, values);
     return text({ resources: result.rows });
   }
@@ -111,7 +111,7 @@ async function callTool(name: string, rawArgs: unknown) {
   if (name === 'check_duplicate') {
     const { url } = duplicateSchema.parse(rawArgs ?? {});
     const result = await db.query(
-      \`SELECT id, category_id, type, title, url, description FROM resources WHERE url = \${param(0)} ORDER BY id ASC\`,
+      `SELECT id, category_id, type, title, url, description FROM resources WHERE url = ${param(0)} ORDER BY id ASC`,
       [url],
     );
     return text({ duplicate: result.rows.length > 0, count: result.rows.length, resources: result.rows });
@@ -120,22 +120,22 @@ async function callTool(name: string, rawArgs: unknown) {
   if (name === 'add_resource') {
     const item = addSchema.parse(rawArgs ?? {});
     if (LOCKED_TYPES.has(item.type.toUpperCase())) {
-      return text({ error: \`\${item.type} is intentionally excluded from Remote MCP writes\` });
+      return text({ error: `${item.type} is intentionally excluded from Remote MCP writes` });
     }
 
     const result = await withTransaction(async (txQuery) => {
       const typeResult = await txQuery(
-        \`SELECT id, name FROM resource_types
-         WHERE LOWER(id) = LOWER(\${param(0)}) OR LOWER(name) = LOWER(\${param(1)})
-         LIMIT 1\`,
+        `SELECT id, name FROM resource_types
+         WHERE LOWER(id) = LOWER(${param(0)}) OR LOWER(name) = LOWER(${param(1)})
+         LIMIT 1`,
         [item.type, item.type],
       );
       const resolvedType = typeResult.rows[0]?.id ? String(typeResult.rows[0].id) : null;
-      if (!resolvedType) throw new Error(\`Resource type not found: \${item.type}\`);
+      if (!resolvedType) throw new Error(`Resource type not found: ${item.type}`);
 
       const duplicate = await txQuery(
-        \`SELECT id, category_id, type, title, url, description FROM resources
-         WHERE url = \${param(0)} ORDER BY id ASC\`,
+        `SELECT id, category_id, type, title, url, description FROM resources
+         WHERE url = ${param(0)} ORDER BY id ASC`,
         [item.url],
       );
       if (duplicate.rows.length) {
@@ -143,34 +143,34 @@ async function callTool(name: string, rawArgs: unknown) {
       }
 
       let category = await txQuery(
-        \`SELECT id, name FROM categories
-         WHERE type = \${param(0)} AND LOWER(name) = LOWER(\${param(1)}) LIMIT 1\`,
+        `SELECT id, name FROM categories
+         WHERE type = ${param(0)} AND LOWER(name) = LOWER(${param(1)}) LIMIT 1`,
         [resolvedType, item.category],
       );
       let categoryId = category.rows[0]?.id as string | number | undefined;
 
       if (!categoryId) {
         const sort = await txQuery(
-          \`SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM categories WHERE type = \${param(0)}\`,
+          `SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM categories WHERE type = ${param(0)}`,
           [resolvedType],
         );
         category = await txQuery(
-          \`INSERT INTO categories (name, type, color, icon, sort_order)
-           VALUES (\${param(0)}, \${param(1)}, \${param(2)}, \${param(3)}, \${param(4)})
-           RETURNING id, name\`,
+          `INSERT INTO categories (name, type, color, icon, sort_order)
+           VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)})
+           RETURNING id, name`,
           [item.category, resolvedType, '#6366f1', 'Folder', Number(sort.rows[0]?.max_order || 0) + 1],
         );
         categoryId = category.rows[0]?.id;
       }
 
       const sort = await txQuery(
-        \`SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM resources WHERE type = \${param(0)}\`,
+        `SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM resources WHERE type = ${param(0)}`,
         [resolvedType],
       );
       const inserted = await txQuery(
-        \`INSERT INTO resources (category_id, type, title, url, description, metadata, sort_order)
-         VALUES (\${param(0)}, \${param(1)}, \${param(2)}, \${param(3)}, \${param(4)}, \${param(5)}, \${param(6)})
-         RETURNING id, category_id, type, title, url, description\`,
+        `INSERT INTO resources (category_id, type, title, url, description, metadata, sort_order)
+         VALUES (${param(0)}, ${param(1)}, ${param(2)}, ${param(3)}, ${param(4)}, ${param(5)}, ${param(6)})
+         RETURNING id, category_id, type, title, url, description`,
         [categoryId ?? null, resolvedType, item.title, item.url, item.description ?? null, '{}', Number(sort.rows[0]?.max_order || 0) + 1],
       );
       return { created: true, duplicate: false, resource: inserted.rows[0] };
@@ -179,7 +179,7 @@ async function callTool(name: string, rawArgs: unknown) {
     return text(result);
   }
 
-  throw new Error(\`Unknown tool: \${name}\`);
+  throw new Error(`Unknown tool: ${name}`);
 }
 
 function jsonRpcResult(id: unknown, result: unknown) {
