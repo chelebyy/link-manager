@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
 import { db, withTransaction } from '../../shared/db/index.js';
 
@@ -152,7 +152,7 @@ export async function remoteMcpRoutes(app: FastifyInstance, _opts: FastifyPlugin
     if (!verifyMcpKey(bearer)) return reply.code(401).send({ error: 'Invalid MCP key' });
 
     const server = createMcpServer();
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+    const transport = new WebStandardStreamableHTTPServerTransport();
     await server.connect(transport);
 
     try {
