@@ -37,6 +37,7 @@ services:
       PORT: 3000
       SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-30}
       LINK_MANAGER_API_KEY: ${LINK_MANAGER_API_KEY:-}
+      LINK_MANAGER_MCP_KEY: ${LINK_MANAGER_MCP_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
