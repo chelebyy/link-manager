@@ -145,6 +145,20 @@ export const db = {
         `);
 
         await pool.query(`
+          INSERT INTO resource_types (id, name, icon, color, description, is_builtin, sort_order)
+          VALUES (
+            'bir-ai',
+            'BİR AI',
+            'Cpu',
+            '#6366f1',
+            'Yapay zeka ekosistemleri, sağlayıcılar ve onlara özgü araçlar için üst seviye kart.',
+            FALSE,
+            COALESCE((SELECT MAX(sort_order) + 1 FROM resource_types), 1)
+          )
+          ON CONFLICT (id) DO NOTHING;
+        `);
+
+        await pool.query(`
           ALTER TABLE IF EXISTS resources
           ALTER COLUMN type TYPE TEXT,
           ALTER COLUMN type SET NOT NULL;
