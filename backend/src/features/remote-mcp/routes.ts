@@ -65,6 +65,20 @@ const toolDefinitions = [
       additionalProperties: false,
     },
   },
+  {
+    name: 'move_resource',
+    description: 'Move an existing resource to another Link Manager resource type and category. Locked areas cannot be read from or written to by this tool.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        resource_id: { type: 'integer', minimum: 1 },
+        type: { type: 'string', minLength: 1, maxLength: 80 },
+        category: { type: 'string', minLength: 1, maxLength: 80 },
+      },
+      required: ['resource_id', 'type', 'category'],
+      additionalProperties: false,
+    },
+  },
 ] as const;
 
 const searchSchema = z.object({
@@ -81,6 +95,12 @@ const addSchema = z.object({
   title: z.string().trim().min(1).max(200),
   url: z.string().trim().url().max(2000),
   description: z.string().trim().max(4000).optional(),
+});
+
+const moveSchema = z.object({
+  resource_id: z.number().int().positive(),
+  type: z.string().trim().min(1).max(80),
+  category: z.string().trim().min(1).max(80),
 });
 
 async function callTool(name: string, rawArgs: unknown) {
@@ -174,6 +194,69 @@ async function callTool(name: string, rawArgs: unknown) {
         [categoryId ?? null, resolvedType, item.title, item.url, item.description ?? null, '{}', Number(sort.rows[0]?.max_order || 0) + 1],
       );
       return { created: true, duplicate: false, resource: inserted.rows[0] };
+    });
+
+    return text(result);
+  }
+
+  if (name === 'move_resource') {
+    const item = moveSchema.parse(rawArgs ?? {});
+
+    const result = await withTransaction(async (txQuery) => {
+      const existing = await txQuery(
+        `SELECT id, category_id, type, title, url, description FROM resources
+         WHERE id = ${param(0)} LIMIT 1`,
+        [item.resource_id],
+      );
+      const resource = existing.rows[0];
+      if (!resource) throw new Error(`Resource not found: ${item.resource_id}`);
+
+      if (LOCKED_TYPES.has(String(resource.type).toUpperCase())) {
+        throw new Error(`${resource.type} is intentionally excluded from Remote MCP writes`);
+      }
+      if (LOCKED_TYPES.has(item.type.toUpperCase())) {
+        throw new Error(`${item.type} is intentionally excluded from Remote MCP writes`);
+      }
+
+      const typeResult = await txQuery(
+        `SELECT id, name FROM resource_types
+         WHERE LOWER(id) = LOWER(${param(0)}) OR LOWER(name) = LOWER(${param(1)})
+         LIMIT 1`,
+        [item.type, item.type],
+      );
+      const resolvedType = typeResult.rows[0]?.id ? String(typeResult.rows[0].id) : null;
+      if (!resolvedType) throw new Error(`Resource type not found: ${item.type}`);
+      if (LOCKED_TYPES.has(resolvedType.toUpperCase())) {
+        throw new Error(`${resolvedType} is intentionally excluded from Remote MCP writes`);
+      }
+
+      const category = await txQuery(
+        `SELECT id, name FROM categories
+         WHERE type = ${param(0)} AND LOWER(name) = LOWER(${param(1)}) LIMIT 1`,
+        [resolvedType, item.category],
+      );
+      const categoryId = category.rows[0]?.id as string | number | undefined;
+      if (!categoryId) throw new Error(`Category not found for ${resolvedType}: ${item.category}`);
+
+      const sort = await txQuery(
+        `SELECT COALESCE(MAX(sort_order), 0) AS max_order
+         FROM resources WHERE type = ${param(0)} AND category_id = ${param(1)}`,
+        [resolvedType, categoryId],
+      );
+
+      const moved = await txQuery(
+        `UPDATE resources
+         SET type = ${param(0)}, category_id = ${param(1)}, sort_order = ${param(2)}, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ${param(3)}
+         RETURNING id, category_id, type, title, url, description`,
+        [resolvedType, categoryId, Number(sort.rows[0]?.max_order || 0) + 1, item.resource_id],
+      );
+
+      return {
+        moved: true,
+        resource: moved.rows[0],
+        destination: { type: resolvedType, category: category.rows[0]?.name },
+      };
     });
 
     return text(result);
