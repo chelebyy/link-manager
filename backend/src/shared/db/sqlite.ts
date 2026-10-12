@@ -304,6 +304,15 @@ export const initSqliteDb = () => {
           WHERE existing.type = 'oyun' AND existing.url IS resources.url
             AND existing.id <> resources.id
         )
+        AND NOT EXISTS (
+          SELECT 1 FROM resources AS earlier
+          WHERE earlier.id < resources.id AND earlier.url IS resources.url
+            AND earlier.type IN ('github', 'website')
+            AND earlier.category_id IN (
+              SELECT id FROM categories
+              WHERE name = 'Game Development' AND type IN ('github', 'website')
+            )
+        )
     `).run();
   })();
 
