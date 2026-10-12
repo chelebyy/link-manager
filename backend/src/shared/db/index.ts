@@ -324,6 +324,15 @@ export const db = {
             SELECT 1 FROM resources AS existing
             WHERE existing.type = 'oyun' AND existing.url IS NOT DISTINCT FROM r.url
               AND existing.id <> r.id
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM resources AS earlier
+            WHERE earlier.id < r.id AND earlier.url IS NOT DISTINCT FROM r.url
+              AND earlier.type IN ('github', 'website')
+              AND earlier.category_id IN (
+                SELECT id FROM categories
+                WHERE name = 'Game Development' AND type IN ('github', 'website')
+              )
           );
       `);
 
