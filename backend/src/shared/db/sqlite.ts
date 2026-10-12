@@ -103,6 +103,14 @@ const seedDefaultResourceTypes = (database: Database.Database) => {
   for (const type of defaultTypes) {
     insertStmt.run(type.id, type.name, type.icon, type.color, type.is_builtin, type.sort_order);
   }
+
+  database.prepare(`
+    INSERT OR IGNORE INTO resource_types
+      (id, name, icon, color, description, is_builtin, sort_order)
+    VALUES ('oyun', 'OYUN', 'Gamepad2', '#8b5cf6',
+      'Oyun geliştirme araçları, motorlar, varlıklar ve referanslar için üst seviye kart.',
+      0, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM resource_types))
+  `).run();
 };
 
 const migrateResourcesTable = (database: Database.Database) => {
@@ -273,6 +281,31 @@ export const initSqliteDb = () => {
   migrateResourcesTable(db);
   ensureResourcesUrlUniqueness(db);
   seedDefaultResourceTypes(db);
+
+  // One-time, repeat-safe move from the old GitHub/Website game categories.
+  db.transaction(() => {
+    db!.prepare(`
+      INSERT OR IGNORE INTO categories (name, type, color, icon, sort_order)
+      VALUES ('Game Development', 'oyun', '#8b5cf6', 'Gamepad2',
+        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM categories WHERE type = 'oyun'))
+    `).run();
+
+    db!.prepare(`
+      UPDATE resources
+      SET type = 'oyun',
+          category_id = (SELECT id FROM categories WHERE name = 'Game Development' AND type = 'oyun' LIMIT 1),
+          updated_at = datetime('now')
+      WHERE type IN ('github', 'website')
+        AND category_id IN (
+          SELECT id FROM categories WHERE name = 'Game Development' AND type IN ('github', 'website')
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM resources AS existing
+          WHERE existing.type = 'oyun' AND existing.url IS resources.url
+            AND existing.id <> resources.id
+        )
+    `).run();
+  })();
 
   console.log('SQLite database initialized');
   return db;
