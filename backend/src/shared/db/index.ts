@@ -159,6 +159,20 @@ export const db = {
         `);
 
         await pool.query(`
+          INSERT INTO resource_types (id, name, icon, color, description, is_builtin, sort_order)
+          VALUES (
+            'oyun',
+            'OYUN',
+            'Gamepad2',
+            '#8b5cf6',
+            'Oyun geliştirme araçları, motorlar, varlıklar ve referanslar için üst seviye kart.',
+            FALSE,
+            COALESCE((SELECT MAX(sort_order) + 1 FROM resource_types), 1)
+          )
+          ON CONFLICT (id) DO NOTHING;
+        `);
+
+        await pool.query(`
           ALTER TABLE IF EXISTS resources
           ALTER COLUMN type TYPE TEXT,
           ALTER COLUMN type SET NOT NULL;
@@ -286,6 +300,32 @@ export const db = {
             has_updates BOOLEAN NOT NULL DEFAULT FALSE
           );
         `);
+
+      // Keep the existing Game Development categories as an auditable source;
+      // move their resources into the new OYUN card on first boot after deploy.
+      await pool.query(`
+        INSERT INTO categories (name, type, color, icon, sort_order)
+        VALUES ('Game Development', 'oyun', '#8b5cf6', 'Gamepad2',
+          COALESCE((SELECT MAX(sort_order) + 1 FROM categories WHERE type = 'oyun'), 1))
+        ON CONFLICT (name, type) DO NOTHING;
+      `);
+
+      await pool.query(`
+        UPDATE resources AS r
+        SET type = 'oyun',
+            category_id = (SELECT id FROM categories WHERE name = 'Game Development' AND type = 'oyun' LIMIT 1),
+            updated_at = NOW()
+        WHERE r.type IN ('github', 'website')
+          AND r.category_id IN (
+            SELECT id FROM categories
+            WHERE name = 'Game Development' AND type IN ('github', 'website')
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM resources AS existing
+            WHERE existing.type = 'oyun' AND existing.url IS NOT DISTINCT FROM r.url
+              AND existing.id <> r.id
+          );
+      `);
 
       console.log('PostgreSQL database initialized');
     } else {
