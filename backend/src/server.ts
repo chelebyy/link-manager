@@ -21,6 +21,8 @@ dotenv.config();
 
 const app = Fastify({
   logger: {
+    redact: ['req.headers.authorization', 'req.headers.cookie', 'req.headers["cf-access-client-secret"]',
+      'req.headers["cf-access-jwt-assertion"]', 'req.headers["x-link-manager-mcp-key"]'],
     transport: {
       target: 'pino-pretty',
       options: { colorize: true },

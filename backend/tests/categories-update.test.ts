@@ -22,23 +22,24 @@ test('partial category updates preserve other fields and support full forms', as
   });
   await initDb();
   await app.register(categoriesRoutes, { prefix: '/api/categories' });
-  await query("INSERT INTO categories (id, name, type, color, icon) VALUES (1, 'Original', 'website', '#111111', 'Folder')");
+  const inserted = await query("INSERT INTO categories (name, type, color, icon) VALUES ('Original', 'website', '#111111', 'Folder') RETURNING id");
+  const id = inserted.rows[0]!.id;
   // A peer renames the category after the tool's earlier discovery read.
-  await query("UPDATE categories SET name = 'Peer rename' WHERE id = 1");
-  const response = await app.inject({ method: 'PUT', url: '/api/categories/1', payload: { color: '#222222' } });
+  await query("UPDATE categories SET name = 'Peer rename' WHERE id = ?", [id]);
+  const response = await app.inject({ method: 'PUT', url: `/api/categories/${id}`, payload: { color: '#222222' } });
   assert.equal(response.statusCode, 200);
   assert.equal(response.json().name, 'Peer rename');
   assert.equal(response.json().color, '#222222');
   assert.equal(response.json().icon, 'Folder');
-  const full = await app.inject({ method: 'PUT', url: '/api/categories/1', payload: { name: 'Full form', color: '#333333', icon: 'Star' } });
+  const full = await app.inject({ method: 'PUT', url: `/api/categories/${id}`, payload: { name: 'Full form', color: '#333333', icon: 'Star' } });
   assert.equal(full.statusCode, 200);
   assert.equal(full.json().name, 'Full form');
   const longName = 'Existing name '.repeat(10);
-  await query('UPDATE categories SET name = ? WHERE id = 1', [longName]);
-  const existingLong = await app.inject({ method: 'PUT', url: '/api/categories/1', payload: { name: longName, color: '#444444', icon: 'Star' } });
+  await query('UPDATE categories SET name = ? WHERE id = ?', [longName, id]);
+  const existingLong = await app.inject({ method: 'PUT', url: `/api/categories/${id}`, payload: { name: longName, color: '#444444', icon: 'Star' } });
   assert.equal(existingLong.statusCode, 200, 'existing SQLite names remain editable with the full form');
   for (const payload of [{}, { name: '' }, { name: null }, { type: 'note' }, { unexpected: 'value' }]) {
-    assert.equal((await app.inject({ method: 'PUT', url: '/api/categories/1', payload })).statusCode, 400);
+    assert.equal((await app.inject({ method: 'PUT', url: `/api/categories/${id}`, payload })).statusCode, 400);
   }
   assert.equal((await app.inject({ method: 'PUT', url: '/api/categories/999', payload: { name: 'Missing' } })).statusCode, 404);
 });
