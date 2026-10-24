@@ -26,6 +26,7 @@ test('MCP authentication protects every route; authenticated tools still work', 
     delete process.env.LINK_MANAGER_MCP_ACCESS_ISSUER;
     delete process.env.LINK_MANAGER_MCP_ACCESS_AUDIENCE;
     delete process.env.LINK_MANAGER_MCP_OWNER_EMAIL;
+    delete process.env.LINK_MANAGER_MCP_SERVICE_CLIENT_IDS;
     await rm(dir, { recursive: true, force: true });
   });
   await initDb();
@@ -65,6 +66,7 @@ test('MCP authentication protects every route; authenticated tools still work', 
   process.env.LINK_MANAGER_MCP_ACCESS_ISSUER = 'https://test-team.cloudflareaccess.com';
   process.env.LINK_MANAGER_MCP_ACCESS_AUDIENCE = 'mcp-app';
   process.env.LINK_MANAGER_MCP_OWNER_EMAIL = 'owner@example.com';
+  process.env.LINK_MANAGER_MCP_SERVICE_CLIENT_IDS = 'machine.access';
   const pair = await generateKeyPair('RS256');
   const jwk = { ...await exportJWK(pair.publicKey), kid: 'route-test', alg: 'RS256' };
   t.mock.method(globalThis, 'fetch', async (url: URL | string) => {
@@ -79,4 +81,17 @@ test('MCP authentication protects every route; authenticated tools still work', 
   const oauthResponse = await oauthApp.inject({ method: 'POST', url: '/mcp', payload, headers: { 'cf-access-jwt-assertion': assertion } });
   assert.equal(oauthResponse.statusCode, 200);
   assert.equal(oauthResponse.json().result.tools.length, 5);
+  const serviceAssertion = await new SignJWT({ type: 'app', common_name: 'machine.access' })
+    .setProtectedHeader({ alg: 'RS256', kid: 'route-test' }).setIssuer('https://test-team.cloudflareaccess.com')
+    .setAudience('mcp-app').setSubject('').setIssuedAt().setExpirationTime('15m').sign(pair.privateKey);
+  const serviceHeaders = { 'cf-access-jwt-assertion': serviceAssertion };
+  for (const method of ['initialize', 'tools/list', 'tools/call']) {
+    const response = await oauthApp.inject({ method: 'POST', url: '/mcp', headers: serviceHeaders,
+      payload: { jsonrpc: '2.0', id: 3, method, ...(method === 'tools/call' ? { params: { name: 'list_categories', arguments: {} } } : {}) } });
+    assert.equal(response.statusCode, 200);
+    assert.ok(response.json().result);
+  }
+  const rawService = await oauthApp.inject({ method: 'POST', url: '/mcp', payload,
+    headers: { 'cf-access-client-id': 'machine.access', 'cf-access-client-secret': 'not-an-assertion' } });
+  assert.equal(rawService.statusCode, 401);
 });

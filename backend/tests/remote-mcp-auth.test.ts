@@ -66,10 +66,53 @@ test('configuration fails closed and legacy mode is explicit', async () => {
   assert.throws(() => createMcpAuthenticator({ ...env, LINK_MANAGER_MCP_AUTH_MODE: 'legacy-key' }));
   assert.throws(() => createMcpAuthenticator({ LINK_MANAGER_MCP_AUTH_MODE: 'typo' }));
   assert.throws(() => createMcpAuthenticator({ LINK_MANAGER_MCP_AUTH_MODE: 'legacy-key' }));
+  for (const ids of ['*', ' ', 'a.access,https://evil.example', 'a.access\nother.access']) {
+    assert.throws(() => createMcpAuthenticator({ ...env, LINK_MANAGER_MCP_SERVICE_CLIENT_IDS: ids }));
+  }
+  assert.throws(() => createMcpAuthenticator({ LINK_MANAGER_MCP_SERVICE_CLIENT_IDS: 'machine.access' }));
   const legacy = createMcpAuthenticator({ LINK_MANAGER_MCP_AUTH_MODE: 'legacy-key', LINK_MANAGER_MCP_KEY: 'secret' });
   assert.equal(await legacy.authenticate({ authorization: 'Bearer secret' }), true);
   assert.equal(await legacy.authenticate({ 'x-link-manager-mcp-key': 'secret' }), true);
   assert.equal(await legacy.authenticate({ authorization: 'Bearer wrong' }), false);
+});
+
+test('Service Auth accepts only a signed, explicitly allowed machine identity', async (t) => {
+  const pair = await generateKeyPair('RS256');
+  const jwk = { ...await exportJWK(pair.publicKey), kid: 'service-key', alg: 'RS256' };
+  const keys = createLocalJWKSet({ keys: [jwk] });
+  const auth = createMcpAuthenticator({ ...env, LINK_MANAGER_MCP_SERVICE_CLIENT_IDS: 'machine.access,second.access' }, keys);
+  const now = Math.floor(Date.now() / 1000);
+  const claims = { iss: issuer, aud: 'dedicated-mcp-app', type: 'app', sub: '', common_name: 'machine.access', iat: now, exp: now + 900 };
+  const sign = (payload: Record<string, unknown>, key = pair.privateKey) => new SignJWT(payload)
+    .setProtectedHeader({ alg: 'RS256', kid: 'service-key' }).sign(key);
+  const verify = async (payload: Record<string, unknown>) => auth.authenticate({ 'cf-access-jwt-assertion': await sign(payload) });
+  assert.equal(await verify(claims), true);
+  assert.equal(await verify({ ...claims, common_name: 'second.access' }), true);
+  assert.equal(await createMcpAuthenticator(env, keys).authenticate({ 'cf-access-jwt-assertion': await sign(claims) }), false, 'empty allowlist denies services');
+  for (const [name, changed] of Object.entries({
+    'unlisted machine': { common_name: 'other.access' },
+    'owner email as machine': { common_name: 'owner@example.com' },
+    'wrong application': { aud: 'browser-app' },
+    'wrong issuer': { iss: 'https://attacker.cloudflareaccess.com' },
+    'global token': { type: 'org' },
+    'mixed user subject': { sub: 'owner-id' },
+    'mixed owner claims': { sub: 'owner-id', email: 'owner@example.com' },
+    'mixed email': { email: 'owner@example.com' },
+    'null email': { email: null },
+    'expired': { exp: now - 60 },
+    'future issued': { iat: now + 60 },
+    'not yet valid': { nbf: now + 60 },
+  })) {
+    await t.test(name, async () => assert.equal(await verify({ ...claims, ...changed }), false));
+  }
+  for (const claim of ['exp', 'iat', 'sub', 'type', 'common_name', 'iss', 'aud']) {
+    const payload: Record<string, unknown> = { ...claims };
+    delete payload[claim];
+    assert.equal(await verify(payload), false, `missing ${claim}`);
+  }
+  const other = await generateKeyPair('RS256');
+  assert.equal(await auth.authenticate({ 'cf-access-jwt-assertion': await sign(claims, other.privateKey) }), false);
+  assert.equal(await auth.authenticate({ 'cf-access-client-id': 'machine.access', 'cf-access-client-secret': 'raw-secret' }), false);
 });
 
 test('Origin validation permits native clients and explicit origins only', () => {

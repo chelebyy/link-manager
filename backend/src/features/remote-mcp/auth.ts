@@ -10,13 +10,18 @@ export function createMcpAuthenticator(env: Environment = process.env, keys?: JW
   const issuer = env.LINK_MANAGER_MCP_ACCESS_ISSUER;
   const audience = env.LINK_MANAGER_MCP_ACCESS_AUDIENCE;
   const owner = env.LINK_MANAGER_MCP_OWNER_EMAIL;
+  const serviceIdsValue = env.LINK_MANAGER_MCP_SERVICE_CLIENT_IDS || '';
+  const serviceIds = new Set(serviceIdsValue.split(',').map((value) => value.trim()).filter(Boolean));
+  if (serviceIdsValue && (serviceIds.size === 0 || [...serviceIds].some((id) => !/^[a-zA-Z0-9_-]+\.access$/.test(id)))) {
+    throw new Error('MCP service client IDs must be explicit Cloudflare Access client IDs');
+  }
   const origins = new Set((env.LINK_MANAGER_MCP_ALLOWED_ORIGINS || '').split(',').filter(Boolean));
   for (const origin of origins) {
     if (new URL(origin).origin !== origin || !origin.startsWith('https://')) {
       throw new Error('MCP allowed origins must be exact HTTPS origins');
     }
   }
-  if (mode !== 'cloudflare-access' && (issuer || audience || owner)) {
+  if (mode !== 'cloudflare-access' && (issuer || audience || owner || serviceIdsValue)) {
     throw new Error('MCP Access settings require cloudflare-access mode');
   }
   if (!['disabled', 'legacy-key', 'cloudflare-access'].includes(mode)) {
@@ -42,12 +47,18 @@ export function createMcpAuthenticator(env: Environment = process.env, keys?: JW
           issuer,
           audience,
           algorithms: ['RS256'],
-          requiredClaims: ['exp', 'iat', 'sub', 'email'],
+          requiredClaims: ['exp', 'iat', 'sub'],
           clockTolerance: 5,
         });
+        if (typeof payload.iat !== 'number' || payload.iat > Date.now() / 1000 + 5) return false;
+        // Service Auth assertions have an empty subject and identify the machine
+        // through signed common_name. Raw service headers never authorize origin requests.
+        if (payload.sub === '') {
+          return payload.type === 'app' && payload.email === undefined
+            && typeof payload.common_name === 'string' && serviceIds.has(payload.common_name);
+        }
         return typeof payload.sub === 'string' && payload.sub.trim().length > 0
-          && payload.email === owner
-          && typeof payload.iat === 'number' && payload.iat <= Date.now() / 1000 + 5;
+          && payload.email === owner && payload.common_name === undefined;
       } catch {
         // Never log assertions, keys, or JWT diagnostics containing identity data.
         return false;
