@@ -1,18 +1,10 @@
-import crypto from 'node:crypto';
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { z } from 'zod';
 import { db, withTransaction } from '../../shared/db/index.js';
+import { createMcpAuthenticator } from './auth.js';
 
 const param = (index: number) => db.isPostgres ? `$${index + 1}` : '?';
 const LOCKED_TYPES = new Set(['AKINCI', 'HERMES', 'TRADING']);
-
-function verifyMcpKey(rawKey: unknown) {
-  const expected = process.env.LINK_MANAGER_MCP_KEY;
-  if (!expected || typeof rawKey !== 'string') return false;
-  const a = Buffer.from(rawKey);
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
 
 const text = (value: unknown) => ({
   content: [{ type: 'text' as const, text: JSON.stringify(value, null, 2) }],
@@ -274,16 +266,16 @@ function jsonRpcError(id: unknown, code: number, message: string) {
 }
 
 export async function remoteMcpRoutes(app: FastifyInstance, _opts: FastifyPluginOptions) {
+  const auth = createMcpAuthenticator();
+  app.addHook('onRequest', async (request, reply) => {
+    if (!auth.validOrigin(request.headers)) return reply.code(403).send({ error: 'Invalid MCP origin' });
+    if (!await auth.authenticate(request.headers)) {
+      return reply.header('WWW-Authenticate', 'Bearer').code(401).send({ error: 'MCP authentication required' });
+    }
+  });
   app.post('/', {
     config: { rateLimit: { max: 60, timeWindow: '15 minutes' } },
   }, async (request, reply) => {
-    const auth = request.headers.authorization;
-    const bearer = typeof auth === 'string' && auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-    const customHeader = request.headers['x-link-manager-mcp-key'];
-    const customKey = typeof customHeader === 'string' ? customHeader.trim() : '';
-    const presentedKey = customKey || bearer;
-    if (!verifyMcpKey(presentedKey)) return reply.code(401).send({ error: 'Invalid MCP key' });
-
     const body = request.body as { jsonrpc?: string; id?: unknown; method?: string; params?: any } | undefined;
     if (!body || body.jsonrpc !== '2.0' || typeof body.method !== 'string') {
       return reply.code(400).send(jsonRpcError(body?.id, -32600, 'Invalid Request'));
