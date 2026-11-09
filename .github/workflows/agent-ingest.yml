@@ -57,7 +57,7 @@ jobs:
     steps:
       - name: Checkout queue payload
         if: github.event_name == 'push'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Run Link Manager agent action
         env:
